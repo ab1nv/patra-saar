@@ -1,10 +1,8 @@
 services:
   # PostgreSQL Database
-  - type: pserv
+  - type: postgres
     name: patra-db
     plan: free
-    databaseName: patrasaar
-    user: postgres
 
   # Redis Instance
   - type: redis
