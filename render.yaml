@@ -1,0 +1,125 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: patra-db
+    plan: free
+    databaseName: patrasaar
+    user: postgres
+
+  # Redis Instance
+  - type: redis
+    name: patra-redis
+    plan: free
+
+  # Backend API Server
+  - type: web
+    name: patra-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./docker/Dockerfile.backend
+    dockerContext: .
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: patra-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: patra-redis
+          property: connectionString
+      - key: DB_HOST
+        fromDatabase:
+          name: patra-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: patra-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: patra-db
+          property: databaseName
+      - key: DB_USER
+        fromDatabase:
+          name: patra-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: patra-db
+          property: password
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: patra-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: patra-redis
+          property: port
+
+  # Background Worker
+  - type: worker
+    name: patra-worker
+    runtime: docker
+    plan: free
+    dockerfilePath: ./docker/Dockerfile.backend
+    dockerContext: .
+    startCommand: ./worker
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: patra-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: patra-redis
+          property: connectionString
+      - key: DB_HOST
+        fromDatabase:
+          name: patra-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: patra-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: patra-db
+          property: databaseName
+      - key: DB_USER
+        fromDatabase:
+          name: patra-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: patra-db
+          property: password
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: patra-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: patra-redis
+          property: port
+
+  # Frontend
+  - type: web
+    name: patra-frontend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./docker/Dockerfile.frontend
+    dockerContext: .
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: patra-api
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NODE_ENV
+        value: production

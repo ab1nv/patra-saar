@@ -1,0 +1,26 @@
+{
+  "name": "patrasaar",
+  "version": "1.0.0",
+  "description": "Legal document summarization platform for Indian legal jargon",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "make run",
+    "test": "make test",
+    "clean": "make clean",
+    "build": "pnpm run build --filter=frontend && go build -o bin/ ./backend/cmd/...",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
