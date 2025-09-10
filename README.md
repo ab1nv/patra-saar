@@ -370,6 +370,9 @@ make test                  # Run all tests (frontend + backend)
 #### Frontend (.env.local)
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080/api
+\n+# Enable runtime controls (Tweakpane) for the metaball background (optional)
+# Set to 1 to show panel in browser
+NEXT_PUBLIC_METABALL_CONTROLS=0
 ```
 
 #### Backend (.env)
@@ -423,6 +426,25 @@ For support and questions:
 - Review existing issues and discussions
 
 ## Roadmap
+\n+## Visual Background System
+
+The hero / site background uses a performant GPU metaball ray-marched shader implemented in `MetaballBackground` (Three.js + GLSL). It replaces the older `DarkVeil` component.
+
+Key points:
+- Fully declarative React component (client-side only) – safe with Next.js App Router
+- Adaptive quality: lowers iterations on mobile / low-power devices automatically
+- Preset-based visual styles (extendable in `MetaballBackground.tsx`)
+- Optional real-time tuning panel (Tweakpane) gated by `NEXT_PUBLIC_METABALL_CONTROLS=1`
+- Cleans up WebGL resources on unmount to avoid memory leaks
+
+To enable the control panel locally:
+```bash
+echo "NEXT_PUBLIC_METABALL_CONTROLS=1" >> frontend/.env.local
+```
+
+Then restart the frontend dev server. A floating "Metaballs" panel will appear allowing you to tweak animation, blending, and counts.
+
+If you need to add a new visual preset, extend the `presets` object near the top of `MetaballBackground.tsx` and ensure all uniform fields are provided.
 
 - [ ] Enhanced AI model fine-tuning for Indian legal documents
 - [ ] Multi-language support (Hindi, regional languages)
