@@ -1,52 +1,41 @@
-# This top-level key is specifically for PostgreSQL databases.
 databases:
-  # FIX 1: Defined the PostgreSQL database in the correct 'databases' section.
   - name: patra-db
     plan: free
-    # It's good practice to specify the major version.
     postgresMajorVersion: "15"
 
-# This top-level key is for all other services.
 services:
-  # FIX 2: Redis is a 'keyvalue' service type. 'redis' is deprecated.
-  # Added ipAllowList: [] to only allow internal connections (secure default).
   - name: patra-redis
     type: keyvalue
     plan: free
     ipAllowList: []
 
-  # Backend API Server
   - name: patra-api
     type: web
     runtime: docker
     plan: free
     dockerfilePath: ./docker/Dockerfile.backend
-    healthCheckPath: /api/healthz # Recommended: Add a health check path
+    healthCheckPath: /api/healthz
     envVars:
-      # FIX 3: Simplified to use the connection string, which is best practice.
-      # Your Go app should be configured to parse this single URL.
       - key: DATABASE_URL
         fromDatabase:
           name: patra-db
           property: connectionString
       - key: REDIS_URL
         fromService:
-          # FIX 4: The referenced service type must be 'keyvalue'.
           type: keyvalue
           name: patra-redis
           property: connectionString
       - key: GIN_MODE
         value: release
 
-  # Background Worker
   - name: patra-worker
     type: worker
     runtime: docker
     plan: free
     dockerfilePath: ./docker/Dockerfile.backend
-    startCommand: ./worker
+    # FIX 1: Use 'dockerCommand' for services with 'runtime: docker'.
+    dockerCommand: ./worker
     envVars:
-      # FIX 3: Also simplified here for consistency.
       - key: DATABASE_URL
         fromDatabase:
           name: patra-db
@@ -57,7 +46,6 @@ services:
           name: patra-redis
           property: connectionString
 
-  # Frontend
   - name: patra-frontend
     type: web
     runtime: docker
@@ -68,7 +56,7 @@ services:
         fromService:
           type: web
           name: patra-api
-          # FIX 5: Use the 'url' property to get the public URL of the backend.
-          property: url
+          # FIX 2: Use 'envVarKey' to reference the public URL environment variable from the API service.
+          envVarKey: RENDER_EXTERNAL_URL
       - key: NODE_ENV
         value: production
