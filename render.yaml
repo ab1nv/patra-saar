@@ -1,123 +1,74 @@
-services:
-  # PostgreSQL Database
-  - type: postgres
-    name: patra-db
+# This top-level key is specifically for PostgreSQL databases.
+databases:
+  # FIX 1: Defined the PostgreSQL database in the correct 'databases' section.
+  - name: patra-db
     plan: free
+    # It's good practice to specify the major version.
+    postgresMajorVersion: "15"
 
-  # Redis Instance
-  - type: redis
-    name: patra-redis
+# This top-level key is for all other services.
+services:
+  # FIX 2: Redis is a 'keyvalue' service type. 'redis' is deprecated.
+  # Added ipAllowList: [] to only allow internal connections (secure default).
+  - name: patra-redis
+    type: keyvalue
     plan: free
+    ipAllowList: []
 
   # Backend API Server
-  - type: web
-    name: patra-api
+  - name: patra-api
+    type: web
     runtime: docker
     plan: free
     dockerfilePath: ./docker/Dockerfile.backend
-    dockerContext: .
+    healthCheckPath: /api/healthz # Recommended: Add a health check path
     envVars:
+      # FIX 3: Simplified to use the connection string, which is best practice.
+      # Your Go app should be configured to parse this single URL.
       - key: DATABASE_URL
         fromDatabase:
           name: patra-db
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          # FIX 4: The referenced service type must be 'keyvalue'.
+          type: keyvalue
           name: patra-redis
           property: connectionString
-      - key: DB_HOST
-        fromDatabase:
-          name: patra-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: patra-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: patra-db
-          property: databaseName
-      - key: DB_USER
-        fromDatabase:
-          name: patra-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: patra-db
-          property: password
-      - key: REDIS_HOST
-        fromService:
-          type: redis
-          name: patra-redis
-          property: host
-      - key: REDIS_PORT
-        fromService:
-          type: redis
-          name: patra-redis
-          property: port
+      - key: GIN_MODE
+        value: release
 
   # Background Worker
-  - type: worker
-    name: patra-worker
+  - name: patra-worker
+    type: worker
     runtime: docker
     plan: free
     dockerfilePath: ./docker/Dockerfile.backend
-    dockerContext: .
     startCommand: ./worker
     envVars:
+      # FIX 3: Also simplified here for consistency.
       - key: DATABASE_URL
         fromDatabase:
           name: patra-db
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: patra-redis
           property: connectionString
-      - key: DB_HOST
-        fromDatabase:
-          name: patra-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: patra-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: patra-db
-          property: databaseName
-      - key: DB_USER
-        fromDatabase:
-          name: patra-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: patra-db
-          property: password
-      - key: REDIS_HOST
-        fromService:
-          type: redis
-          name: patra-redis
-          property: host
-      - key: REDIS_PORT
-        fromService:
-          type: redis
-          name: patra-redis
-          property: port
 
   # Frontend
-  - type: web
-    name: patra-frontend
+  - name: patra-frontend
+    type: web
     runtime: docker
     plan: free
     dockerfilePath: ./docker/Dockerfile.frontend
-    dockerContext: .
     envVars:
       - key: NEXT_PUBLIC_API_URL
         fromService:
           type: web
           name: patra-api
-          envVarKey: RENDER_EXTERNAL_URL
+          # FIX 5: Use the 'url' property to get the public URL of the backend.
+          property: url
       - key: NODE_ENV
         value: production
