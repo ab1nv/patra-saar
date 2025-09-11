@@ -23,40 +23,40 @@ const isLowPowerDevice = isMobile || hwThreads <= 4;
 // Presets (subset retained; can extend easily)
 const presets: any = {
   holographic: {
-    sphereCount: isMobile ? 4 : 6,
-    ambientIntensity: 0.12,
-    diffuseIntensity: 1.2,
-    specularIntensity: 2.5,
-    specularPower: 3,
-    fresnelPower: 0.8,
-    backgroundColor: new THREE.Color(0x0a0a15),
-    sphereColor: new THREE.Color(0x050510),
-    lightColor: new THREE.Color(0xccaaff),
+    sphereCount: isMobile ? 6 : 10,
+    ambientIntensity: 0.08,
+    diffuseIntensity: 1.0,
+    specularIntensity: 2.2,
+    specularPower: 4,
+    fresnelPower: 0.7,
+    backgroundColor: new THREE.Color('#0E1420'),
+    sphereColor: new THREE.Color('#101c2a'),
+    lightColor: new THREE.Color('#D4AF37'),
     lightPosition: new THREE.Vector3(0.9, 0.9, 1.2),
-    smoothness: 0.8,
-    contrast: 1.6,
-    fogDensity: 0.06,
-    cursorGlowIntensity: 1.2,
-    cursorGlowRadius: 2.2,
-    cursorGlowColor: new THREE.Color(0xaa77ff)
+    smoothness: 0.85,
+    contrast: 1.45,
+    fogDensity: 0.05,
+    cursorGlowIntensity: 0.9,
+    cursorGlowRadius: 2.0,
+    cursorGlowColor: new THREE.Color('#D4AF37')
   },
   minimal: {
-    sphereCount: isMobile ? 2 : 3,
-    ambientIntensity: 0.0,
-    diffuseIntensity: 0.25,
-    specularIntensity: 1.3,
-    specularPower: 11,
-    fresnelPower: 1.7,
-    backgroundColor: new THREE.Color(0x0a0a0a),
-    sphereColor: new THREE.Color(0x000000),
-    lightColor: new THREE.Color(0xffffff),
+    sphereCount: isMobile ? 3 : 4,
+    ambientIntensity: 0.04,
+    diffuseIntensity: 0.35,
+    specularIntensity: 1.1,
+    specularPower: 9,
+    fresnelPower: 1.4,
+    backgroundColor: new THREE.Color('#0E1420'),
+    sphereColor: new THREE.Color('#0b1520'),
+    lightColor: new THREE.Color('#1FA7A8'),
     lightPosition: new THREE.Vector3(1, 0.5, 0.8),
-    smoothness: 0.25,
-    contrast: 2.0,
-    fogDensity: 0.1,
-    cursorGlowIntensity: 0.3,
-    cursorGlowRadius: 1.0,
-    cursorGlowColor: new THREE.Color(0xffffff)
+    smoothness: 0.3,
+    contrast: 1.6,
+    fogDensity: 0.08,
+    cursorGlowIntensity: 0.35,
+    cursorGlowRadius: 1.1,
+    cursorGlowColor: new THREE.Color('#1FA7A8')
   }
 };
 
@@ -68,8 +68,8 @@ const baseSettings = {
   smallBottomRightRadius: 0.35,
   cursorRadiusMin: 0.08,
   cursorRadiusMax: 0.15,
-  animationSpeed: 0.6,
-  movementScale: 1.2,
+  animationSpeed: 0.55,
+  movementScale: 1.05,
   mouseSmoothness: 0.1,
   mergeDistance: 1.5,
   mouseProximityEffect: true,
@@ -82,17 +82,19 @@ interface MetaballBackgroundProps {
   preset?: keyof typeof presets;
   enableControls?: boolean; // override flag
   quality?: 'auto' | 'high' | 'medium' | 'low'; // performance baseline
+  spheresOverride?: number; // override sphere count
   disableWhenIdle?: boolean; // pause if user not interacting
 }
 
-export function MetaballBackground({ className, preset = 'holographic', enableControls, quality = 'auto', disableWhenIdle = true }: MetaballBackgroundProps) {
+export function MetaballBackground({ className, preset = 'holographic', enableControls, quality = 'auto', disableWhenIdle = true, spheresOverride }: MetaballBackgroundProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
   if (!container) return;
 
-    const settings: any = { ...baseSettings, ...presets[preset] };
+  const settings: any = { ...baseSettings, ...presets[preset] };
+  if (typeof spheresOverride === 'number') settings.sphereCount = spheresOverride;
 
     let scene: THREE.Scene, camera: THREE.OrthographicCamera, renderer: THREE.WebGLRenderer, material: THREE.ShaderMaterial;
     let clock: THREE.Clock, frameCount = 0, lastTime = performance.now(), fps = 0;
@@ -134,7 +136,7 @@ export function MetaballBackground({ className, preset = 'holographic', enableCo
 
   renderer = new THREE.WebGLRenderer({ antialias: quality==='high' && !isMobile && !isLowPowerDevice, alpha: true, powerPreference: isMobile ? 'default' : 'high-performance' });
   const pixelRatio = dynamicPixelRatio;
-      const vw = window.innerWidth; const vh = window.innerHeight;
+  const vw = window.innerWidth; const vh = window.innerHeight;
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(vw, vh);
       renderer.setClearColor(0x000000, 0);
@@ -218,7 +220,7 @@ export function MetaballBackground({ className, preset = 'holographic', enableCo
       material.uniforms.uCursorRadius.value = dynRadius;
     }
 
-    function onWindowResize() {
+  function onWindowResize() {
       const w = window.innerWidth, h = window.innerHeight; const pr = Math.min(window.devicePixelRatio||1, isMobile?1.5:2);
       camera.updateProjectionMatrix();
       renderer.setSize(w,h); renderer.setPixelRatio(pr);
@@ -262,6 +264,14 @@ export function MetaballBackground({ className, preset = 'holographic', enableCo
               renderer.setPixelRatio(dynamicPixelRatio);
               material.uniforms.uActualResolution.value.set(w*dynamicPixelRatio, h*dynamicPixelRatio);
               material.uniforms.uPixelRatio.value = dynamicPixelRatio;
+            }
+            // also adapt sphere count slightly on high/low performance
+            if (avg > 55 && settings.sphereCount < 12 && !isMobile) {
+              settings.sphereCount += 1;
+              material.uniforms.uSphereCount.value = settings.sphereCount;
+            } else if (avg < 25 && settings.sphereCount > (isMobile ? 4 : 6)) {
+              settings.sphereCount -= 1;
+              material.uniforms.uSphereCount.value = settings.sphereCount;
             }
         }
       }
@@ -350,7 +360,52 @@ export function MetaballBackground({ className, preset = 'holographic', enableCo
 function fragmentShaderSource(){
   return `
     ${isMobile || isSafari || isLowPowerDevice ? 'precision mediump float;' : 'precision highp float;'}
-    uniform float uTime; uniform vec2 uResolution; uniform vec2 uActualResolution; uniform float uPixelRatio; uniform vec2 uMousePosition; uniform vec3 uCursorSphere; uniform float uCursorRadius; uniform int uSphereCount; uniform float uFixedTopLeftRadius; uniform float uFixedBottomRightRadius; uniform float uSmallTopLeftRadius; uniform float uSmallBottomRightRadius; uniform float uMergeDistance; uniform float uSmoothness; uniform float uAmbientIntensity; uniform float uDiffuseIntensity; uniform float uSpecularIntensity; uniform float uSpecularPower; uniform float uFresnelPower; uniform vec3 uBackgroundColor; uniform vec3 uSphereColor; uniform vec3 uLightColor; uniform vec3 uLightPosition; uniform float uContrast; uniform float uFogDensity; uniform float uAnimationSpeed; uniform float uMovementScale; uniform bool uMouseProximityEffect; uniform float uMinMovementScale; uniform float uMaxMovementScale; uniform float uCursorGlowIntensity; uniform float uCursorGlowRadius; uniform vec3 uCursorGlowColor; uniform float uIsSafari; uniform float uIsMobile; uniform float uIsLowPower; varying vec2 vUv; const float PI=3.14159265359; const float EPS=0.001; float smin(float a,float b,float k){ float h=max(k-abs(a-b),0.)/k; return min(a,b)-h*h*k*0.25; } float sdSphere(vec3 p,float r){ return length(p)-r; } vec3 screenToWorld(vec2 n){ vec2 uv=n*2.-1.; uv.x*=uResolution.x/uResolution.y; return vec3(uv*2.,0.); } float getDistanceToCenter(vec2 pos){ float d=length(pos-vec2(.5,.5))*2.; return smoothstep(0.,1.,d); } float sceneSDF(vec3 pos){ float res=100.; vec3 tl=screenToWorld(vec2(.08,.92)); float topLeft=sdSphere(pos-tl,uFixedTopLeftRadius); vec3 stl=screenToWorld(vec2(.25,.72)); float smallTopLeft=sdSphere(pos-stl,uSmallTopLeftRadius); vec3 br=screenToWorld(vec2(.92,.08)); float bottomRight=sdSphere(pos-br,uFixedBottomRightRadius); vec3 sbr=screenToWorld(vec2(.72,.25)); float smallBottomRight=sdSphere(pos-sbr,uSmallBottomRightRadius); float t=uTime*uAnimationSpeed; float dynMove=uMovementScale; if(uMouseProximityEffect){ float d=getDistanceToCenter(uMousePosition); float mixF=smoothstep(0.,1.,d); dynMove=mix(uMinMovementScale,uMaxMovementScale,mixF);} int maxIter= uIsMobile>0.5?4:(uIsLowPower>0.5?6:min(uSphereCount,10)); for(int i=0;i<10;i++){ if(i>=uSphereCount||i>=maxIter) break; float fi=float(i); float speed=.4+fi*.12; float radius=.12+mod(fi,3.)*.06; float orbit=(.3+mod(fi,3.)*.15)*dynMove; float phase=fi*PI*.35; float distToCursor=length(vec3(0.)-uCursorSphere); float prox=1.+(1.-smoothstep(0.,1.,distToCursor))*0.5; orbit*=prox; vec3 off; if(i==0){ off=vec3(sin(t*speed)*orbit*.7,sin(t*.5)*orbit,cos(t*speed*.7)*orbit*.5);} else if(i==1){ off=vec3(sin(t*speed+PI)*orbit*.5,-sin(t*.5)*orbit,cos(t*speed*.7+PI)*orbit*.5);} else { off=vec3(sin(t*speed+phase)*orbit*.8,cos(t*speed*.85+phase*1.3)*orbit*.6,sin(t*speed*.5+phase)*.3);} vec3 toCursor=uCursorSphere-off; float cDist=length(toCursor); if(cDist<uMergeDistance && cDist>0.){ float attract=(1.-cDist/uMergeDistance)*.3; off+=normalize(toCursor)*attract; } float moving=sdSphere(pos-off,radius); float blend=.05; if(cDist<uMergeDistance){ float influence=1.-(cDist/uMergeDistance); blend=mix(.05,uSmoothness,influence*influence*influence);} res=smin(res,moving,blend);} float cursorBall=sdSphere(pos-uCursorSphere,uCursorRadius); float tlGroup=smin(topLeft,smallTopLeft,.4); float brGroup=smin(bottomRight,smallBottomRight,.4); res=smin(res,tlGroup,.3); res=smin(res,brGroup,.3); res=smin(res,cursorBall,uSmoothness); return res; } vec3 calcNormal(vec3 p){ float eps=uIsLowPower>0.5?0.002:0.001; return normalize(vec3(sceneSDF(p+vec3(eps,0,0))-sceneSDF(p-vec3(eps,0,0)), sceneSDF(p+vec3(0,eps,0))-sceneSDF(p-vec3(0,eps,0)), sceneSDF(p+vec3(0,0,eps))-sceneSDF(p-vec3(0,0,eps)))); } float softShadow(vec3 ro,vec3 rd,float mint,float maxt,float k){ if(uIsLowPower>0.5){ float result=1.; float t=mint; for(int i=0;i<3;i++){ t+=.3; if(t>=maxt) break; float h=sceneSDF(ro+rd*t); if(h<EPS) return 0.; result=min(result,k*h/t);} return result;} float result=1.; float t=mint; for(int i=0;i<20;i++){ if(t>=maxt) break; float h=sceneSDF(ro+rd*t); if(h<EPS) return 0.; result=min(result,k*h/t); t+=h;} return result;} float rayMarch(vec3 ro,vec3 rd){ float t=0.; int maxSteps= uIsMobile>0.5?16:(uIsSafari>0.5?16:48); for(int i=0;i<48;i++){ if(i>=maxSteps) break; vec3 p=ro+rd*t; float d=sceneSDF(p); if(d<EPS) return t; if(t>5.) break; t+=d*(uIsLowPower>0.5?1.2:.9);} return -1.; } vec3 lighting(vec3 p,vec3 rd,float t){ if(t<0.) return vec3(0.); vec3 n=calcNormal(p); vec3 viewDir=-rd; vec3 base=uSphereColor; vec3 lightDir=normalize(uLightPosition); float diff=max(dot(n,lightDir),0.); float shadow=softShadow(p,lightDir,0.01,10.,20.); vec3 diffuse=uLightColor*diff*uDiffuseIntensity*shadow; vec3 refl=reflect(-lightDir,n); float spec=pow(max(dot(viewDir,refl),0.),uSpecularPower); float fres=pow(1.-max(dot(viewDir,n),0.),uFresnelPower); vec3 specCol=uLightColor*spec*uSpecularIntensity*fres; vec3 fresRim=uLightColor*fres*0.4; vec3 color=(base + (uLightColor*uAmbientIntensity) + diffuse + specCol + fresRim); color=pow(color, vec3(uContrast*0.9)); color=color/(color+vec3(0.8)); return color; } float cursorGlow(vec3 pos){ float d=length(pos.xy - uCursorSphere.xy); float g=1.-smoothstep(0.,uCursorGlowRadius,d); return pow(g,2.)*uCursorGlowIntensity; } void main(){ vec2 uv=(gl_FragCoord.xy*2.-uActualResolution.xy)/uActualResolution.xy; uv.x*=uResolution.x/uResolution.y; vec3 ro=vec3(uv*2.,-1.); vec3 rd=vec3(0.,0.,1.); float t=rayMarch(ro,rd); vec3 p=ro+rd*t; vec3 col=lighting(p,rd,t); float glow=cursorGlow(ro); vec3 glowCol=uCursorGlowColor*glow; if(t>0.){ float fog=1.-exp(-t*uFogDensity); col=mix(col,uBackgroundColor,fog*0.3); col+=glowCol*0.3; gl_FragColor=vec4(col,1.0);} else { if(glow>.01) gl_FragColor=vec4(glowCol, glow*0.8); else gl_FragColor=vec4(0.,0.,0.,0.); } }`;
+    uniform float uTime; uniform vec2 uResolution; uniform vec2 uActualResolution; uniform float uPixelRatio; uniform vec2 uMousePosition; uniform vec3 uCursorSphere; uniform float uCursorRadius; uniform int uSphereCount; uniform float uFixedTopLeftRadius; uniform float uFixedBottomRightRadius; uniform float uSmallTopLeftRadius; uniform float uSmallBottomRightRadius; uniform float uMergeDistance; uniform float uSmoothness; uniform float uAmbientIntensity; uniform float uDiffuseIntensity; uniform float uSpecularIntensity; uniform float uSpecularPower; uniform float uFresnelPower; uniform vec3 uBackgroundColor; uniform vec3 uSphereColor; uniform vec3 uLightColor; uniform vec3 uLightPosition; uniform float uContrast; uniform float uFogDensity; uniform float uAnimationSpeed; uniform float uMovementScale; uniform bool uMouseProximityEffect; uniform float uMinMovementScale; uniform float uMaxMovementScale; uniform float uCursorGlowIntensity; uniform float uCursorGlowRadius; uniform vec3 uCursorGlowColor; uniform float uIsSafari; uniform float uIsMobile; uniform float uIsLowPower; varying vec2 vUv; const float PI=3.14159265359; const float EPS=0.001;
+    float smin(float a,float b,float k){ float h=max(k-abs(a-b),0.)/k; return min(a,b)-h*h*k*0.25; }
+    float sdSphere(vec3 p,float r){ return length(p)-r; }
+    vec3 screenToWorld(vec2 n){ vec2 uv=n*2.-1.; uv.x*=uResolution.x/uResolution.y; return vec3(uv*2.,0.); }
+    float getDistanceToCenter(vec2 pos){ float d=length(pos-vec2(.5,.5))*2.; return smoothstep(0.,1.,d); }
+    float sceneSDF(vec3 pos){
+      float res=100.;
+      vec3 tl=screenToWorld(vec2(.08,.92)); float topLeft=sdSphere(pos-tl,uFixedTopLeftRadius);
+      vec3 stl=screenToWorld(vec2(.25,.72)); float smallTopLeft=sdSphere(pos-stl,uSmallTopLeftRadius);
+      vec3 br=screenToWorld(vec2(.92,.08)); float bottomRight=sdSphere(pos-br,uFixedBottomRightRadius);
+      vec3 sbr=screenToWorld(vec2(.72,.25)); float smallBottomRight=sdSphere(pos-sbr,uSmallBottomRightRadius);
+      float t=uTime*uAnimationSpeed; float dynMove=uMovementScale;
+      if(uMouseProximityEffect){ float d=getDistanceToCenter(uMousePosition); float mixF=smoothstep(0.,1.,d); dynMove=mix(uMinMovementScale,uMaxMovementScale,mixF);} 
+      int maxIter= uIsMobile>0.5?4:(uIsLowPower>0.5?6:min(uSphereCount,10));
+      for(int i=0;i<10;i++){
+        if(i>=uSphereCount||i>=maxIter) break; float fi=float(i);
+        float speed=.4+fi*.12; float radius=.12+mod(fi,3.)*.06; float orbit=(.3+mod(fi,3.)*.15)*dynMove; float phase=fi*PI*.35;
+        float distToCursor=length(vec3(0.)-uCursorSphere); float prox=1.+(1.-smoothstep(0.,1.,distToCursor))*0.5; orbit*=prox;
+        vec3 off;
+        if(i==0){ off=vec3(sin(t*speed)*orbit*.7,sin(t*.5)*orbit,cos(t*speed*.7)*orbit*.5);} 
+        else if(i==1){ off=vec3(sin(t*speed+PI)*orbit*.5,-sin(t*.5)*orbit,cos(t*speed*.7+PI)*orbit*.5);} 
+        else { off=vec3(sin(t*speed+phase)*orbit*.8,cos(t*speed*.85+phase*1.3)*orbit*.6,sin(t*speed*.5+phase)*.3);} 
+        vec3 toCursor=uCursorSphere-off; float cDist=length(toCursor);
+        if(cDist<uMergeDistance && cDist>0.){ float attract=(1.-cDist/uMergeDistance)*.3; off+=normalize(toCursor)*attract; }
+        float moving=sdSphere(pos-off,radius);
+        float blend=.05; if(cDist<uMergeDistance){ float influence=1.-(cDist/uMergeDistance); blend=mix(.05,uSmoothness,influence*influence*influence);} 
+        res=smin(res,moving,blend);
+      }
+      float cursorBall=sdSphere(pos-uCursorSphere,uCursorRadius);
+      float tlGroup=smin(topLeft,smallTopLeft,.4); float brGroup=smin(bottomRight,smallBottomRight,.4);
+      res=smin(res,tlGroup,.3); res=smin(res,brGroup,.3); res=smin(res,cursorBall,uSmoothness);
+      return res;
+    }
+    vec3 calcNormal(vec3 p){ float eps=uIsLowPower>0.5?0.002:0.001; return normalize(vec3(
+      sceneSDF(p+vec3(eps,0,0))-sceneSDF(p-vec3(eps,0,0)),
+      sceneSDF(p+vec3(0,eps,0))-sceneSDF(p-vec3(0,eps,0)),
+      sceneSDF(p+vec3(0,0,eps))-sceneSDF(p-vec3(0,0,eps)))); }
+    float softShadow(vec3 ro,vec3 rd,float mint,float maxt,float k){
+      if(uIsLowPower>0.5){ float result=1.; float t=mint; for(int i=0;i<3;i++){ t+=.3; if(t>=maxt) break; float h=sceneSDF(ro+rd*t); if(h<EPS) return 0.; result=min(result,k*h/t);} return result;}
+      float result=1.; float t=mint; for(int i=0;i<20;i++){ if(t>=maxt) break; float h=sceneSDF(ro+rd*t); if(h<EPS) return 0.; result=min(result,k*h/t); t+=h;} return result;
+    }
+    float rayMarch(vec3 ro,vec3 rd){ float t=0.; int maxSteps= uIsMobile>0.5?16:(uIsSafari>0.5?16:48); for(int i=0;i<48;i++){ if(i>=maxSteps) break; vec3 p=ro+rd*t; float d=sceneSDF(p); if(d<EPS) return t; if(t>5.) break; t+=d*(uIsLowPower>0.5?1.2:.9);} return -1.; }
+    vec3 lighting(vec3 p,vec3 rd,float t){ if(t<0.) return vec3(0.); vec3 n=calcNormal(p); vec3 viewDir=-rd; vec3 base=uSphereColor; vec3 lightDir=normalize(uLightPosition); float diff=max(dot(n,lightDir),0.); float shadow=softShadow(p,lightDir,0.01,10.,20.); vec3 diffuse=uLightColor*diff*uDiffuseIntensity*shadow; vec3 refl=reflect(-lightDir,n); float spec=pow(max(dot(viewDir,refl),0.),uSpecularPower); float fres=pow(1.-max(dot(viewDir,n),0.),uFresnelPower); vec3 specCol=uLightColor*spec*uSpecularIntensity*fres; vec3 fresRim=uLightColor*fres*0.4; vec3 color=(base + (uLightColor*uAmbientIntensity) + diffuse + specCol + fresRim); color=pow(color, vec3(uContrast*0.9)); color=color/(color+vec3(0.8)); return color; }
+    float cursorGlow(vec3 pos){ float d=length(pos.xy - uCursorSphere.xy); float g=1.-smoothstep(0.,uCursorGlowRadius,d); return pow(g,2.)*uCursorGlowIntensity; }
+    void main(){ vec2 uv=(gl_FragCoord.xy*2.-uActualResolution.xy)/uActualResolution.xy; uv.x*=uResolution.x/uResolution.y; vec3 ro=vec3(uv*2.,-1.); vec3 rd=vec3(0.,0.,1.); float t=rayMarch(ro,rd); vec3 p=ro+rd*t; vec3 col=lighting(p,rd,t); float glow=cursorGlow(ro); vec3 glowCol=uCursorGlowColor*glow; if(t>0.){ float fog=1.-exp(-t*uFogDensity); col=mix(col,uBackgroundColor,fog*0.3); col+=glowCol*0.3; gl_FragColor=vec4(col,1.0);} else { if(glow>.01) gl_FragColor=vec4(glowCol, glow*0.8); else gl_FragColor=vec4(0.,0.,0.,0.); } }
+  `;
 }
 
 export default MetaballBackground;

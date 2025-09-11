@@ -12,6 +12,23 @@ html, body {
   overflow-x: hidden;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Provide space so anchored sections aren't hidden beneath sticky navbar */
+[id] {
+  scroll-margin-top: 90px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-float-slow, .animate-float-medium, .animate-float-fast,
+  .animate-pulse-slow, .animate-pulse-medium, .animate-pulse-fast {
+    animation: none !important;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -54,6 +71,15 @@ html, body {
 
 :root {
   --radius: 0.625rem;
+  /* Legal theme palette additions */
+  --brand-bg: #0E1420;
+  --brand-panel: rgba(20,28,40,0.72);
+  --brand-gold: #D4AF37;
+  --brand-gold-rgb: 212 175 55;
+  --brand-teal: #1FA7A8;
+  --brand-ink: #F5F7FA;
+  --brand-ink-muted: #B4C0CF;
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
