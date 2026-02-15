@@ -1,0 +1,34 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "patrasaar-api"
+main = "src/index.ts"
+compatibility_date = "2025-02-14"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+BETTER_AUTH_URL = "http://localhost:8787"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "patrasaar-db"
+database_id = "local"
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "patrasaar-uploads"
+
+[[queues.producers]]
+queue = "document-processing"
+binding = "PROCESSING_QUEUE"
+
+[[queues.consumers]]
+queue = "document-processing"
+max_batch_size = 1
+max_retries = 3
+
+[ai]
+binding = "AI"
+
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "patrasaar-docs"

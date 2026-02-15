@@ -1,140 +1,57 @@
-# PatraSaar Development Makefile
-
-.PHONY: help install run test clean build dev-setup db-migrate db-reset
+.PHONY: install dev test test-coverage build lint typecheck format clean docker-up docker-down db-migrate help
 
 # Default target
 help:
-	@echo "PatraSaar Development Commands:"
-	@echo "  install     - Install all dependencies"
-	@echo "  run         - Start all services with hot reloading"
-	@echo "  test        - Run all test suites"
-	@echo "  clean       - Clean build artifacts and dependencies"
-	@echo "  build       - Build all components"
-	@echo "  dev-setup   - Set up development environment"
-	@echo "  db-migrate  - Run database migrations"
-	@echo "  db-reset    - Reset database and run migrations"
+	@echo "PatraSaar Development Commands"
+	@echo ""
+	@echo "  make install        Install all dependencies"
+	@echo "  make dev            Start dev servers (API + Web)"
+	@echo "  make test           Run all tests"
+	@echo "  make test-coverage  Run tests with coverage"
+	@echo "  make build          Build all packages"
+	@echo "  make lint           Run linters"
+	@echo "  make typecheck      Run TypeScript type checking"
+	@echo "  make format         Format code with Prettier"
+	@echo "  make db-migrate     Run D1 migrations locally"
+	@echo "  make docker-up      Start Docker dev environment"
+	@echo "  make docker-down    Stop Docker dev environment"
+	@echo "  make clean          Remove node_modules and build artifacts"
 
-# Install dependencies
 install:
-	@echo "Installing dependencies..."
-	@pnpm install
-	@cd backend && go mod download
-	@echo "Dependencies installed successfully!"
+	npm install
 
-# Development setup
-dev-setup: install
-	@echo "Setting up development environment..."
-	@mkdir -p logs tmp
-	@echo "Development environment ready!"
+dev:
+	npx turbo dev
 
-# Run all services with hot reloading
-run:
-	@echo "Starting PatraSaar development environment..."
-	@echo "Starting services in parallel..."
-	@make -j3 run-frontend run-backend run-worker
-
-run-frontend:
-	@echo "Starting frontend with hot reloading..."
-	@cd frontend && pnpm run dev
-
-run-backend:
-	@echo "Starting backend with hot reloading..."
-	@cd backend && go run cmd/api/main.go
-
-run-worker:
-	@echo "Starting worker with hot reloading..."
-	@cd backend && go run cmd/worker/main.go
-
-# Run tests
 test:
-	@echo "Running all test suites..."
-	@make test-frontend test-backend
-
-test-frontend:
-	@echo "Running frontend tests..."
-	@cd frontend && pnpm run test
-
-test-backend:
-	@echo "Running backend tests..."
-	@cd backend && go test ./...
+	npx turbo test
 
 test-coverage:
-	@echo "Running tests with coverage..."
-	@cd frontend && pnpm run test:coverage
-	@cd backend && go test -coverprofile=coverage.out ./...
-	@cd backend && go tool cover -html=coverage.out -o coverage.html
+	npx turbo test:coverage
 
-# Build all components
 build:
-	@echo "Building all components..."
-	@make build-frontend build-backend
+	npx turbo build
 
-build-frontend:
-	@echo "Building frontend..."
-	@cd frontend && pnpm run build
-
-build-backend:
-	@echo "Building backend..."
-	@cd backend && go build -o ../bin/api ./cmd/api
-	@cd backend && go build -o ../bin/worker ./cmd/worker
-
-# Database operations
-db-migrate:
-	@echo "Running database migrations..."
-	@cd backend && go run -tags migrate cmd/migrate/main.go up
-
-db-reset:
-	@echo "Resetting database..."
-	@cd backend && go run -tags migrate cmd/migrate/main.go down
-	@cd backend && go run -tags migrate cmd/migrate/main.go up
-
-# Clean build artifacts
-clean:
-	@echo "Cleaning build artifacts..."
-	@rm -rf frontend/.next
-	@rm -rf frontend/dist
-	@rm -rf frontend/node_modules/.cache
-	@rm -rf backend/tmp
-	@rm -rf bin
-	@rm -rf logs/*.log
-	@echo "Clean completed!"
-
-clean-all: clean
-	@echo "Cleaning all dependencies..."
-	@rm -rf frontend/node_modules
-	@rm -rf .pnpm-store
-	@cd backend && go clean -modcache
-	@echo "All dependencies cleaned!"
-
-# Linting and formatting
 lint:
-	@echo "Running linters..."
-	@cd frontend && pnpm run lint
-	@cd backend && go vet ./...
-	@cd backend && go fmt ./...
+	npx turbo lint
 
-# Development utilities
-logs:
-	@echo "Showing recent logs..."
-	@tail -f logs/*.log 2>/dev/null || echo "No log files found"
+typecheck:
+	npx turbo typecheck
 
-ps:
-	@echo "Showing running processes..."
-	@ps aux | grep -E "(next|go run|node)" | grep -v grep
+format:
+	npx prettier --write "**/*.{ts,tsx,js,jsx,json,md,css}"
 
-kill:
-	@echo "Stopping all development processes..."
-	@pkill -f "next dev" || true
-	@pkill -f "go run" || true
-	@echo "All processes stopped!"
+db-migrate:
+	cd apps/api && npx wrangler d1 execute patrasaar-db --local --file=./src/db/schema.sql
 
-# Quick development commands
-dev: dev-setup run
+docker-up:
+	docker compose up --build
 
-restart: kill run
+docker-down:
+	docker compose down
 
-status:
-	@echo "Development environment status:"
-	@echo "Frontend: http://localhost:3000"
-	@echo "Backend API: http://localhost:8080"
-	@echo "Backend Health: http://localhost:8080/health"
+clean:
+	npx turbo clean
+	rm -rf node_modules
+	rm -rf apps/*/node_modules
+	rm -rf packages/*/node_modules

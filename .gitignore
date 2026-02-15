@@ -1,67 +1,23 @@
-# Dependencies
 node_modules/
-.pnpm-store/
-
-# Build outputs
 dist/
-build/
-bin/
 .next/
+.turbo/
+.wrangler/
+.dev.vars
 
-# Environment files
+# env files (keep .env.example tracked)
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 
-# Logs
-*.log
-logs/
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
+# build artifacts
+*.tsbuildinfo
 coverage/
-*.lcov
 
-# OS generated files
+# OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
-# IDE files
-.vscode/
+# editor
+.vscode/settings.json
 .idea/
-*.swp
-*.swo
-*~
-
-# Go specific
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-go.work
-
-# Database
-*.db
-*.sqlite
-
-# Docker
-.dockerignore
-
-# Temporary files
-tmp/
-temp/

@@ -1,29 +1,29 @@
 {
   "name": "patrasaar",
-  "version": "1.0.0",
-  "description": "Legal document summarization platform for Indian legal jargon",
   "private": true,
   "workspaces": [
-    "frontend",
-    "backend"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
-    "dev": "make run",
-    "test": "make test",
-    "clean": "make clean",
-    "build": "pnpm run build --filter=frontend && go build -o bin/ ./backend/cmd/...",
-    "docker:build": "docker-compose build",
-    "docker:up": "docker-compose up -d"
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "test": "turbo test",
+    "test:coverage": "turbo test:coverage",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "db:migrate": "npm run db:migrate --workspace=apps/api",
+    "clean": "turbo clean && rm -rf node_modules"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "prettier": "^3.5.3",
+    "turbo": "^2.8.9",
+    "typescript": "^5.8.0"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
+    "node": ">=20.0.0"
   },
-  "dependencies": {
-    "ogl": "^1.0.11"
-  }
+  "packageManager": "npm@10.9.2"
 }
