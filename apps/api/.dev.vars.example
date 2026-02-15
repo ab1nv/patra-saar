@@ -1,0 +1,7 @@
+# Secrets for local wrangler dev
+# Copy from your .env and fill in real values
+BETTER_AUTH_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GROQ_API_KEY=
+OPENROUTER_API_KEY=

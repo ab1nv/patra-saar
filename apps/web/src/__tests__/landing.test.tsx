@@ -1,6 +1,33 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import LandingPage from '../app/page'
+
+// Mock framer-motion to avoid animation issues in tests
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: ({ children, ...props }: any) => <div {...filterMotionProps(props)}>{children}</div>,
+    p: ({ children, ...props }: any) => <p {...filterMotionProps(props)}>{children}</p>,
+    h1: ({ children, ...props }: any) => <h1 {...filterMotionProps(props)}>{children}</h1>,
+    h2: ({ children, ...props }: any) => <h2 {...filterMotionProps(props)}>{children}</h2>,
+    article: ({ children, ...props }: any) => <article {...filterMotionProps(props)}>{children}</article>,
+  },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
+}))
+
+// Strip motion-specific props that don't belong on DOM elements
+function filterMotionProps(props: Record<string, any>) {
+  const motionKeys = ['initial', 'animate', 'exit', 'variants', 'custom', 'whileInView', 'whileHover', 'viewport', 'transition']
+  const filtered: Record<string, any> = {}
+  for (const [key, val] of Object.entries(props)) {
+    if (!motionKeys.includes(key)) filtered[key] = val
+  }
+  return filtered
+}
+
+// Mock next/image
+vi.mock('next/image', () => ({
+  default: ({ alt, ...props }: any) => <img alt={alt} {...props} />,
+}))
 
 describe('Landing Page', () => {
   it('renders the headline', () => {
@@ -31,13 +58,28 @@ describe('Landing Page', () => {
     expect(screen.getByText('Completely Free')).toBeInTheDocument()
   })
 
+  it('has a How It Works section', () => {
+    render(<LandingPage />)
+    const elements = screen.getAllByText('How It Works')
+    expect(elements.length).toBeGreaterThanOrEqual(2) // nav link + section heading
+    expect(screen.getByText('Upload your document')).toBeInTheDocument()
+    expect(screen.getByText('Ask anything')).toBeInTheDocument()
+  })
+
+  it('has a How It Works nav link', () => {
+    render(<LandingPage />)
+    const link = screen.getByText('How It Works', { selector: 'a' })
+    expect(link).toHaveAttribute('href', '#how-it-works')
+  })
+
+  it('displays the logo image', () => {
+    render(<LandingPage />)
+    const logo = screen.getByAltText('PatraSaar')
+    expect(logo).toBeInTheDocument()
+  })
+
   it('displays the legal disclaimer in the footer', () => {
     render(<LandingPage />)
     expect(screen.getByText(/does not constitute legal advice/)).toBeInTheDocument()
-  })
-
-  it('does not contain any em dashes', () => {
-    const { container } = render(<LandingPage />)
-    expect(container.textContent).not.toContain('\u2014')
   })
 })

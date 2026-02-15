@@ -47,10 +47,34 @@
   transition: all var(--transition-fast);
   text-decoration: none;
 }
-.googleButton:hover {
+.googleButton:hover:not(:disabled) {
   border-color: var(--accent-primary);
   background: var(--accent-glow);
   color: var(--text-primary);
+}
+.googleButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  color: #ef4444;
+  line-height: 1.5;
 }
 
 .disclaimer {
