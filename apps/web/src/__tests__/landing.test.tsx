@@ -24,9 +24,9 @@ function filterMotionProps(props: Record<string, any>) {
   return filtered
 }
 
-// Mock next/image
-vi.mock('next/image', () => ({
-  default: ({ alt, ...props }: any) => <img alt={alt} {...props} />,
+// Mock FireplaceLibrary to avoid complex SVG in tests
+vi.mock('../app/components/FireplaceLibrary', () => ({
+  default: () => <div data-testid="fireplace-library" />,
 }))
 
 describe('Landing Page', () => {
@@ -43,9 +43,9 @@ describe('Landing Page', () => {
     expect(loginLink.closest('a')).toHaveAttribute('href', '/login')
   })
 
-  it('has a get started CTA', () => {
+  it('has an upload document CTA', () => {
     render(<LandingPage />)
-    const cta = screen.getByText('Get Started Free')
+    const cta = screen.getByText('Upload Document')
     expect(cta).toBeInTheDocument()
     expect(cta.closest('a')).toHaveAttribute('href', '/login')
   })
@@ -72,10 +72,9 @@ describe('Landing Page', () => {
     expect(link).toHaveAttribute('href', '#how-it-works')
   })
 
-  it('displays the logo image', () => {
+  it('displays the fireplace illustration', () => {
     render(<LandingPage />)
-    const logo = screen.getByAltText('PatraSaar')
-    expect(logo).toBeInTheDocument()
+    expect(screen.getByTestId('fireplace-library')).toBeInTheDocument()
   })
 
   it('displays the legal disclaimer in the footer', () => {
