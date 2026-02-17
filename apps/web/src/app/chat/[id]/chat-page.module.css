@@ -9,10 +9,20 @@
 .messagesContainer {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-5);
+  padding: var(--space-5) var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+.messagesInner {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
 }
 
 .welcomeMessage {
@@ -33,21 +43,21 @@
 
 /* Message bubbles */
 .messageBubble {
-  max-width: 720px;
-  padding: var(--space-4) var(--space-5);
-  border-radius: var(--radius-lg);
+  max-width: 100%;
+  padding: var(--space-4) 0;
 }
 
 .userMessage {
-  align-self: flex-end;
+  padding: var(--space-4) var(--space-5);
   background: var(--bg-accent-subtle);
   border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  align-self: flex-end;
+  max-width: 85%;
 }
 
 .assistantMessage {
   align-self: flex-start;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
   width: 100%;
 }
 
@@ -58,6 +68,7 @@
   margin-bottom: var(--space-2);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-weight: 600;
 }
 
 .messageContent {
@@ -119,9 +130,12 @@
 
 /* Input area */
 .inputArea {
-  padding: var(--space-3) var(--space-5);
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border-subtle);
+  padding: var(--space-3) var(--space-5) var(--space-5);
+}
+
+.inputInner {
+  max-width: 720px;
+  margin: 0 auto;
 }
 
 .filePreview {
@@ -131,7 +145,7 @@
   padding: var(--space-2) var(--space-3);
   margin-bottom: var(--space-2);
   background: var(--bg-elevated);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: var(--text-sm);
   color: var(--text-secondary);
 }
@@ -142,15 +156,25 @@
   cursor: pointer;
   font-size: var(--text-base);
 }
+.filePreview button:hover {
+  color: var(--text-primary);
+}
 
 .inputRow {
   display: flex;
   align-items: flex-end;
-  gap: var(--space-2);
+  gap: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  padding: var(--space-1) var(--space-2);
+  transition: border-color var(--transition-fast);
+}
+.inputRow:focus-within {
+  border-color: var(--accent-primary);
 }
 
 .attachButton {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,14 +182,15 @@
   height: 36px;
   background: transparent;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   color: var(--text-muted);
   cursor: pointer;
+  flex-shrink: 0;
   transition: all var(--transition-fast);
 }
 .attachButton:hover {
   color: var(--text-primary);
-  border-color: var(--accent-primary);
+  border-color: var(--text-secondary);
 }
 
 .hiddenFileInput {
@@ -175,9 +200,8 @@
 .textInput {
   flex: 1;
   padding: var(--space-2) var(--space-3);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: var(--text-base);
@@ -185,34 +209,31 @@
   line-height: 1.5;
   max-height: 150px;
   outline: none;
-  transition: border-color var(--transition-fast);
-}
-.textInput:focus {
-  border-color: var(--accent-primary);
 }
 .textInput::placeholder {
   color: var(--text-muted);
 }
 
 .sendButton {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
-  background: var(--accent-primary);
+  background: var(--text-primary);
   border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-inverse);
+  border-radius: 50%;
+  color: var(--bg-root);
   cursor: pointer;
+  flex-shrink: 0;
   transition: all var(--transition-fast);
 }
 .sendButton:hover:not(:disabled) {
-  background: var(--accent-primary-hover);
+  background: var(--accent-primary);
+  color: var(--text-inverse);
 }
 .sendButton:disabled {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
@@ -220,14 +241,13 @@
 @media (max-width: 768px) {
   .messagesContainer {
     padding: var(--space-3);
-    padding-top: calc(var(--space-3) + 48px); /* room for mobile toggle */
   }
 
   .inputArea {
-    padding: var(--space-2) var(--space-3);
+    padding: var(--space-2) var(--space-3) var(--space-3);
   }
 
-  .messageBubble {
+  .userMessage {
     max-width: 100%;
   }
 }

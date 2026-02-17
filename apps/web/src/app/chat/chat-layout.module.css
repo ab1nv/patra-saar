@@ -13,44 +13,77 @@
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
+  transition: width var(--transition-base), min-width var(--transition-base);
 }
 
-.sidebarHeader {
-  padding: var(--space-4);
+.sidebarCollapsed {
+  width: 0;
+  min-width: 0;
+  border-right: none;
+  overflow: hidden;
+}
+
+.sidebarTop {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--border-subtle);
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-3);
+  flex-shrink: 0;
 }
 
-.sidebarLogo {
-  font-family: var(--font-heading);
-  font-size: var(--text-lg);
-  font-weight: 700;
-}
-
-.newChatButton {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  padding: var(--space-1) var(--space-3);
+.sidebarToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   background: transparent;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  border: none;
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
-.newChatButton:hover {
+.sidebarToggle:hover {
+  background: var(--bg-elevated);
   color: var(--text-primary);
-  border-color: var(--accent-primary);
-  background: var(--accent-glow);
 }
 
-.chatList {
+.newChatButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+.newChatButton:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.chatListSection {
   flex: 1;
-  padding: var(--space-2);
   overflow-y: auto;
+  padding: var(--space-2) var(--space-2);
+}
+
+.chatListLabel {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: var(--space-3) var(--space-3) var(--space-2);
 }
 
 .chatItem {
@@ -58,7 +91,7 @@
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
   color: var(--text-secondary);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
@@ -71,13 +104,58 @@
 }
 
 .emptyState {
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-3);
   font-size: var(--text-sm);
   color: var(--text-muted);
-  text-align: center;
 }
 
-/* Main content */
+/* Main area */
+.mainArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.mainHeader {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  flex-shrink: 0;
+  gap: var(--space-3);
+}
+
+.headerToggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.headerToggle:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.headerToggleVisible {
+  display: flex;
+}
+
+.headerLogo {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
 .mainContent {
   flex: 1;
   display: flex;
@@ -85,27 +163,12 @@
   overflow: hidden;
 }
 
-/* Mobile toggle */
-.mobileToggle {
-  display: none;
-  position: fixed;
-  top: var(--space-3);
-  left: var(--space-3);
-  z-index: 200;
-  padding: var(--space-2);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-size: var(--text-lg);
-  cursor: pointer;
-  line-height: 1;
-}
-
+/* Mobile overlay */
 .overlay {
   display: none;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
@@ -115,12 +178,25 @@
     transition: left var(--transition-base);
   }
 
-  .sidebarOpen {
-    left: 0;
+  .sidebarCollapsed {
+    left: -260px;
+    width: 260px;
+    min-width: 260px;
   }
 
-  .mobileToggle {
-    display: block;
+  .sidebarOpen {
+    left: 0;
+    width: 260px;
+    min-width: 260px;
+    border-right: 1px solid var(--border-subtle);
+  }
+
+  .headerToggle {
+    display: flex;
+  }
+
+  .headerToggleVisible {
+    display: flex;
   }
 
   .overlay {
@@ -129,5 +205,176 @@
     inset: 0;
     z-index: 140;
     background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ========================= */
+/* New Chat Page              */
+/* ========================= */
+
+.newChatPage {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Container for greeting + input, centered then slides to bottom */
+.centerStage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 680px;
+  padding: 0 var(--space-5);
+  transition: top 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.centerStageBottom {
+  top: calc(100% - var(--space-5));
+  transform: translate(-50%, -100%);
+}
+
+/* Greeting text — fades out on submit */
+.greeting {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-4);
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.greetingHidden {
+  opacity: 0;
+  transform: translateY(-16px);
+  pointer-events: none;
+}
+
+/* Input bar container */
+.inputBarWrap {
+  width: 100%;
+}
+
+.filePreviewNew {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+}
+
+.fileName {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileRemove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  padding: var(--space-1);
+  line-height: 1;
+}
+.fileRemove:hover {
+  color: var(--text-primary);
+}
+
+.inputBar {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  padding: var(--space-1) var(--space-2);
+  transition: border-color var(--transition-fast);
+}
+.inputBar:focus-within {
+  border-color: var(--accent-primary);
+}
+
+.attachButtonNew {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+.attachButtonNew:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.textInputNew {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  resize: none;
+  line-height: 1.5;
+  max-height: 150px;
+  outline: none;
+}
+.textInputNew::placeholder {
+  color: var(--text-muted);
+}
+
+.sendButtonNew {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--text-primary);
+  border: none;
+  border-radius: 50%;
+  color: var(--bg-root);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+.sendButtonNew:hover:not(:disabled) {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+}
+.sendButtonNew:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .greeting {
+    font-size: 1.5rem;
+  }
+
+  .centerStage {
+    padding: 0 var(--space-3);
   }
 }

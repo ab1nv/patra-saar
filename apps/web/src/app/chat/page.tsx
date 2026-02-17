@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
+import styles from './chat-layout.module.css'
 
 interface Chat {
   id: string
@@ -12,30 +13,35 @@ interface Chat {
 export default function NewChatPage() {
   const [input, setInput] = useState('')
   const [creating, setCreating] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  // Auto-focus on mount
   useEffect(() => {
     textareaRef.current?.focus()
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!input.trim() || creating) return
+    if ((!input.trim() && !selectedFile) || creating) return
     setCreating(true)
+    setSubmitted(true)
 
     try {
-      // Create a new chat first
       const res = await api<{ data: Chat }>('/api/chats', {
         method: 'POST',
         json: {},
       })
-      // Navigate to the new chat — the message will be sent there
-      router.push(`/chat/${res.data.id}?q=${encodeURIComponent(input.trim())}`)
+      // Wait for animation to finish, then navigate seamlessly
+      setTimeout(() => {
+        router.push(`/chat/${res.data.id}?q=${encodeURIComponent(input.trim())}`)
+      }, 550)
     } catch (err) {
       console.error('Failed to create chat:', err)
       setCreating(false)
+      setSubmitted(false)
     }
   }
 
@@ -47,89 +53,76 @@ export default function NewChatPage() {
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        padding: '2rem',
-        textAlign: 'center',
-        gap: '1.5rem',
-      }}
-    >
-      <div>
-        <h2
-          style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 'var(--text-3xl)',
-            marginBottom: 'var(--space-3)',
-          }}
-        >
-          PatraSaar
-        </h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-base)', maxWidth: 420 }}>
-          Upload a legal document or ask a question to get started.
-        </p>
-      </div>
+    <div className={styles.newChatPage}>
+      {/* Single centered container that slides down on submit */}
+      <div className={`${styles.centerStage} ${submitted ? styles.centerStageBottom : ''}`}>
+        <h1 className={`${styles.greeting} ${submitted ? styles.greetingHidden : ''}`}>
+          Legal assistance, simplified.
+        </h1>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          width: '100%',
-          maxWidth: 520,
-          display: 'flex',
-          gap: '0.5rem',
-        }}
-      >
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask about a legal document..."
-          rows={1}
-          disabled={creating}
-          style={{
-            flex: 1,
-            padding: '0.75rem 1rem',
-            background: 'var(--bg-elevated)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--text-primary)',
-            fontSize: 'var(--text-base)',
-            fontFamily: 'var(--font-body)',
-            resize: 'none',
-            outline: 'none',
-            transition: 'border-color 0.2s',
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = 'var(--accent-primary)'
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-subtle)'
-          }}
-        />
-        <button
-          type="submit"
-          disabled={!input.trim() || creating}
-          style={{
-            padding: '0.75rem 1.25rem',
-            background: 'var(--accent-primary)',
-            color: 'var(--text-inverse)',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            fontWeight: 600,
-            cursor: input.trim() && !creating ? 'pointer' : 'not-allowed',
-            opacity: input.trim() && !creating ? 1 : 0.5,
-            transition: 'all 0.2s',
-            fontSize: 'var(--text-sm)',
-          }}
-        >
-          {creating ? '...' : 'Start'}
-        </button>
-      </form>
+        <div className={styles.inputBarWrap}>
+          {selectedFile && (
+            <div className={styles.filePreviewNew}>
+              <span className={styles.fileName}>📎 {selectedFile.name}</span>
+              <button
+                type="button"
+                className={styles.fileRemove}
+                onClick={() => setSelectedFile(null)}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          <form className={styles.inputBar} onSubmit={handleSubmit}>
+            <button
+              type="button"
+              className={styles.attachButtonNew}
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Attach file"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.txt,.doc,.docx"
+              className={styles.hiddenFileInput}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) setSelectedFile(file)
+              }}
+            />
+
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask anything"
+              className={styles.textInputNew}
+              rows={1}
+              disabled={creating}
+            />
+
+            <button
+              type="submit"
+              className={styles.sendButtonNew}
+              disabled={(!input.trim() && !selectedFile) || creating}
+              aria-label="Send message"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   )
 }
