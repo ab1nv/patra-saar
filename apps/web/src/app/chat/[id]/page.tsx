@@ -172,121 +172,126 @@ export default function ChatPage() {
     <div className={styles.chatPage}>
       {/* Messages */}
       <div className={styles.messagesContainer}>
-        {messages.length === 0 && !streaming && (
-          <div className={styles.welcomeMessage}>
-            <h2>Welcome to PatraSaar</h2>
-            <p>
-              Upload a legal document (PDF, DOCX, TXT) and ask questions about it. Or just type
-              a legal question directly.
-            </p>
-          </div>
-        )}
+        <div className={styles.messagesInner}>
+          {messages.length === 0 && !streaming && (
+            <div className={styles.welcomeMessage}>
+              <h2>Welcome to PatraSaar</h2>
+              <p>
+                Upload a legal document (PDF, DOCX, TXT) and ask questions about it. Or just type
+                a legal question directly.
+              </p>
+            </div>
+          )}
 
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`${styles.messageBubble} ${
-              msg.role === 'user' ? styles.userMessage : styles.assistantMessage
-            }`}
-          >
-            <div className={styles.messageRole}>
-              {msg.role === 'user' ? 'You' : 'PatraSaar'}
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`${styles.messageBubble} ${
+                msg.role === 'user' ? styles.userMessage : styles.assistantMessage
+              }`}
+            >
+              <div className={styles.messageRole}>
+                {msg.role === 'user' ? 'You' : 'PatraSaar'}
+              </div>
+              <div className={styles.messageContent}>
+                {msg.content.split('\n').map((line, i) => (
+                  <p key={i}>{line}</p>
+                ))}
+              </div>
             </div>
-            <div className={styles.messageContent}>
-              {msg.content.split('\n').map((line, i) => (
-                <p key={i}>{line}</p>
-              ))}
-            </div>
-          </div>
-        ))}
+          ))}
 
-        {/* Streaming response */}
-        {streaming && streamContent && (
-          <div className={`${styles.messageBubble} ${styles.assistantMessage}`}>
-            <div className={styles.messageRole}>PatraSaar</div>
-            <div className={styles.messageContent}>
-              {streamContent.split('\n').map((line, i) => (
-                <p key={i}>{line}</p>
-              ))}
-              <span className={styles.cursor} aria-hidden="true" />
+          {/* Streaming response */}
+          {streaming && streamContent && (
+            <div className={`${styles.messageBubble} ${styles.assistantMessage}`}>
+              <div className={styles.messageRole}>PatraSaar</div>
+              <div className={styles.messageContent}>
+                {streamContent.split('\n').map((line, i) => (
+                  <p key={i}>{line}</p>
+                ))}
+                <span className={styles.cursor} aria-hidden="true" />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Processing indicator */}
-        {processing && (
-          <div className={styles.processingBar}>
-            <div className={styles.processingLabel}>
-              Processing document: {processing.status}
+          {/* Processing indicator */}
+          {processing && (
+            <div className={styles.processingBar}>
+              <div className={styles.processingLabel}>
+                Processing document: {processing.status}
+              </div>
+              <div className={styles.progressTrack}>
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${processing.progress}%` }}
+                />
+              </div>
             </div>
-            <div className={styles.progressTrack}>
-              <div
-                className={styles.progressFill}
-                style={{ width: `${processing.progress}%` }}
-              />
-            </div>
-          </div>
-        )}
+          )}
 
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Input area */}
       <form className={styles.inputArea} onSubmit={handleSubmit}>
-        {selectedFile && (
-          <div className={styles.filePreview}>
-            <span>{selectedFile.name}</span>
-            <button type="button" onClick={() => setSelectedFile(null)}>
-              \u2715
+        <div className={styles.inputInner}>
+          {selectedFile && (
+            <div className={styles.filePreview}>
+              <span>📎 {selectedFile.name}</span>
+              <button type="button" onClick={() => setSelectedFile(null)}>
+                ✕
+              </button>
+            </div>
+          )}
+
+          <div className={styles.inputRow}>
+            <button
+              type="button"
+              className={styles.attachButton}
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Attach file"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.txt,.doc,.docx"
+              className={styles.hiddenFileInput}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) setSelectedFile(file)
+              }}
+            />
+
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask about your document..."
+              className={styles.textInput}
+              rows={1}
+              disabled={streaming}
+            />
+
+            <button
+              type="submit"
+              className={styles.sendButton}
+              disabled={(!input.trim() && !selectedFile) || streaming}
+              aria-label="Send message"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
             </button>
           </div>
-        )}
-
-        <div className={styles.inputRow}>
-          <button
-            type="button"
-            className={styles.attachButton}
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Attach file"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
-            </svg>
-          </button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.txt,.doc,.docx"
-            className={styles.hiddenFileInput}
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) setSelectedFile(file)
-            }}
-          />
-
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask about your document..."
-            className={styles.textInput}
-            rows={1}
-            disabled={streaming}
-          />
-
-          <button
-            type="submit"
-            className={styles.sendButton}
-            disabled={(!input.trim() && !selectedFile) || streaming}
-            aria-label="Send message"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
-          </button>
         </div>
       </form>
     </div>
