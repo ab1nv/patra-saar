@@ -1,8 +1,8 @@
 export interface Env {
   // Cloudflare bindings
   DB: D1Database
-  STORAGE: R2Bucket
-  PROCESSING_QUEUE: Queue
+  STORAGE?: R2Bucket
+  PROCESSING_QUEUE?: Queue
   AI: Ai
   VECTORIZE: VectorizeIndex
 

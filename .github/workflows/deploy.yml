@@ -40,8 +40,7 @@ jobs:
       - run: npm ci
 
       - name: Build web
-        working-directory: apps/web
-        run: npx next build
+        run: npx turbo build --filter=@patrasaar/web
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.API_URL }}
 
@@ -50,4 +49,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/.next --project-name=patrasaar
+          command: pages deploy apps/web/out --project-name=patrasaar

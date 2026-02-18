@@ -112,6 +112,7 @@ async function processDocument(
     let rawText = ''
 
     if (r2Key) {
+      if (!env.STORAGE) throw new Error('R2 storage is not configured')
       const object = await env.STORAGE.get(r2Key)
       if (!object) throw new Error('File not found in R2')
 

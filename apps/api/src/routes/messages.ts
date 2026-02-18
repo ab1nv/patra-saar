@@ -96,6 +96,14 @@ messages.post('/:chatId/messages', async (c) => {
     const r2Key = `${user.id}/${chatId}/${documentId}/${file.name}`
     const ext = file.name.split('.').pop()?.toLowerCase() || 'unknown'
 
+    // Require R2 for file uploads
+    if (!c.env.STORAGE) {
+      return c.json(
+        { error: { message: 'File uploads are not available yet. Please ask your question as text.', code: 'STORAGE_UNAVAILABLE' } },
+        503,
+      )
+    }
+
     // Upload to R2
     const fileBuffer = await file.arrayBuffer()
     await c.env.STORAGE.put(r2Key, fileBuffer, {
@@ -117,16 +125,18 @@ messages.post('/:chatId/messages', async (c) => {
       .bind(jobId, documentId)
       .run()
 
-    // Enqueue processing
-    await c.env.PROCESSING_QUEUE.send({
-      documentId,
-      jobId,
-      chatId,
-      userId: user.id,
-      r2Key,
-      filename: file.name,
-      fileType: ext,
-    })
+    // Enqueue processing (if queue is available)
+    if (c.env.PROCESSING_QUEUE) {
+      await c.env.PROCESSING_QUEUE.send({
+        documentId,
+        jobId,
+        chatId,
+        userId: user.id,
+        r2Key,
+        filename: file.name,
+        fileType: ext,
+      })
+    }
   }
 
   // Handle URL upload (similar to file but fetch the content)
@@ -147,15 +157,17 @@ messages.post('/:chatId/messages', async (c) => {
       .bind(jobId, documentId)
       .run()
 
-    await c.env.PROCESSING_QUEUE.send({
-      documentId,
-      jobId,
-      chatId,
-      userId: user.id,
-      sourceUrl,
-      filename: sourceUrl,
-      fileType: 'url',
-    })
+    if (c.env.PROCESSING_QUEUE) {
+      await c.env.PROCESSING_QUEUE.send({
+        documentId,
+        jobId,
+        chatId,
+        userId: user.id,
+        sourceUrl,
+        filename: sourceUrl,
+        fileType: 'url',
+      })
+    }
   }
 
   // Update chat timestamp
@@ -221,6 +233,9 @@ async function streamRagResponse(
     const embeddingResult = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
       text: [query],
     })
+    if (!('data' in embeddingResult) || !embeddingResult.data) {
+      throw new Error('Unexpected async response from embedding model')
+    }
     queryEmbedding = embeddingResult.data[0]
   } catch (err) {
     // If Workers AI is not available (e.g. local dev), return a simple response

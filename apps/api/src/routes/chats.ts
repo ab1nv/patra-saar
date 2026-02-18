@@ -115,7 +115,7 @@ chats.delete('/:id', async (c) => {
     .all()
 
   for (const doc of docs.results) {
-    if (doc.r2_key) {
+    if (doc.r2_key && c.env.STORAGE) {
       await c.env.STORAGE.delete(doc.r2_key as string)
     }
   }

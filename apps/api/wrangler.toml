@@ -5,26 +5,28 @@ main = "src/index.ts"
 compatibility_date = "2025-02-14"
 compatibility_flags = ["nodejs_compat"]
 
-[vars]
-BETTER_AUTH_URL = "http://localhost:8787"
+# Explicitly enable workers.dev (removes warning)
+workers_dev = true
 
 [[d1_databases]]
 binding = "DB"
 database_name = "patrasaar-db"
-database_id = "local"
+database_id = "0f96dcd7-feda-4103-9070-043abaa0a6fd"
 
-[[r2_buckets]]
-binding = "STORAGE"
-bucket_name = "patrasaar-uploads"
+# R2 bucket (enable after activating R2 in dashboard)
+# [[r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "patrasaar-uploads"
 
-[[queues.producers]]
-queue = "document-processing"
-binding = "PROCESSING_QUEUE"
+# Queues (enable only after queues are available on your account)
+# [[queues.producers]]
+# queue = "document-processing"
+# binding = "PROCESSING_QUEUE"
 
-[[queues.consumers]]
-queue = "document-processing"
-max_batch_size = 1
-max_retries = 3
+# [[queues.consumers]]
+# queue = "document-processing"
+# max_batch_size = 1
+# max_retries = 3
 
 [ai]
 binding = "AI"

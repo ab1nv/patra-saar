@@ -4,6 +4,7 @@ dist/
 .turbo/
 .wrangler/
 .dev.vars
+out/
 
 # env files (keep .env.example tracked)
 .env
