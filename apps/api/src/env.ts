@@ -9,6 +9,7 @@ export interface Env {
   // Secrets (set via wrangler secret or .dev.vars)
   BETTER_AUTH_SECRET: string
   BETTER_AUTH_URL: string
+  TRUSTED_ORIGINS?: string
   GOOGLE_CLIENT_ID: string
   GOOGLE_CLIENT_SECRET: string
   GROQ_API_KEY: string

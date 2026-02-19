@@ -34,7 +34,7 @@ app.get('/api/health', (c) => {
 
 // BetterAuth handler -- handles all /api/auth/* routes
 app.all('/api/auth/*', async (c) => {
-  const auth = createAuth(c.env)
+  const auth = createAuth(c.env, c.req.header('origin'))
   return auth.handler(c.req.raw)
 })
 
