@@ -118,6 +118,17 @@ CREATE TABLE IF NOT EXISTS usage_tracking (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Additional columns for document_chunks (RAG v2)
+ALTER TABLE document_chunks ADD COLUMN page_number INTEGER DEFAULT 0;
+ALTER TABLE document_chunks ADD COLUMN section_title TEXT;
+
+-- FTS5 virtual table for BM25 hybrid search (RAG v2 Phase 2)
+CREATE VIRTUAL TABLE IF NOT EXISTS document_chunks_fts USING fts5(
+  content,
+  chunk_id UNINDEXED,
+  document_id UNINDEXED
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_chats_user ON chats(user_id);
 CREATE INDEX IF NOT EXISTS idx_chats_updated ON chats(updated_at);
@@ -128,3 +139,4 @@ CREATE INDEX IF NOT EXISTS idx_documents_status ON documents(status);
 CREATE INDEX IF NOT EXISTS idx_chunks_document ON document_chunks(document_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_document ON processing_jobs(document_id);
 CREATE INDEX IF NOT EXISTS idx_usage_user ON usage_tracking(user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_citations ON messages(id) WHERE citations != '[]';
