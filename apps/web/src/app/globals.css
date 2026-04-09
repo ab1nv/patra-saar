@@ -1,6 +1,10 @@
 /* PatraSaar Design Tokens and Base Styles */
 
-/* -- Fonts are loaded via next/font in layout.tsx -- */
+:root {
+  --font-heading: Georgia, 'Times New Roman', serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+}
 
 :root {
   /* Surface and Background */

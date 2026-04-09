@@ -8,6 +8,17 @@ import {
 } from '@patrasaar/shared'
 import type { Env } from '../env'
 import { requireAuth } from '../auth/middleware'
+import {
+  extractDualCitations,
+  verifyDualCitations,
+} from '../lib/citation-extractor'
+import {
+  assembleDualContext,
+  buildDualSystemPrompt,
+  type KbContextChunk,
+  type UserContextChunk,
+} from '../lib/dual-rag'
+import { processDocument } from '../lib/process-document'
 
 type AuthVariables = {
   user: { id: string; email: string; name: string }
@@ -18,7 +29,7 @@ const messages = new Hono<{ Bindings: Env; Variables: AuthVariables }>()
 messages.use('*', requireAuth)
 
 // Send a message in a chat (with optional file upload)
-// Returns SSE stream for the AI response
+// Returns SSE stream — progress events during doc processing, then AI response tokens
 messages.post('/:chatId/messages', async (c) => {
   const user = c.get('user')
   const chatId = c.req.param('chatId')
@@ -37,30 +48,22 @@ messages.post('/:chatId/messages', async (c) => {
   const contentType = c.req.header('content-type') || ''
   let userText = ''
   let file: File | null = null
-  let sourceUrl: string | null = null
 
   if (contentType.includes('multipart/form-data')) {
     const formData = await c.req.formData()
     userText = (formData.get('content') as string) || ''
     file = formData.get('file') as File | null
-    sourceUrl = (formData.get('url') as string) || null
   } else {
     const body = await c.req.json()
     userText = body.content || ''
-    sourceUrl = body.url || null
   }
 
-  // Must have at least text, file, or URL
-  if (!userText && !file && !sourceUrl) {
+  if (!userText && !file) {
     return c.json(
-      { error: { message: 'Provide text, a file, or a URL', code: 'INVALID_INPUT' } },
+      { error: { message: 'Provide text or a file', code: 'INVALID_INPUT' } },
       400,
     )
   }
-
-  // Validate file if present
-  let documentId: string | null = null
-  let jobId: string | null = null
 
   if (file) {
     if (!isAllowedExtension(file.name)) {
@@ -71,8 +74,14 @@ messages.post('/:chatId/messages', async (c) => {
     }
     if (!isWithinSizeLimit(file.size)) {
       return c.json(
-        { error: { message: `File too large. Maximum size is ${MAX_FILE_SIZE_BYTES / 1024 / 1024}MB.`, code: 'FILE_TOO_LARGE' } },
+        { error: { message: `File too large. Maximum is ${MAX_FILE_SIZE_BYTES / 1024 / 1024}MB.`, code: 'FILE_TOO_LARGE' } },
         400,
+      )
+    }
+    if (!c.env.STORAGE) {
+      return c.json(
+        { error: { message: 'File uploads unavailable. Ask your question as text.', code: 'STORAGE_UNAVAILABLE' } },
+        503,
       )
     }
   }
@@ -89,87 +98,6 @@ messages.post('/:chatId/messages', async (c) => {
     .bind(userMessageId, chatId, 'user', displayContent)
     .run()
 
-  // Handle file upload
-  if (file) {
-    documentId = nanoid()
-    jobId = nanoid()
-    const r2Key = `${user.id}/${chatId}/${documentId}/${file.name}`
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'unknown'
-
-    // Require R2 for file uploads
-    if (!c.env.STORAGE) {
-      return c.json(
-        { error: { message: 'File uploads are not available yet. Please ask your question as text.', code: 'STORAGE_UNAVAILABLE' } },
-        503,
-      )
-    }
-
-    // Upload to R2
-    const fileBuffer = await file.arrayBuffer()
-    await c.env.STORAGE.put(r2Key, fileBuffer, {
-      customMetadata: { userId: user.id, chatId, documentId, originalName: file.name },
-    })
-
-    // Create document record
-    await c.env.DB.prepare(
-      `INSERT INTO documents (id, chat_id, message_id, user_id, original_filename, file_type, file_size, r2_key, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-    )
-      .bind(documentId, chatId, userMessageId, user.id, file.name, ext, file.size, r2Key)
-      .run()
-
-    // Create processing job
-    await c.env.DB.prepare(
-      'INSERT INTO processing_jobs (id, document_id) VALUES (?, ?)',
-    )
-      .bind(jobId, documentId)
-      .run()
-
-    // Enqueue processing (if queue is available)
-    if (c.env.PROCESSING_QUEUE) {
-      await c.env.PROCESSING_QUEUE.send({
-        documentId,
-        jobId,
-        chatId,
-        userId: user.id,
-        r2Key,
-        filename: file.name,
-        fileType: ext,
-      })
-    }
-  }
-
-  // Handle URL upload (similar to file but fetch the content)
-  if (sourceUrl && !file) {
-    documentId = nanoid()
-    jobId = nanoid()
-
-    await c.env.DB.prepare(
-      `INSERT INTO documents (id, chat_id, message_id, user_id, original_filename, file_type, source_url, status)
-       VALUES (?, ?, ?, ?, ?, 'url', ?, 'pending')`,
-    )
-      .bind(documentId, chatId, userMessageId, user.id, sourceUrl, sourceUrl)
-      .run()
-
-    await c.env.DB.prepare(
-      'INSERT INTO processing_jobs (id, document_id) VALUES (?, ?)',
-    )
-      .bind(jobId, documentId)
-      .run()
-
-    if (c.env.PROCESSING_QUEUE) {
-      await c.env.PROCESSING_QUEUE.send({
-        documentId,
-        jobId,
-        chatId,
-        userId: user.id,
-        sourceUrl,
-        filename: sourceUrl,
-        fileType: 'url',
-      })
-    }
-  }
-
   // Update chat timestamp
   await c.env.DB.prepare(
     "UPDATE chats SET updated_at = datetime('now') WHERE id = ?",
@@ -177,23 +105,74 @@ messages.post('/:chatId/messages', async (c) => {
     .bind(chatId)
     .run()
 
-  // If there is a document being processed, return early with the job info.
-  // The frontend will poll for status and then re-query once ready.
-  if (documentId && jobId) {
-    // If user also provided text, we will answer after processing.
-    // For now, just acknowledge the upload.
-    return c.json({
-      data: {
-        userMessageId,
-        documentId,
-        jobId,
-        hasQuery: !!userText,
-        status: 'Document queued for processing',
+  // File upload path — inline processing via SSE stream
+  if (file) {
+    const documentId = nanoid()
+    const jobId = nanoid()
+    const r2Key = `${user.id}/${chatId}/${documentId}/${file.name}`
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'unknown'
+
+    // Upload to R2 before opening stream
+    const fileBuffer = await file.arrayBuffer()
+    await c.env.STORAGE!.put(r2Key, fileBuffer, {
+      customMetadata: { userId: user.id, chatId, documentId, originalName: file.name },
+    })
+
+    // Create document + job records
+    await c.env.DB.prepare(
+      `INSERT INTO documents (id, chat_id, message_id, user_id, original_filename, file_type, file_size, r2_key, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+    )
+      .bind(documentId, chatId, userMessageId, user.id, file.name, ext, file.size, r2Key)
+      .run()
+
+    await c.env.DB.prepare(
+      'INSERT INTO processing_jobs (id, document_id) VALUES (?, ?)',
+    )
+      .bind(jobId, documentId)
+      .run()
+
+    const env = c.env
+    const capturedUserText = userText
+    const capturedUserId = user.id
+
+    // Stream: progress events → optional RAG response
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder()
+        const send = (obj: unknown) =>
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`))
+
+        send({ type: 'progress', stage: 'uploading', progress: 10, documentId, jobId })
+
+        // Process document inline
+        await processDocument(
+          { documentId, jobId, chatId, userId: capturedUserId, r2Key, filename: file.name, fileType: ext },
+          env,
+        )
+
+        send({ type: 'progress', stage: 'ready', progress: 100, documentId })
+
+        // If user included a query, run RAG immediately after processing
+        if (capturedUserText) {
+          await streamRagIntoController(controller, encoder, env, chatId, capturedUserId, capturedUserText, userMessageId)
+        } else {
+          send({ type: 'done', documentId })
+          controller.close()
+        }
       },
-    }, 202)
+    })
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      },
+    })
   }
 
-  // No file/URL, just a text query. Run RAG and stream the response.
+  // Text-only path — straight to dual-RAG
   return streamRagResponse(c, chatId, user.id, userText, userMessageId)
 })
 
@@ -217,7 +196,229 @@ messages.get('/jobs/:jobId/status', async (c) => {
   return c.json({ data: job })
 })
 
-// Helper: Stream a RAG response via SSE
+// ---------------------------------------------------------------------------
+// Dual-RAG helpers
+// ---------------------------------------------------------------------------
+
+async function fetchKbChunks(
+  env: Env,
+  vectorIds: string[],
+): Promise<KbContextChunk[]> {
+  if (vectorIds.length === 0) return []
+  const placeholders = vectorIds.map(() => '?').join(',')
+  const rows = await env.DB.prepare(
+    `SELECT kc.id, kc.content, kc.section_ref, ks.title, ks.jurisdiction
+     FROM kb_chunks kc
+     JOIN kb_sources ks ON kc.source_id = ks.id
+     WHERE kc.id IN (${placeholders})`,
+  )
+    .bind(...vectorIds)
+    .all()
+
+  return rows.results.map((row) => ({
+    id: row.id as string,
+    content: row.content as string,
+    sectionRef: (row.section_ref as string | null) ?? null,
+    sourceTitle: row.title as string,
+    jurisdiction: row.jurisdiction as string,
+  }))
+}
+
+async function fetchUserDocChunks(
+  env: Env,
+  vectorIds: string[],
+): Promise<UserContextChunk[]> {
+  if (vectorIds.length === 0) return []
+  const placeholders = vectorIds.map(() => '?').join(',')
+  const rows = await env.DB.prepare(
+    `SELECT id, content, metadata FROM document_chunks WHERE id IN (${placeholders})`,
+  )
+    .bind(...vectorIds)
+    .all()
+
+  return rows.results.map((row) => {
+    const meta = row.metadata ? JSON.parse(row.metadata as string) : {}
+    return {
+      id: row.id as string,
+      content: row.content as string,
+      sectionRef: (meta.section as string | null) ?? null,
+      documentId: (meta.document_id as string | null) ?? '',
+    }
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Core RAG streaming — writes into an existing ReadableStream controller
+// ---------------------------------------------------------------------------
+
+async function streamRagIntoController(
+  controller: ReadableStreamDefaultController,
+  encoder: TextEncoder,
+  env: Env,
+  chatId: string,
+  userId: string,
+  query: string,
+  userMessageId: string,
+): Promise<void> {
+  const send = (obj: unknown) =>
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`))
+
+  // Get chat's category
+  const chatRow = await env.DB.prepare(
+    'SELECT category_id, jurisdiction FROM chats WHERE id = ?',
+  )
+    .bind(chatId)
+    .first() as { category_id: string | null; jurisdiction: string | null } | null
+
+  const categoryId = chatRow?.category_id ?? null
+  const jurisdiction = chatRow?.jurisdiction ?? null
+
+  let categoryName = 'General Legal'
+  if (categoryId) {
+    const cat = await env.DB.prepare('SELECT name FROM kb_categories WHERE id = ?')
+      .bind(categoryId)
+      .first() as { name: string } | null
+    if (cat) categoryName = cat.name
+  }
+
+  // Embed query
+  let queryEmbedding: number[]
+  try {
+    const embeddingResult = await env.AI.run('@cf/baai/bge-base-en-v1.5', { text: [query] })
+    if (!('data' in embeddingResult) || !embeddingResult.data) {
+      throw new Error('Unexpected async response from embedding model')
+    }
+    queryEmbedding = embeddingResult.data[0]
+  } catch (err) {
+    const assistantId = nanoid()
+    const fallback = `Unable to process query. Workers AI unavailable. ${LEGAL_DISCLAIMER}`
+    await env.DB.prepare('INSERT INTO messages (id, chat_id, role, content) VALUES (?, ?, ?, ?)')
+      .bind(assistantId, chatId, 'assistant', fallback)
+      .run()
+    send({ type: 'error', message: 'Workers AI unavailable' })
+    controller.close()
+    return
+  }
+
+  // Parallel dual Vectorize search
+  let kbChunks: KbContextChunk[] = []
+  let userDocChunks: UserContextChunk[] = []
+  try {
+    const [kbResults, userResults] = await Promise.all([
+      categoryId
+        ? env.VECTORIZE.query(queryEmbedding, {
+            topK: 8,
+            filter: { type: 'kb', category_id: categoryId },
+            returnMetadata: 'all',
+          })
+        : Promise.resolve({ matches: [] }),
+      env.VECTORIZE.query(queryEmbedding, {
+        topK: 5,
+        filter: { type: 'user', chat_id: chatId, user_id: userId },
+        returnMetadata: 'all',
+      }),
+    ])
+    const [kbFetched, userFetched] = await Promise.all([
+      fetchKbChunks(env, (kbResults.matches ?? []).map((m) => m.id)),
+      fetchUserDocChunks(env, (userResults.matches ?? []).map((m) => m.id)),
+    ])
+    kbChunks = kbFetched
+    userDocChunks = userFetched
+  } catch {
+    // proceed without context
+  }
+
+  // Chat history
+  const historyRows = await env.DB.prepare(
+    'SELECT role, content FROM messages WHERE chat_id = ? ORDER BY created_at DESC LIMIT 10',
+  )
+    .bind(chatId)
+    .all()
+  const chatHistory = historyRows.results.reverse().map((r) => ({
+    role: r.role as string,
+    content: r.content as string,
+  }))
+
+  // Build prompt
+  const contextText = assembleDualContext(kbChunks, userDocChunks)
+  const systemPrompt = buildDualSystemPrompt(categoryName, jurisdiction, userDocChunks.length > 0)
+  const llmMessages = [
+    { role: 'system', content: `${systemPrompt}\n\n${contextText}` },
+    ...chatHistory.slice(-8),
+    { role: 'user', content: query },
+  ]
+
+  // Stream from Groq
+  let fullContent = ''
+  try {
+    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: llmMessages,
+        stream: true,
+        temperature: 0.3,
+        max_tokens: 2048,
+      }),
+    })
+
+    if (!groqResponse.ok) throw new Error(`Groq API error: ${groqResponse.status}`)
+
+    const reader = groqResponse.body?.getReader()
+    if (!reader) throw new Error('No response body from Groq')
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const data = line.slice(6).trim()
+        if (data === '[DONE]') continue
+        try {
+          const parsed = JSON.parse(data)
+          const delta = parsed.choices?.[0]?.delta?.content
+          if (delta) {
+            fullContent += delta
+            send({ type: 'token', content: delta })
+          }
+        } catch {
+          // skip malformed chunks
+        }
+      }
+    }
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error'
+    send({ type: 'error', message: errorMsg })
+    fullContent = `Sorry, unable to process query. Error: ${errorMsg}\n\n${LEGAL_DISCLAIMER}`
+  }
+
+  // Extract dual citations + save message
+  const extracted = extractDualCitations(fullContent)
+  const verifiedCitations = verifyDualCitations(extracted, kbChunks, userDocChunks)
+  const citationsJson = verifiedCitations.length > 0 ? JSON.stringify(verifiedCitations) : null
+
+  const assistantId = nanoid()
+  await env.DB.prepare(
+    'INSERT INTO messages (id, chat_id, role, content, citations) VALUES (?, ?, ?, ?, ?)',
+  )
+    .bind(assistantId, chatId, 'assistant', fullContent, citationsJson)
+    .run()
+
+  send({ type: 'done', messageId: assistantId, citations: verifiedCitations })
+  controller.close()
+}
+
+// Outer wrapper — creates a new SSE stream for text-only requests
 async function streamRagResponse(
   c: any,
   chatId: string,
@@ -226,184 +427,12 @@ async function streamRagResponse(
   userMessageId: string,
 ) {
   const env: Env = c.env
-
-  // 1. Embed the query
-  let queryEmbedding: number[]
-  try {
-    const embeddingResult = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
-      text: [query],
-    })
-    if (!('data' in embeddingResult) || !embeddingResult.data) {
-      throw new Error('Unexpected async response from embedding model')
-    }
-    queryEmbedding = embeddingResult.data[0]
-  } catch (err) {
-    // If Workers AI is not available (e.g. local dev), return a simple response
-    const assistantId = nanoid()
-    const fallback = `I am unable to process your query right now. Workers AI is not available in this environment. ${LEGAL_DISCLAIMER}`
-    await env.DB.prepare(
-      'INSERT INTO messages (id, chat_id, role, content) VALUES (?, ?, ?, ?)',
-    )
-      .bind(assistantId, chatId, 'assistant', fallback)
-      .run()
-    return c.json({ data: { messageId: assistantId, content: fallback } })
-  }
-
-  // 2. Search Vectorize for relevant chunks
-  let contextChunks: Array<{ content: string; section?: string; page?: number }> = []
-  try {
-    const searchResults = await env.VECTORIZE.query(queryEmbedding, {
-      topK: 10,
-      filter: { chat_id: chatId, user_id: userId },
-      returnMetadata: 'all',
-    })
-
-    if (searchResults.matches && searchResults.matches.length > 0) {
-      // Fetch chunk content from D1
-      const ids = searchResults.matches.map((m) => m.id)
-      const placeholders = ids.map(() => '?').join(',')
-      const chunkRows = await env.DB.prepare(
-        `SELECT id, content, metadata FROM document_chunks WHERE id IN (${placeholders})`,
-      )
-        .bind(...ids)
-        .all()
-
-      contextChunks = chunkRows.results.map((row) => {
-        const meta = row.metadata ? JSON.parse(row.metadata as string) : {}
-        return {
-          content: row.content as string,
-          section: meta.section,
-          page: meta.page,
-        }
-      })
-    }
-  } catch (err) {
-    // Vectorize not available or no results, proceed without context
-  }
-
-  // 3. Get recent chat history
-  const historyRows = await env.DB.prepare(
-    'SELECT role, content FROM messages WHERE chat_id = ? ORDER BY created_at DESC LIMIT 10',
-  )
-    .bind(chatId)
-    .all()
-
-  const chatHistory = historyRows.results.reverse().map((r) => ({
-    role: r.role as string,
-    content: r.content as string,
-  }))
-
-  // 4. Build the prompt
-  const contextText = contextChunks.length > 0
-    ? contextChunks
-        .map((c, i) => `[${i + 1}] ${c.section ? `Section ${c.section}` : ''}${c.page ? ` (Page ${c.page})` : ''}: ${c.content}`)
-        .join('\n\n')
-    : 'No document context available. Answer based on general legal knowledge if possible.'
-
-  const systemPrompt = `You are PatraSaar, an AI assistant specialized in simplifying Indian legal documents.
-Your role is to help users understand legal text. You do NOT provide legal advice.
-
-Rules:
-1. Explain legal terms in simple, everyday language.
-2. Every claim must cite the specific section, clause, or page from the provided context using [N] notation.
-3. If uncertain, say "I'm not certain about this based on the document."
-4. Always end with: "${LEGAL_DISCLAIMER}"
-5. Highlight risks and obligations clearly.
-6. Format responses with clear headings and bullet points.
-
-Retrieved Context:
-${contextText}`
-
-  const llmMessages = [
-    { role: 'system', content: systemPrompt },
-    ...chatHistory.slice(-8), // keep last 8 for context window
-    { role: 'user', content: query },
-  ]
-
-  // 5. Stream from Groq
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder()
-      let fullContent = ''
-
-      try {
-        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${env.GROQ_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
-            messages: llmMessages,
-            stream: true,
-            temperature: 0.3,
-            max_tokens: 2048,
-          }),
-        })
-
-        if (!groqResponse.ok) {
-          throw new Error(`Groq API error: ${groqResponse.status}`)
-        }
-
-        const reader = groqResponse.body?.getReader()
-        if (!reader) throw new Error('No response body from Groq')
-
-        const decoder = new TextDecoder()
-        let buffer = ''
-
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-
-          buffer += decoder.decode(value, { stream: true })
-          const lines = buffer.split('\n')
-          buffer = lines.pop() || ''
-
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue
-            const data = line.slice(6).trim()
-            if (data === '[DONE]') continue
-
-            try {
-              const parsed = JSON.parse(data)
-              const delta = parsed.choices?.[0]?.delta?.content
-              if (delta) {
-                fullContent += delta
-                controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify({ type: 'token', content: delta })}\n\n`),
-                )
-              }
-            } catch {
-              // skip malformed chunks
-            }
-          }
-        }
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Unknown error'
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ type: 'error', message: errorMsg })}\n\n`),
-        )
-        fullContent = `Sorry, I was unable to process your query. Error: ${errorMsg}\n\n${LEGAL_DISCLAIMER}`
-      }
-
-      // Save assistant message to D1
-      const assistantId = nanoid()
-      await env.DB.prepare(
-        'INSERT INTO messages (id, chat_id, role, content) VALUES (?, ?, ?, ?)',
-      )
-        .bind(assistantId, chatId, 'assistant', fullContent)
-        .run()
-
-      controller.enqueue(
-        encoder.encode(
-          `data: ${JSON.stringify({ type: 'done', messageId: assistantId })}\n\n`,
-        ),
-      )
-      controller.close()
+      await streamRagIntoController(controller, encoder, env, chatId, userId, query, userMessageId)
     },
   })
-
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',

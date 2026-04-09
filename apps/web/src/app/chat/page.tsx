@@ -2,6 +2,7 @@
 
 import { Suspense, useRef, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import ReactMarkdown from 'react-markdown'
 import { api, createSSEReader } from '@/lib/api'
 import styles from './chat-layout.module.css'
 import chatStyles from './[id]/chat-page.module.css'
@@ -17,6 +18,58 @@ interface Message {
   content: string
   citations?: string | null
   created_at: string
+}
+
+interface DualVerifiedCitation {
+  refNumber: number
+  sourceType: 'kb' | 'doc'
+  valid: boolean
+  snippet: string
+  sectionRef?: string
+  sourceTitle?: string
+  documentId?: string
+}
+
+function CitationList({ citationsJson }: { citationsJson: string | null | undefined }) {
+  if (!citationsJson) return null
+  let citations: DualVerifiedCitation[]
+  try {
+    citations = JSON.parse(citationsJson)
+  } catch {
+    return null
+  }
+  const valid = citations.filter((c) => c.valid)
+  if (valid.length === 0) return null
+
+  return (
+    <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+      {valid.map((c, i) => {
+        const isKb = c.sourceType === 'kb'
+        const label = isKb
+          ? `[KB-${c.refNumber}] ${c.sourceTitle ?? ''}${c.sectionRef ? ` — ${c.sectionRef}` : ''}`
+          : `[DOC-${c.refNumber}]${c.sectionRef ? ` ${c.sectionRef}` : ''}`
+        return (
+          <span
+            key={i}
+            title={c.snippet}
+            style={{
+              display: 'inline-block',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              background: isKb ? 'rgba(180,130,0,0.12)' : 'rgba(30,100,220,0.10)',
+              color: isKb ? 'var(--accent-warning, #b47f00)' : 'var(--accent-primary, #1e64dc)',
+              border: `1px solid ${isKb ? 'rgba(180,130,0,0.25)' : 'rgba(30,100,220,0.20)'}`,
+              cursor: 'default',
+            }}
+          >
+            {label}
+          </span>
+        )
+      })}
+    </div>
+  )
 }
 
 export default function ChatPage() {
@@ -42,17 +95,29 @@ function ChatPageInner() {
 
 // ─── New Chat View ──────────────────────────────────────────────────────────────
 
+interface KbCategory {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+}
+
 function NewChatView() {
   const [input, setInput] = useState('')
   const [creating, setCreating] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [categories, setCategories] = useState<KbCategory[]>([])
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   useEffect(() => {
     textareaRef.current?.focus()
+    api<{ data: KbCategory[] }>('/api/categories')
+      .then((res) => setCategories(res.data))
+      .catch(() => {})
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -64,7 +129,7 @@ function NewChatView() {
     try {
       const res = await api<{ data: Chat }>('/api/chats', {
         method: 'POST',
-        json: {},
+        json: { categoryId: selectedCategoryId },
       })
       // Wait for animation to finish, then navigate seamlessly
       setTimeout(() => {
@@ -91,6 +156,48 @@ function NewChatView() {
         <h1 className={`${styles.greeting} ${submitted ? styles.greetingHidden : ''}`}>
           Legal assistance, simplified.
         </h1>
+
+        {/* Category selection */}
+        {categories.length > 0 && !submitted && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '16px' }}>
+            <button
+              type="button"
+              onClick={() => setSelectedCategoryId(null)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: `1px solid ${selectedCategoryId === null ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                background: selectedCategoryId === null ? 'var(--accent-primary)' : 'transparent',
+                color: selectedCategoryId === null ? 'var(--text-inverse)' : 'var(--text-secondary)',
+                fontSize: 'var(--text-sm)',
+                cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
+              }}
+            >
+              General
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategoryId(cat.id)}
+                title={cat.description ?? undefined}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  border: `1px solid ${selectedCategoryId === cat.id ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                  background: selectedCategoryId === cat.id ? 'var(--accent-primary)' : 'transparent',
+                  color: selectedCategoryId === cat.id ? 'var(--text-inverse)' : 'var(--text-secondary)',
+                  fontSize: 'var(--text-sm)',
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)',
+                }}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className={styles.inputBarWrap}>
           {selectedFile && (
@@ -254,56 +361,41 @@ function ConversationView({ chatId, pendingQuery }: { chatId: string; pendingQue
     setMessages((prev) => [...prev, tempUserMsg])
 
     if (selectedFile) {
-      // File upload path
+      // File upload path — API returns SSE stream (inline processing)
       const formData = new FormData()
       if (userText) formData.append('content', userText)
       formData.append('file', selectedFile)
 
-      try {
-        const res = await api<{ data: { jobId: string; hasQuery: boolean } }>(
-          `/api/chats/${chatId}/messages`,
-          { method: 'POST', body: formData },
-        )
-
-        if (res.data.jobId) {
-          pollJobStatus(res.data.jobId, userText)
-        }
-      } catch (err) {
-        console.error('Upload failed:', err)
+      setProcessing({ status: 'uploading', progress: 10 })
+      if (userText) {
+        setStreaming(true)
+        setStreamContent('')
       }
+
+      createSSEReader(
+        `/api/chats/${chatId}/messages`,
+        formData,
+        (token) => setStreamContent((prev) => prev + token),
+        (_messageId) => {
+          setStreaming(false)
+          setProcessing(null)
+          loadMessages()
+          setStreamContent('')
+        },
+        (error) => {
+          setStreaming(false)
+          setProcessing(null)
+          setStreamContent('')
+          console.error('Upload stream error:', error)
+        },
+        (stage, progress) => {
+          setProcessing({ status: stage, progress })
+        },
+      )
       return
     }
 
     sendTextMessage(userText)
-  }
-
-  async function pollJobStatus(jobId: string, pendingQ: string) {
-    setProcessing({ status: 'queued', progress: 0 })
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await api<{ data: { status: string; progress: number } }>(
-          `/api/chats/jobs/${jobId}/status`,
-        )
-        const { status, progress } = res.data
-        setProcessing({ status, progress })
-
-        if (status === 'ready' || status === 'failed') {
-          clearInterval(interval)
-          setProcessing(null)
-
-          if (status === 'ready') {
-            await loadMessages()
-            if (pendingQ) {
-              sendTextMessage(pendingQ)
-            }
-          }
-        }
-      } catch {
-        clearInterval(interval)
-        setProcessing(null)
-      }
-    }, 2000)
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -339,9 +431,12 @@ function ConversationView({ chatId, pendingQuery }: { chatId: string; pendingQue
                 {msg.role === 'user' ? 'You' : 'PatraSaar'}
               </div>
               <div className={chatStyles.messageContent}>
-                {msg.content.split('\n').map((line, i) => (
-                  <p key={i}>{line}</p>
-                ))}
+                {msg.role === 'assistant' ? (
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                ) : (
+                  msg.content.split('\n').map((line, i) => <p key={i}>{line}</p>)
+                )}
+                {msg.role === 'assistant' && <CitationList citationsJson={msg.citations} />}
               </div>
             </div>
           ))}
@@ -351,9 +446,7 @@ function ConversationView({ chatId, pendingQuery }: { chatId: string; pendingQue
             <div className={`${chatStyles.messageBubble} ${chatStyles.assistantMessage}`}>
               <div className={chatStyles.messageRole}>PatraSaar</div>
               <div className={chatStyles.messageContent}>
-                {streamContent.split('\n').map((line, i) => (
-                  <p key={i}>{line}</p>
-                ))}
+                <ReactMarkdown>{streamContent}</ReactMarkdown>
                 <span className={chatStyles.cursor} aria-hidden="true" />
               </div>
             </div>

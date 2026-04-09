@@ -1,1288 +1,1021 @@
-# PatraSaar — System Design Architecture & Implementation Plan
+# PatraSaar — System Design & Implementation Plan
 
 > **Legal clarity, distilled.**
-> An AI-powered platform for simplifying Indian legal documents using Retrieval-Augmented Generation (RAG), hosted entirely on Cloudflare's edge infrastructure.
 
 ---
 
 ## Table of Contents
-1. [Executive Summary](#1-executive-summary)
-2. [System Architecture Overview](#2-system-architecture-overview)
-3. [Component Deep Dive](#3-component-deep-dive)
-4. [Data Models & Schema](#4-data-models--schema)
-5. [RAG Pipeline Architecture](#5-rag-pipeline-architecture)
-6. [API Specifications](#6-api-specifications)
-7. [Frontend Architecture](#7-frontend-architecture)
-8. [Design System & Aesthetics](#8-design-system--aesthetics)
-9. [Security & Compliance](#9-security--compliance)
-10. [Infrastructure & Deployment](#10-infrastructure--deployment)
-11. [Implementation Phases](#11-implementation-phases)
-12. [AI / LLM Technical Documentation](#12-ai--llm-technical-documentation)
-13. [Verification Plan](#13-verification-plan)
+
+1. [Vision & Philosophy](#1-vision--philosophy)
+2. [Problem Statement](#2-problem-statement)
+3. [Product Strategy](#3-product-strategy)
+4. [System Architecture](#4-system-architecture)
+5. [Knowledge Base Strategy](#5-knowledge-base-strategy)
+6. [Dual-RAG Pipeline Deep Dive](#6-dual-rag-pipeline-deep-dive)
+7. [Data Model & Schema Design](#7-data-model--schema-design)
+8. [API Design](#8-api-design)
+9. [Frontend & UX Strategy](#9-frontend--ux-strategy)
+10. [Prompt Engineering & Citation System](#10-prompt-engineering--citation-system)
+11. [Security & Compliance](#11-security--compliance)
+12. [Infrastructure & Deployment](#12-infrastructure--deployment)
+13. [Phased Roadmap](#13-phased-roadmap)
+14. [Risk Analysis & Mitigations](#14-risk-analysis--mitigations)
+15. [Future Vision & Expansion](#15-future-vision--expansion)
 
 ---
 
-## 1. Executive Summary
+## 1. Vision & Philosophy
 
-### 1.1 Vision
-PatraSaar is a free legal-AI platform that democratizes legal comprehension for Indian citizens. Users upload legal documents (PDF, TXT, DOC, DOCX, or web links) and converse with an AI that simplifies complex legal jargon — backed by source citations — in a ChatGPT-style streaming interface.
+### 1.1 The Core Insight
 
-### 1.2 Key Objectives
-- **Document Simplification**: Transform complex legal text into plain language
-- **Grounded AI Responses**: Every explanation backed by authentic legal sources via RAG
-- **Accessibility**: Free to use, responsive on all screen sizes
-- **Compliance**: Strict legal disclaimers — never provides legal advice
+Most AI legal tools today fall into one of two camps:
 
-### 1.3 Target Scale
-- **Current**: < 500 users. No micro-optimisation — keep it simple, fast and maintainable.
-- **Future**: Full rewrite planned before broader public access.
+**Camp A — Generic chatbots:** ChatGPT wrappers that answer legal questions from general training data. They can hallucinate, cite non-existent sections, and have no grounding in the actual source text of Indian law.
 
-### 1.4 Technology Stack (100% Free Tier)
+**Camp B — Document summarizers:** Upload your PDF, get a summary. Useful, but shallow. They tell you what your document says, but not whether it's *legal*, *fair*, or *enforceable*.
 
-| Layer | Technology | Free Tier |
-|-------|------------|-----------|
-| **Frontend** | Next.js (latest) on Cloudflare Workers via `@opennextjs/cloudflare` | ✅ Cloudflare Pages/Workers free |
-| **Backend Framework** | Hono (TypeScript) on Cloudflare Workers | ✅ Free |
-| **Validation** | Zod | ✅ OSS |
-| **Database** | Cloudflare D1 (SQLite at edge) | ✅ 5GB storage, 5M reads/day |
-| **Vector DB** | Cloudflare Vectorize | ✅ Free tier for prototyping |
-| **File Storage** | Cloudflare R2 | ✅ 10GB, zero egress fees |
-| **Auth** | BetterAuth (OSS, TypeScript) + Google OAuth | ✅ Free, self-hosted |
-| **LLM** | Groq (primary) / OpenRouter (fallback) | ✅ Free tiers |
-| **Embeddings** | Cloudflare Workers AI (`@cf/baai/bge-base-en-v1.5`) | ✅ Free on Workers |
-| **OCR** | Cloudflare Workers AI (LLaVA/vision model) + pdf-parse | ✅ Free |
-| **Queue** | Cloudflare Queues | ✅ Free tier |
-| **Compiler** | Standard `tsc` (ts-go is still experimental as of Feb 2026, not yet stable for production) | ✅ Free |
+**PatraSaar occupies a third position:** It analyzes your document *against the actual law*. It doesn't just summarize — it cross-references, compares, and flags. Every statement is grounded in either a real statute or your actual document. Nothing is made up.
 
----
+### 1.2 The Metaphor
 
-## 2. System Architecture Overview
+Think of PatraSaar as a legal analyst who:
+- Has memorized every relevant Act, section, and sub-section for a given domain
+- Reads your specific document carefully
+- Tells you, clause by clause, where your document aligns with the law and where it deviates
+- Cites the exact legal provision every time
 
-### 2.1 High-Level Architecture
+This is what the Dual-RAG architecture enables.
 
-```mermaid
-graph TB
-    subgraph "Client — Cloudflare Workers"
-        WEB["Next.js App<br/>@opennextjs/cloudflare"]
-    end
+### 1.3 Design Principles
 
-    subgraph "API — Cloudflare Workers"
-        API["Hono API<br/>TypeScript + Zod"]
-        AUTH_MW["BetterAuth Middleware"]
-    end
-
-    subgraph "Processing — Cloudflare"
-        QUEUE["Cloudflare Queues<br/>Document Processing"]
-        WORKER_AI["Workers AI<br/>Embeddings + OCR"]
-    end
-
-    subgraph "Data — Cloudflare"
-        D1[("D1 Database<br/>SQLite at Edge")]
-        R2[("R2 Storage<br/>File Uploads")]
-        VECTORIZE[("Vectorize<br/>Vector Index")]
-    end
-
-    subgraph "External"
-        LLM["Groq / OpenRouter<br/>LLM API"]
-        GOOGLE["Google OAuth"]
-    end
-
-    WEB --> API
-    API --> AUTH_MW
-    AUTH_MW --> GOOGLE
-    API --> D1
-    API --> R2
-    API --> QUEUE
-    QUEUE --> WORKER_AI
-    WORKER_AI --> VECTORIZE
-    API --> VECTORIZE
-    API --> LLM
-    AUTH_MW --> D1
-```
-
-### 2.2 Data Flow — Document Upload & Chat
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant FE as Next.js Frontend
-    participant API as Hono API
-    participant Q as Cloudflare Queue
-    participant WAI as Workers AI
-    participant VEC as Vectorize
-    participant LLM as Groq/OpenRouter
-
-    Note over U,LLM: Document Upload Flow
-    U->>FE: Upload file + optional message
-    FE->>API: POST /api/chats/{id}/messages (multipart)
-    API->>API: Validate (Zod: size ≤10MB, type, pages ≤100)
-    API-->>FE: 202 Accepted + message ID
-    API->>Q: Enqueue document processing job
-    Q->>WAI: Extract text (PDF parse / OCR via vision model)
-    WAI->>WAI: Chunk text (legal-aware)
-    WAI->>WAI: Generate embeddings (bge-base-en-v1.5)
-    WAI->>VEC: Store vectors + metadata
-    Q-->>API: Processing complete (update D1 status)
-    API-->>FE: SSE: progress updates (% decoded, indexing, ready)
-
-    Note over U,LLM: Chat / Query Flow
-    U->>FE: Ask question in chat
-    FE->>API: POST /api/chats/{id}/messages
-    API->>VEC: Semantic search (query embedding)
-    VEC-->>API: Top-K relevant chunks
-    API->>LLM: Stream completion (system prompt + context + query)
-    LLM-->>API: Streamed tokens
-    API-->>FE: SSE: streamed response + citations
-```
+| Principle | What It Means |
+|-----------|---------------|
+| **Grounded, not generative** | Every claim must trace back to a source — either the Knowledge Base or the user's document. If there is no source, say "I don't know." |
+| **Start narrow, go deep** | One legal category done excellently is better than ten done poorly. We start with Rental/Tenancy and make it bulletproof before expanding. |
+| **Cite everything** | Two citation types: `[Act Name, §Section]` for the law, `[Your Document, Clause X]` for the user's text. Users must be able to verify. |
+| **Accessible language** | Legal jargon is the problem. PatraSaar speaks in plain language, defining terms where necessary. Hindi/Hinglish support is a future goal. |
+| **Free and open** | Runs entirely on free-tier infrastructure. No paywalls. Legal comprehension is a public good. |
+| **Not legal advice** | PatraSaar is an information tool. Every interaction carries a clear disclaimer. |
 
 ---
 
-## 3. Component Deep Dive
+## 2. Problem Statement
 
-### 3.1 Authentication — BetterAuth
+### 2.1 Who Is This For?
 
-**Why BetterAuth:**
-- TypeScript-native, framework-agnostic, fully open-source
-- First-class Hono integration via `betterAuth.handler`
-- Native Cloudflare D1 adapter (SQLite)
-- Built-in Google OAuth social provider
-- Session management, CSRF protection, secure cookies
-- Zero cost — self-hosted within your Workers
+**Primary users:**
+- **Tenants** signing rental agreements who want to know if the terms are fair
+- **Landlords** drafting agreements who want to ensure legal compliance
+- **First-generation professionals** navigating legal documents without family lawyers
+- **Students and researchers** studying tenancy law across Indian states
 
-**Setup:**
-```
-POST /api/auth/* → BetterAuth handler mounted on Hono
-```
+**Secondary users (future):**
+- Consumers dealing with product warranties and refund disputes
+- Employees reviewing employment contracts
+- Small business owners dealing with commercial leases
 
-**Auth Flow:**
-1. User clicks "Sign in with Google"
-2. Redirect to Google OAuth consent screen
-3. Callback returns to `/api/auth/callback/google`
-4. BetterAuth creates session in D1, sets secure httpOnly cookie
-5. Frontend reads session via `/api/auth/get-session`
+### 2.2 The Pain Points
 
-**Required Secrets:**
-- `BETTER_AUTH_SECRET` — random 32+ char string
-- `GOOGLE_CLIENT_ID` — from Google Cloud Console
-- `GOOGLE_CLIENT_SECRET` — from Google Cloud Console
+1. **Legal documents are written to be unreadable.** Dense jargon, archaic phrasing, cross-references to Acts most people have never heard of.
 
-### 3.2 Document Service
+2. **Most Indians don't have easy access to a lawyer.** Consulting one for a rental agreement review costs ₹2,000–₹10,000. Many tenants just sign whatever the landlord gives them.
 
-**Supported Formats:**
-- PDF (native text + scanned/image-based)
-- DOCX
-- DOC (converted server-side)
-- TXT
-- Web URL (fetched, HTML-to-text extracted)
+3. **Existing AI tools don't ground in Indian law.** ChatGPT might give generic advice, but it won't tell you that your landlord's "eviction with 15 days notice" clause violates Section 14 of the Delhi Rent Control Act.
 
-**File Limits:**
-- Maximum file size: **10 MB**
-- Maximum pages: **100 pages**
-- Whichever limit is hit first
+4. **The law varies by state.** Rent control is a state subject. What's legal in Delhi may not be legal in Maharashtra or Karnataka. Users need answers specific to their jurisdiction.
 
-**Processing Pipeline:**
+### 2.3 The Value Proposition
 
-```mermaid
-graph LR
-    A["Upload"] --> B{"File Type?"}
-    B -->|PDF with text| C["pdf-parse<br/>Extract Text"]
-    B -->|Scanned PDF / Image| D["Workers AI Vision<br/>LLaVA OCR"]
-    B -->|DOCX/DOC| E["mammoth.js<br/>Parse Content"]
-    B -->|TXT| F["Read directly"]
-    B -->|Web URL| G["Fetch + extract<br/>HTML to text"]
-    C --> H["Text Normalisation"]
-    D --> H
-    E --> H
-    F --> H
-    G --> H
-    H --> I["Legal-Aware Chunking"]
-    I --> J["Workers AI<br/>Embedding Generation"]
-    J --> K["Vectorize<br/>Store Vectors"]
-```
-
-### 3.3 Chat & Query Service
-
-The app follows a **ChatGPT-style interface**:
-- Users create "chats" (conversations)
-- Each chat can have one or more uploaded documents as context
-- Messages are interleaved: user messages (with optional file attachments) and assistant responses
-- Responses are **streamed** via Server-Sent Events (SSE)
-- Chat history appears in the sidebar
-
-**Query Processing:**
-1. User sends message in chat
-2. Query embedded via Workers AI
-3. Semantic search on Vectorize (scoped to chat's documents)
-4. Top-K chunks retrieved as context
-5. LLM prompt assembled: system prompt + retrieved context + chat history + user query
-6. Response streamed back via SSE with inline citations
-7. Message + response persisted to D1
-
-### 3.4 Queue & Progress Service
-
-**Cloudflare Queues** handles document processing asynchronously:
-- Upload triggers a queue message
-- Consumer Worker processes: parse → chunk → embed → store
-- Progress updates written to D1 (`processing_jobs` table)
-- Frontend polls `/api/jobs/{id}/status` for progress:
-  - `queued` → `parsing` (30%) → `chunking` (60%) → `embedding` (80%) → `ready` (100%)
-  - On failure: `failed` with error message
+> "Upload your rental agreement. PatraSaar will tell you which clauses protect you, which ones may be illegal under your state's law, and what rights you have that aren't even mentioned in your contract."
 
 ---
 
-## 4. Data Models & Schema
+## 3. Product Strategy
 
-### 4.1 Cloudflare D1 Schema (SQLite)
+### 3.1 Product Model
 
-```sql
--- Users (managed by BetterAuth, extended with app fields)
--- BetterAuth auto-creates: user, session, account tables
--- We add app-specific tables below:
+PatraSaar is a **focused legal analysis tool**, not a general-purpose chatbot. The user journey is:
 
--- Chats Table
-CREATE TABLE chats (
-    id TEXT PRIMARY KEY,  -- nanoid
-    user_id TEXT NOT NULL,
-    title TEXT DEFAULT 'New Chat',
-    created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
-);
-
--- Messages Table
-CREATE TABLE messages (
-    id TEXT PRIMARY KEY,  -- nanoid
-    chat_id TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
-    content TEXT NOT NULL,
-    citations TEXT,  -- JSON array of citation objects
-    tokens_used INTEGER,
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
-);
-
--- Documents Table
-CREATE TABLE documents (
-    id TEXT PRIMARY KEY,  -- nanoid
-    chat_id TEXT NOT NULL,
-    message_id TEXT,  -- the user message that uploaded this doc
-    user_id TEXT NOT NULL,
-    original_filename TEXT NOT NULL,
-    file_type TEXT NOT NULL,       -- pdf, docx, doc, txt, url
-    file_size INTEGER,             -- bytes
-    page_count INTEGER,
-    r2_key TEXT,                    -- R2 object key
-    source_url TEXT,               -- if uploaded via URL
-
-    -- Processing
-    status TEXT DEFAULT 'pending' CHECK (status IN ('pending','processing','ready','failed')),
-    raw_text TEXT,                  -- extracted full text
-    chunk_count INTEGER DEFAULT 0,
-    error_message TEXT,
-
-    created_at TEXT DEFAULT (datetime('now')),
-    processed_at TEXT,
-    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
-);
-
--- Document Chunks (metadata only — vectors live in Vectorize)
-CREATE TABLE document_chunks (
-    id TEXT PRIMARY KEY,  -- nanoid, also used as vector ID in Vectorize
-    document_id TEXT NOT NULL,
-    chunk_index INTEGER NOT NULL,
-    content TEXT NOT NULL,
-    metadata TEXT,  -- JSON: { section, page, clause_ref }
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
-);
-
--- Processing Jobs (for progress tracking)
-CREATE TABLE processing_jobs (
-    id TEXT PRIMARY KEY,  -- nanoid
-    document_id TEXT NOT NULL,
-    status TEXT DEFAULT 'queued' CHECK (status IN ('queued','parsing','chunking','embedding','ready','failed')),
-    progress INTEGER DEFAULT 0,   -- 0-100
-    error_message TEXT,
-    created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
-);
-
--- Usage Tracking
-CREATE TABLE usage_tracking (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    action_type TEXT NOT NULL,  -- 'upload', 'query'
-    metadata TEXT,              -- JSON
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
-);
-
--- Indexes
-CREATE INDEX idx_chats_user ON chats(user_id);
-CREATE INDEX idx_chats_updated ON chats(updated_at);
-CREATE INDEX idx_messages_chat ON messages(chat_id);
-CREATE INDEX idx_documents_chat ON documents(chat_id);
-CREATE INDEX idx_documents_user ON documents(user_id);
-CREATE INDEX idx_documents_status ON documents(status);
-CREATE INDEX idx_chunks_document ON document_chunks(document_id);
-CREATE INDEX idx_jobs_document ON processing_jobs(document_id);
-CREATE INDEX idx_usage_user ON usage_tracking(user_id);
+```
+1. Choose a legal category (e.g., "Rental & Tenancy Law")
+2. (Optionally) Choose a jurisdiction (e.g., "Delhi", "Maharashtra")
+3. Upload a document (e.g., a rental agreement PDF)
+4. The system processes the document (parse → chunk → embed → index)
+5. User asks questions in natural language
+6. PatraSaar responds with analysis grounded in:
+   - The actual statutes from the Knowledge Base
+   - The specific clauses from the user's uploaded document
+7. Every claim is cited to its source
 ```
 
-### 4.2 Vectorize Index Schema
+### 3.2 What PatraSaar Is NOT
 
+- **Not a legal advisor.** It does not recommend actions. It explains laws and compares documents against them.
+- **Not a document generator.** It does not draft new agreements. It analyzes existing ones.
+- **Not a case law search engine.** We may index landmark judgments later, but the MVP focuses on statutes and acts.
+- **Not a general chatbot.** Every chat must be in the context of a legal category. There is no "ask me anything" mode.
+
+### 3.3 The Category Model
+
+PatraSaar is organized around **Legal Categories** — each is a focused domain with its own curated Knowledge Base.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    PatraSaar Platform                      │
+├──────────────┬──────────────────┬─────────────────────────┤
+│  Category 1  │   Category 2     │   Category 3 ...        │
+│  Rental &    │   Consumer       │   Employment            │
+│  Tenancy Law │   Protection     │   Law                   │
+├──────────────┼──────────────────┼─────────────────────────┤
+│  - TPA 1882  │  - CPA 2019      │  - ID Act 1947          │
+│  - MTA 2021  │  - E-Commerce    │  - PF Act               │
+│  - Delhi RCA │    Rules 2020    │  - Gratuity Act          │
+│  - MH RCA    │  - FSSAI Rules   │  - Shops & Est. Acts    │
+│  - KA Rent   │                  │                         │
+└──────────────┴──────────────────┴─────────────────────────┘
+```
+
+**For MVP (V1), only "Rental & Tenancy Law" is active.** Others are planned but not yet curated.
+
+### 3.4 Jurisdiction Awareness
+
+Indian rental law is a **state subject**. Tenancy rules differ significantly:
+
+| Aspect | Delhi | Maharashtra | Karnataka |
+|--------|-------|-------------|-----------|
+| Governing Act | Delhi Rent Control Act, 1958 | Maharashtra Rent Control Act, 1999 | Karnataka Rent Act, 1999 |
+| Eviction grounds | §14 — limited grounds | §16 — similar but different | §21 — distinct provisions |
+| Rent increase | Controlled | Fair rent mechanism | Standard rent concept |
+| Registration required? | Yes, above certain rent | Yes | Yes |
+
+**For MVP:** We include the central acts (Transfer of Property Act, Model Tenancy Act) plus 2-3 major state acts (Delhi, Maharashtra, Karnataka). The system prompt instructs the LLM to note jurisdictional differences when relevant.
+
+**Future:** User selects their state at the start, and retrieval is filtered by jurisdiction.
+
+---
+
+## 4. System Architecture
+
+### 4.1 High-Level Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                          PatraSaar Platform                            │
+│                                                                        │
+│  ┌─────────────────┐     ┌──────────────────────────────────┐          │
+│  │   Next.js App    │────▶│        Hono API (CF Workers)     │          │
+│  │   (Frontend)     │◀────│                                  │          │
+│  └─────────────────┘     │  ┌────────────────────────────┐  │          │
+│                          │  │    BetterAuth Middleware    │  │          │
+│                          │  └────────────────────────────┘  │          │
+│                          │  ┌────────────────────────────┐  │          │
+│                          │  │    Route Handlers           │  │          │
+│                          │  │    /categories              │  │          │
+│                          │  │    /chats (CRUD)            │  │          │
+│                          │  │    /chats/:id/messages      │  │          │
+│                          │  └────────────────────────────┘  │          │
+│                          │  ┌────────────────────────────┐  │          │
+│                          │  │    Dual-RAG Engine          │  │          │
+│                          │  │    KB Search + User Search  │  │          │
+│                          │  │    Context Assembly         │  │          │
+│                          │  │    LLM Streaming            │  │          │
+│                          │  └────────────────────────────┘  │          │
+│                          └──────────────────────────────────┘          │
+│                                       │                                │
+│              ┌────────────────────────┼────────────────────┐           │
+│              ▼                        ▼                    ▼           │
+│  ┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐   │
+│  │   Cloudflare D1   │   │  Cloudflare R2    │   │ CF Vectorize     │   │
+│  │   (Metadata DB)   │   │  (File Storage)   │   │ (Vector Search)  │   │
+│  │                    │   │                    │   │                  │   │
+│  │  - Users/Sessions  │   │  - User uploaded   │   │  - KB vectors    │   │
+│  │  - Chats/Messages  │   │    documents       │   │    (type: kb)    │   │
+│  │  - KB metadata     │   │                    │   │  - User vectors  │   │
+│  │  - User doc chunks │   │                    │   │    (type: user)  │   │
+│  └──────────────────┘   └──────────────────┘   └──────────────────┘   │
+│                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │                    External Services                              │  │
+│  │   Groq API (LLM)  •  Google OAuth  •  CF Workers AI (Embedding) │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │              Offline: Knowledge Base Pipeline                     │  │
+│  │   packages/ingest CLI  →  parse  →  chunk  →  embed  →  upload  │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### 4.2 Design Decisions & Rationale
+
+| Decision | Choice | Why |
+|----------|--------|-----|
+| **Separate KB ingestion from runtime** | Offline CLI tool | KB is curated by developers, not users. Decouples curation from the live system. Allows careful quality control. |
+| **Single Vectorize index** | Metadata filtering (`type: kb` vs `type: user`) | Simpler than managing two indexes. Vectorize supports metadata filtering natively. One index = one configuration. |
+| **Inline document processing** | No Cloudflare Queues for MVP | User documents are small (≤10MB, ≤100 pages). Processing takes 5-15 seconds inline. Queues add complexity without proportional benefit at this scale. |
+| **Category-scoped chats** | Each chat has a `category_id` | Ensures the right KB segment is searched. Prevents irrelevant legal context from polluting answers. |
+| **SSE streaming** | Server-Sent Events from Hono | Simpler than WebSockets. Native support on CF Workers. Users see tokens as they arrive. |
+| **No fine-tuning** | Use Groq's Llama 3.3 70B as-is | Fine-tuning is expensive and unnecessary. The RAG context + carefully crafted system prompt gives us the control we need. The model is a reasoning engine, not a knowledge store. |
+
+### 4.3 Data Flow: Complete Lifecycle
+
+**A. Knowledge Base Ingestion (Offline, by developers)**
+
+```
+1. Developer acquires a legal text (e.g., Transfer of Property Act)
+   Source: indiacode.nic.in → download as text/PDF → clean manually
+
+2. Text is placed in packages/ingest/sources/rental-tenancy/tpa-1882.txt
+
+3. Developer runs the ingest CLI:
+   $ npm run ingest -- --category rental-tenancy --source tpa-1882.txt
+
+4. The CLI:
+   a. Reads the raw text
+   b. Cleans it (normalize whitespace, fix encoding, remove headers/footers)
+   c. Creates a kb_sources row in D1 (title, type, year, etc.)
+   d. Chunks the text using legal-aware chunking:
+      - Detects Section/Article/Clause boundaries
+      - Respects sentence boundaries within sections
+      - 512 tokens per chunk, 50-token overlap for cross-boundary recall
+      - Extracts section_ref metadata (e.g., "Section 105")
+   e. Creates kb_chunks rows in D1 (one per chunk, with metadata)
+   f. Generates embeddings via Workers AI (bge-base-en-v1.5, 768-dim)
+   g. Upserts vectors to Vectorize with metadata:
+      { type: "kb", category_id, source_id, section_ref }
+
+5. The knowledge base is now searchable.
+```
+
+**B. User Document Upload (Runtime)**
+
+```
+1. User signs in → selects "Rental & Tenancy Law" → creates a chat
+2. User uploads their rental agreement (PDF, ≤10MB)
+
+3. The API:
+   a. Validates the file (extension, size, MIME type)
+   b. Uploads to R2 (key: user_id/chat_id/doc_id/filename)
+   c. Creates a documents row in D1 (status: 'processing')
+   d. Extracts text:
+      - PDF with text → pdf-parse / Workers AI
+      - Scanned PDF → Workers AI vision model (OCR)
+      - DOCX → mammoth.js or Workers AI
+      - TXT → direct read
+   e. Chunks the extracted text (same legal-aware chunker)
+   f. Creates document_chunks rows in D1
+   g. Generates embeddings (Workers AI bge-base-en-v1.5)
+   h. Upserts vectors to Vectorize with metadata:
+      { type: "user", chat_id, user_id }
+   i. Updates document status to 'ready'
+
+4. Frontend is notified (polling or direct response) → user can now ask questions.
+```
+
+**C. Question & Answer (Runtime)**
+
+```
+1. User types: "Can my landlord increase rent mid-lease?"
+
+2. The API:
+   a. Embeds the query (Workers AI bge-base-en-v1.5)
+   
+   b. Performs TWO parallel Vectorize searches:
+      
+      Search 1 — Knowledge Base:
+        topK: 8
+        filter: { type: "kb", category_id: "rental-tenancy" }
+        → Returns: relevant sections from TPA, MTA, state RCAs
+      
+      Search 2 — User's Document:
+        topK: 5
+        filter: { type: "user", chat_id: current_chat_id }
+        → Returns: relevant clauses from the user's lease
+   
+   c. Fetches chunk text from D1 for both result sets
+   
+   d. Assembles the LLM prompt:
+      - System prompt (role, rules, citation format)
+      - Knowledge Base context (labeled as "LEGAL KNOWLEDGE BASE")
+      - User Document context (labeled as "USER'S DOCUMENT")
+      - Chat history (last 8 messages for conversational continuity)
+      - Current question
+   
+   e. Calls Groq API (stream: true, temperature: 0.3)
+   
+   f. Streams tokens back to the frontend via SSE
+   
+   g. On stream completion:
+      - Saves the full response as an assistant message in D1
+      - Attaches extracted citations
+
+3. User sees the answer with distinct citations:
+   "Under Section 105 of the Transfer of Property Act, 1882, the rent
+   agreed upon at the start of the lease cannot be unilaterally increased
+   by the landlord during the lease period [TPA 1882, §105]. Your
+   agreement states in Clause 7 that 'Rent may be revised annually at
+   the landlord's discretion' [Your Document, Clause 7]. This clause may
+   be overridden by the statutory protection, meaning the landlord would
+   need your consent for any increase during the lease term."
+```
+
+---
+
+## 5. Knowledge Base Strategy
+
+### 5.1 Sourcing Legal Texts
+
+**Primary sources (all public domain):**
+
+| Source | URL | Content |
+|--------|-----|---------|
+| India Code | indiacode.nic.in | Official repository of all central and state Acts |
+| Indian Kanoon | indiankanoon.org | Free access to Acts, Amendments, and Judgments |
+| Legislative Department | legislative.gov.in | Central legislation, ordinances |
+| State Government Gazette sites | Varies by state | State-specific acts and rules |
+
+**For MVP — specific documents to curate:**
+
+| # | Document | Source | Relevance | Est. Pages |
+|---|----------|--------|-----------|------------|
+| 1 | Transfer of Property Act, 1882 (Sections 105-117: Leases) | India Code | Foundation of all lease law in India | ~15 |
+| 2 | Model Tenancy Act, 2021 | India Code | Modern central template for state adoption | ~40 |
+| 3 | Delhi Rent Control Act, 1958 | India Code | Governs tenancy in NCT of Delhi | ~30 |
+| 4 | Maharashtra Rent Control Act, 1999 | India Code | Governs tenancy in Maharashtra | ~35 |
+| 5 | Karnataka Rent Act, 1999 | India Code | Governs tenancy in Karnataka | ~25 |
+| 6 | Registration Act, 1908 (relevant sections) | India Code | When registrations becomes mandatory | ~10 |
+| 7 | Indian Stamp Act, 1899 (relevant sections) | India Code | Stamp duty on lease agreements | ~10 |
+
+**Total: ~165 pages → ~450-700 chunks → comfortably within Vectorize free tier (5,000 vectors)**
+
+### 5.2 Curation Quality Requirements
+
+Each legal text must be:
+
+1. **Verified** — sourced from India Code (official) or cross-referenced against it
+2. **Complete** — the full text of relevant sections, not summaries
+3. **Clean** — formatting artifacts, page numbers, and headers removed
+4. **Structured** — section numbers preserved and extractable by the chunker
+5. **Metadata-tagged** — year of enactment, amendments noted, jurisdiction tagged
+
+### 5.3 Chunking Strategy for Legal Texts
+
+Legal texts have unique structure that demands specialized chunking:
+
+```
+TYPICAL LEGAL STRUCTURE:
+Act → Part/Chapter → Section → Sub-section → Clause → Proviso → Explanation
+
+Example:
+  Section 105. Lease defined.—
+    A lease of immoveable property is a transfer of a right to enjoy
+    such property, made for a certain time, express or implied, or
+    in perpetuity, in consideration of a price paid or promised...
+
+    Explanation.— A price paid or promised may be in money, a share
+    of crops, service, or any other thing of value...
+```
+
+**Chunking rules:**
+- **Never split inside a section if it fits within 512 tokens.** A complete section is the ideal unit.
+- **For long sections:** Split at sub-section or proviso boundaries, with 50-token overlap.
+- **Preserve section references:** Each chunk must carry metadata: `section_ref: "Section 105"`, `source: "TPA 1882"`.
+- **Keep explanations with their parent section** when possible (they are interpretive context).
+- **Never chunk below sentence level.** A sentence is the atomic unit.
+
+### 5.4 Knowledge Base Versioning & Updates
+
+Legal texts are amended periodically. We need a simple strategy:
+
+- **Version 1:** Manual curation. Developer sources, cleans, and ingests texts.
+- **When an amendment happens:** Developer updates the source text, re-runs ingestion for that source only. Old vectors are deleted, new ones upserted.
+- **Each `kb_sources` row tracks `ingested_at`** so we know when the KB was last refreshed.
+- **Future:** Periodic automated checks against India Code for amendments.
+
+### 5.5 The Ingestion Pipeline (`packages/ingest`)
+
+```
+packages/ingest/
+├── package.json                    # CLI dependencies (wrangler, nanoid, etc.)
+├── tsconfig.json
+├── README.md                       # How to use the ingest CLI
+│
+├── sources/                        # Raw legal texts (plain text, UTF-8)
+│   └── rental-tenancy/
+│       ├── transfer-of-property-act-1882.txt
+│       ├── model-tenancy-act-2021.txt
+│       ├── delhi-rent-control-act-1958.txt
+│       ├── maharashtra-rent-control-act-1999.txt
+│       ├── karnataka-rent-act-1999.txt
+│       ├── registration-act-1908-relevant.txt
+│       └── indian-stamp-act-1899-relevant.txt
+│
+└── src/
+    ├── cli.ts                      # Entry point: parse CLI args, run pipeline
+    ├── reader.ts                   # Read and clean source text files
+    ├── chunker.ts                  # Re-use legal-aware chunking from apps/api/src/lib/
+    ├── embedder.ts                 # Call Workers AI for batch embeddings
+    ├── uploader.ts                 # Write to D1 (kb_sources, kb_chunks) + Vectorize
+    └── config.ts                   # Category definitions, source metadata
+```
+
+**CLI usage:**
+
+```bash
+# Ingest a single source
+npm run ingest -- --file sources/rental-tenancy/tpa-1882.txt \
+                  --category rental-tenancy \
+                  --title "Transfer of Property Act, 1882" \
+                  --type central_act \
+                  --year 1882
+
+# Ingest all sources in a category
+npm run ingest -- --category rental-tenancy --all
+
+# Re-ingest a source (delete old chunks + vectors, insert new)
+npm run ingest -- --file sources/rental-tenancy/tpa-1882.txt --replace
+
+# Dry run (show what would be ingested, don't write)
+npm run ingest -- --category rental-tenancy --all --dry-run
+```
+
+---
+
+## 6. Dual-RAG Pipeline Deep Dive
+
+### 6.1 Why Dual-RAG?
+
+Standard RAG: `query → search one index → context → LLM → answer`
+
+PatraSaar's Dual-RAG: `query → search KB index + search user index → merge context → LLM → comparative analysis`
+
+The key insight: **the LLM's job is not retrieval or summarization — it is *comparison and analysis*.** It receives two sets of context (the law + the user's document) and reasons about how they relate.
+
+### 6.2 Retrieval Configuration
+
+```
+Knowledge Base Search:
+  - Index: patrasaar-docs
+  - Filter: { type: "kb", category_id: "<chat's category>" }
+  - topK: 8 (more context from the law is better)
+  - Similarity threshold: 0.3 (discard irrelevant chunks)
+
+User Document Search:
+  - Index: patrasaar-docs (same index)
+  - Filter: { type: "user", chat_id: "<current chat>", user_id: "<current user>" }
+  - topK: 5 (user docs are typically shorter)
+  - Similarity threshold: 0.25 (slightly lower — user docs may use different terminology)
+```
+
+### 6.3 Context Assembly
+
+The retrieved chunks are formatted into two labeled sections:
+
+```
+═══ KNOWLEDGE BASE (Indian Legal Statutes) ═══
+
+[KB-1] Transfer of Property Act, 1882 — Section 105:
+"A lease of immoveable property is a transfer of a right to enjoy
+such property, made for a certain time..."
+
+[KB-2] Delhi Rent Control Act, 1958 — Section 14:
+"Notwithstanding anything to the contrary contained in any other
+law, no order or decree for the recovery of possession..."
+
+[KB-3] Model Tenancy Act, 2021 — Section 4(2):
+"Every agreement of tenancy shall be in writing..."
+
+═══ USER'S DOCUMENT ═══
+
+[DOC-1] Clause 4 — Duration:
+"This agreement is valid for 11 months from the date of signing..."
+
+[DOC-2] Clause 7 — Rent Revision:
+"The landlord reserves the right to revise rent annually at a rate
+not exceeding 10% of the current rent..."
+
+[DOC-3] Clause 12 — Termination:
+"Either party may terminate this agreement by giving 30 days'
+written notice..."
+```
+
+### 6.4 Edge Cases
+
+| Scenario | How to Handle |
+|----------|---------------|
+| **No user document uploaded yet** | Only search KB. System prompt adjusts: "Answer based on the law. The user has not uploaded a document yet." |
+| **KB has no relevant chunks** | Only search user doc. System prompt: "I could not find relevant legal provisions in my knowledge base for this specific question." |
+| **Neither has relevant chunks** | Honest response: "I don't have enough information in my knowledge base or your document to answer this confidently." |
+| **User asks about a different category** | "This chat is focused on Rental & Tenancy Law. For questions about consumer rights, please start a new chat and select that category." |
+| **User's document is in a non-English language** | Current limitation. Note it and flag for future multilingual support. |
+
+---
+
+## 7. Data Model & Schema Design
+
+### 7.1 Entity Relationship Diagram
+
+```
+┌─────────────┐        ┌─────────────┐        ┌─────────────┐
+│    user      │───1:N──│   session    │        │  account     │
+│  (BetterAuth)│        │ (BetterAuth) │        │ (BetterAuth) │
+└──────┬───────┘        └──────────────┘        └──────────────┘
+       │
+       │ 1:N
+       ▼
+┌──────────────┐        ┌───────────────┐
+│    chats      │───N:1──│ kb_categories  │
+│               │        │                │
+│  category_id──┼────────│  id            │
+│  user_id      │        │  slug          │
+│  title        │        │  name          │
+│  jurisdiction │        │  description   │
+└──────┬───────┘        └──────┬────────┘
+       │                       │
+       │ 1:N                   │ 1:N
+       ▼                       ▼
+┌──────────────┐        ┌───────────────┐
+│   messages    │        │  kb_sources    │
+│               │        │                │
+│  chat_id      │        │  category_id   │
+│  role         │        │  title         │
+│  content      │        │  source_type   │
+│  citations    │        │  jurisdiction  │
+└──────────────┘        └──────┬────────┘
+       │                       │
+       │                       │ 1:N
+       │                       ▼
+       │                ┌───────────────┐
+       │ 1:N            │  kb_chunks     │
+       ▼                │                │
+┌──────────────┐        │  source_id     │
+│  documents    │        │  category_id   │
+│               │        │  content       │
+│  chat_id      │        │  section_ref   │
+│  user_id      │        └───────────────┘
+│  status       │
+└──────┬───────┘
+       │
+       │ 1:N
+       ▼
+┌──────────────────┐
+│ document_chunks   │
+│                   │
+│  document_id      │
+│  content          │
+│  section_ref      │
+└──────────────────┘
+```
+
+### 7.2 Schema: New & Modified Tables
+
+**New — `kb_categories`**: Defines legal domains.
+
+**New — `kb_sources`**: Individual acts/guidelines within a category.
+
+**New — `kb_chunks`**: Pre-indexed chunks from legal sources.
+
+**Modified — `chats`**: Adds `category_id` (required) and optional `jurisdiction` to scope the chat.
+
+**Simplified — `documents`**: Remove `source_url` field and URL-related logic. Focus purely on file uploads.
+
+**Simplified — `processing_jobs`**: May become unnecessary if we process inline. Keep for now but make optional.
+
+### 7.3 Vectorize Index Design
+
+**Single index: `patrasaar-docs`**
+- Dimensions: 768 (bge-base-en-v1.5)
+- Metric: cosine
+
+**Metadata schema for KB vectors:**
 ```json
 {
-  "index_name": "patrasaar-docs",
-  "dimensions": 768,
-  "metric": "cosine",
-  "metadata_fields": {
-    "document_id": "string",
-    "chat_id": "string",
-    "user_id": "string",
-    "chunk_index": "number",
-    "section": "string",
-    "page": "number"
-  }
+  "type": "kb",
+  "category_id": "rental-tenancy",
+  "source_id": "src_tpa1882",
+  "section_ref": "Section 105",
+  "jurisdiction": "central"
 }
 ```
 
-**Embedding Model:** `@cf/baai/bge-base-en-v1.5` (768 dimensions) — runs free on Workers AI.
+**Metadata schema for User vectors:**
+```json
+{
+  "type": "user",
+  "chat_id": "chat_abc123",
+  "user_id": "user_xyz789",
+  "document_id": "doc_def456"
+}
+```
 
 ---
 
-## 5. RAG Pipeline Architecture
+## 8. API Design
 
-### 5.1 Ingestion Pipeline
+### 8.1 Route Map
 
-```mermaid
-graph TB
-    subgraph "1. Ingestion"
-        A1["File Upload / URL Fetch"]
-        A2{"Needs OCR?"}
-        A3["Workers AI Vision<br/>LLaVA OCR"]
-        A4["pdf-parse / mammoth.js<br/>Text Extraction"]
-        A5["Text Normalisation<br/>Clean whitespace, fix encoding"]
-    end
+```
+Public:
+  GET  /api/health                      → Health check
+  GET  /api/categories                  → List active legal categories
 
-    subgraph "2. Chunking"
-        B1["Legal-Aware Chunking<br/>Section/Clause boundaries"]
-        B2["Metadata Extraction<br/>Section, page, clause refs"]
-    end
+Auth (BetterAuth — auto-mounted):
+  ALL  /api/auth/*                      → Session mgmt, Google OAuth
 
-    subgraph "3. Embedding & Storage"
-        C1["Workers AI<br/>bge-base-en-v1.5"]
-        C2["Vectorize<br/>Store vectors + metadata"]
-        C3["D1<br/>Store chunk text + metadata"]
-    end
+Protected (require auth):
+  GET  /api/chats                       → List user's chats
+  POST /api/chats                       → Create new chat (with category_id)
+  GET  /api/chats/:id                   → Get chat with messages
+  PATCH /api/chats/:id                  → Rename chat
+  DELETE /api/chats/:id                 → Delete chat + cleanup R2 + Vectorize
 
-    A1 --> A2
-    A2 -->|Yes| A3
-    A2 -->|No| A4
-    A3 --> A5
-    A4 --> A5
-    A5 --> B1
-    B1 --> B2
-    B2 --> C1
-    C1 --> C2
-    C1 --> C3
+  POST /api/chats/:id/messages          → Send message (text + optional file)
+                                          Returns SSE stream for AI response
+
+  GET  /api/chats/:id/documents         → List documents in a chat
 ```
 
-### 5.2 Legal-Aware Chunking Strategy
+### 8.2 Key Changes from Current API
 
-```typescript
-// Pseudocode — legal-aware chunking
-const SECTION_PATTERNS = [
-  /^Section\s+\d+/,
-  /^Article\s+\d+/,
-  /^Clause\s+\d+/,
-  /^\d+\.\s+[A-Z]/,
-  /^CHAPTER\s+/i,
-  /^SCHEDULE\s+/i,
-];
-
-const CHUNK_CONFIG = {
-  maxTokens: 512,
-  overlapTokens: 50,
-  respectBoundaries: true,  // never split mid-section if possible
-};
-
-// 1. Identify section boundaries using regex patterns
-// 2. Create chunks respecting those boundaries
-// 3. Large sections split with overlap
-// 4. Each chunk tagged with metadata: section, page, clause_ref
-```
-
-### 5.3 Retrieval Flow
-
-```mermaid
-graph LR
-    Q["User Query"] --> E["Embed Query<br/>bge-base-en-v1.5"]
-    E --> V["Vectorize<br/>Semantic Search<br/>topK=10"]
-    V --> F["Filter by<br/>chat_id + user_id"]
-    F --> R["Return Top-K<br/>Chunks + Metadata"]
-```
-
-**Notes:**
-- Vectorize handles semantic similarity search natively.
-- We filter results by `chat_id` and `user_id` metadata to ensure document isolation between users.
-- No BM25/hybrid search for MVP — Vectorize semantic search is sufficient for <500 users. Can add later.
-
-### 5.4 Generation — Prompt Template
-
-```markdown
-## System Prompt
-
-You are PatraSaar, an AI assistant specialized in simplifying Indian legal documents.
-Your role is to help users understand legal text. You do NOT provide legal advice.
-
-### Rules:
-1. Explain legal terms in simple, everyday Hindi-English (Hinglish) or English.
-2. Every claim MUST cite the specific section, clause, or page from the provided context.
-3. If uncertain, say "I'm not certain about this based on the document."
-4. Always end with: "⚖️ This is for informational purposes only, not legal advice."
-5. Highlight risks and obligations clearly.
-6. Format responses with clear headings and bullet points.
-
-### Retrieved Context:
-{retrieved_chunks}
-
-### Chat History:
-{recent_messages}
-
-### User Question:
-{user_query}
-```
-
-### 5.5 Streaming Response
-
-- LLM response streamed via **Server-Sent Events (SSE)** from Hono API to frontend.
-- Groq API supports streaming natively (`stream: true`).
-- OpenRouter also supports streaming as fallback.
-- Frontend renders tokens as they arrive using a simple SSE client.
+| Endpoint | Change |
+|----------|--------|
+| `POST /api/chats` | Now requires `category_id` in the body |
+| `POST /api/chats/:id/messages` | Dual-RAG search instead of single search |
+| `GET /api/categories` | **New** — returns list of active categories |
+| `GET /api/chats/jobs/:id/status` | **Simplified or removed** — inline processing makes polling less critical |
 
 ---
 
-## 6. API Specifications
+## 9. Frontend & UX Strategy
 
-### 6.1 Hono API Routes
-
-All routes prefixed with `/api`. Auth routes handled by BetterAuth. App routes protected by BetterAuth session middleware.
-
-#### Auth (BetterAuth — auto-mounted)
-```yaml
-GET  /api/auth/get-session      # Get current session
-POST /api/auth/sign-in/social   # Initiate Google OAuth
-GET  /api/auth/callback/google  # OAuth callback
-POST /api/auth/sign-out         # Sign out
-```
-
-#### Chats
-```yaml
-GET    /api/chats:
-  description: List user's chats (sidebar)
-  response: { chats: Chat[] }   # ordered by updated_at DESC
-
-POST   /api/chats:
-  description: Create new chat
-  response: { chat: Chat }
-
-GET    /api/chats/{id}:
-  description: Get chat with messages
-  response: { chat: Chat, messages: Message[] }
-
-DELETE /api/chats/{id}:
-  description: Delete chat + all associated documents/vectors
-  response: { success: boolean }
-
-PATCH  /api/chats/{id}:
-  description: Rename chat
-  body: { title: string }
-  response: { chat: Chat }
-```
-
-#### Messages
-```yaml
-POST /api/chats/{id}/messages:
-  description: Send message (with optional file upload)
-  body: multipart/form-data
-    content: string (optional text message)
-    file: File (optional, ≤10MB, pdf/txt/doc/docx)
-    url: string (optional, web URL to fetch)
-  response: SSE stream
-    event: progress  → { status, progress, message }
-    event: token     → { content }
-    event: citations → { citations: Citation[] }
-    event: done      → { messageId }
-```
-
-#### Jobs (Document Processing Status)
-```yaml
-GET /api/jobs/{id}/status:
-  description: Poll document processing progress
-  response:
-    status: "queued" | "parsing" | "chunking" | "embedding" | "ready" | "failed"
-    progress: number (0-100)
-    error: string | null
-```
-
-### 6.2 Real-time Updates
-
-**Server-Sent Events (SSE)** used for:
-1. **Document processing progress** — polling `/api/jobs/{id}/status` every 2s
-2. **LLM response streaming** — SSE stream from `POST /api/chats/{id}/messages`
-
-No WebSockets needed — SSE is simpler, works perfectly on Cloudflare Workers, and sufficient for this use case.
-
----
-
-## 7. Frontend Architecture
-
-### 7.1 Application Structure (Next.js App Router)
+### 9.1 User Journey
 
 ```
-patrasaar/
-├── app/
-│   ├── (marketing)/
-│   │   ├── page.tsx            # Landing page (Server Component)
-│   │   ├── about/page.tsx
-│   │   └── layout.tsx          # Marketing layout
-│   ├── (auth)/
-│   │   ├── login/page.tsx
-│   │   └── layout.tsx          # Minimal auth layout
-│   ├── (app)/
-│   │   ├── chat/
-│   │   │   ├── page.tsx        # New chat view
-│   │   │   └── [id]/page.tsx   # Chat conversation view
-│   │   ├── layout.tsx          # App shell: sidebar + main
-│   │   └── loading.tsx
-│   ├── layout.tsx              # Root layout (fonts, providers)
-│   └── globals.css             # Design tokens + base styles
-│
-├── components/
-│   ├── chat/
-│   │   ├── ChatSidebar.tsx     # Chat history list
-│   │   ├── ChatWindow.tsx      # Message thread
-│   │   ├── MessageBubble.tsx   # Individual message
-│   │   ├── ChatInput.tsx       # Text input + file attach + send
-│   │   ├── FileUploadZone.tsx  # Drag-and-drop file area
-│   │   ├── StreamingResponse.tsx
-│   │   └── CitationTag.tsx
-│   ├── marketing/
-│   │   ├── Hero.tsx
-│   │   ├── Features.tsx
-│   │   └── Footer.tsx
-│   ├── layout/
-│   │   ├── AppShell.tsx
-│   │   └── MobileNav.tsx
-│   └── ui/                     # Custom primitives (no component kits)
-│       ├── Button.tsx
-│       ├── Input.tsx
-│       ├── Dialog.tsx
-│       └── Spinner.tsx
-│
-├── lib/
-│   ├── api.ts                  # Fetch wrapper for Hono API
-│   ├── auth-client.ts          # BetterAuth client SDK
-│   ├── sse.ts                  # SSE client for streaming
-│   └── utils.ts
-│
-├── hooks/
-│   ├── useChat.ts
-│   ├── useSession.ts
-│   └── useFileUpload.ts
-│
-├── types/
-│   └── index.ts                # Shared TypeScript types
-│
-├── public/
-│   └── fonts/                  # Self-hosted via next/font
-│
-├── next.config.ts
-├── wrangler.jsonc              # Cloudflare config
-└── package.json
+Landing Page
+    │
+    ▼
+Sign In (Google OAuth)
+    │
+    ▼
+Dashboard / Category Selection
+    ├── "Rental & Tenancy Law" [Active]
+    ├── "Consumer Protection" [Coming Soon]
+    └── "Employment Law" [Coming Soon]
+    │
+    ▼
+New Chat (in selected category)
+    │
+    ├── Upload document (drag & drop / click)
+    │   └── Processing indicator (5-15 seconds)
+    │
+    ├── Ask questions
+    │   └── Streaming response with dual citations
+    │       ├── [Act, §Section] → highlighted in gold
+    │       └── [Your Document, Clause X] → highlighted in blue
+    │
+    └── Chat history in sidebar
 ```
 
-### 7.2 Key Views
+### 9.2 Pages to Update
 
-#### Landing Page
-- Bold editorial typography, asymmetric layout
-- Animated reveal on scroll (Framer Motion stagger)
-- "Sign in with Google" CTA — no registration form
-- Feature highlights: Upload → AI Simplifies → Get Answers
-- Legal disclaimer in footer
-- **No pricing section** (free app)
+| Page | Current State | What Changes |
+|------|---------------|-------------|
+| **Landing page** | Generic "upload and simplify" messaging | Rewrite copy for dual-RAG value prop. Emphasize "backed by actual law." |
+| **Login page** | Fine as-is | No changes needed |
+| **Chat layout** | Basic sidebar + main area | Add category badge on each chat in sidebar |
+| **New chat view** | Text input + file attachment | Category selection step BEFORE the input bar appears |
+| **Conversation view** | Basic messages with streaming | Enhanced citation rendering (KB vs Doc citations) |
 
-#### Chat View (Primary Interface)
+### 9.3 Citation Display Design
+
+In the chat UI, citations should be visually distinct:
+
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  [☰]  PatraSaar                              [User Avatar ▾] │
-├────────────┬─────────────────────────────────────────────────┤
-│            │                                                 │
-│  CHATS     │   ┌─────────────────────────────────────────┐   │
-│  ────────  │   │  🤖 Assistant                           │   │
-│  + New     │   │  Welcome! Upload a legal document and   │   │
-│            │   │  I'll help you understand it.            │   │
-│  ▸ Rental  │   └─────────────────────────────────────────┘   │
-│    Agree.  │                                                 │
-│  ▸ FIR     │   ┌─────────────────────────────────────────┐   │
-│    Copy    │   │  👤 You                                  │   │
-│  ▸ Court   │   │  📎 rental_agreement.pdf                │   │
-│    Order   │   │  What are the exit clauses?              │   │
-│            │   └─────────────────────────────────────────┘   │
-│            │                                                 │
-│            │   ┌─────────────────────────────────────────┐   │
-│            │   │  🤖 Assistant                           │   │
-│            │   │  Based on the document, there are 3     │   │
-│            │   │  exit clauses... [Section 12.1]         │   │
-│            │   │  ⚖️ Informational only, not legal advice│   │
-│            │   └─────────────────────────────────────────┘   │
-│            │                                                 │
-│            │  ┌───────────────────────────────────┬──┬──┐    │
-│            │  │ Ask about your document...        │📎│ →│    │
-│            │  └───────────────────────────────────┴──┴──┘    │
-├────────────┴─────────────────────────────────────────────────┤
-│  Processing: rental_agreement.pdf ████████░░ 80% Embedding   │
+│ PatraSaar                                                    │
+│                                                              │
+│ Your agreement's Clause 7 allows the landlord to increase    │
+│ rent by up to 10% annually at their sole discretion.         │
+│                                                              │
+│ However, under the Transfer of Property Act:                 │
+│                                                              │
+│  ┌─ KB Citation ─────────────────────────────────────────┐   │
+│  │ 📜 Transfer of Property Act, 1882 — Section 105       │   │
+│  │ "...the duration of a lease, the rent to be paid...   │   │
+│  │ are to be determined by the agreement of the parties" │   │
+│  └───────────────────────────────────────────────────────┘   │
+│                                                              │
+│  ┌─ Doc Citation ────────────────────────────────────────┐   │
+│  │ 📄 Your Document — Clause 7                           │   │
+│  │ "The landlord reserves the right to revise rent       │   │
+│  │ annually at a rate not exceeding 10%..."              │   │
+│  └───────────────────────────────────────────────────────┘   │
+│                                                              │
+│ ⚠️ While TPA allows parties to agree on rent terms, the     │
+│ Delhi Rent Control Act (if applicable) restricts arbitrary   │
+│ rent increases. Check your jurisdiction.                     │
+│                                                              │
+│ ⚖️ This is for informational purposes only, not legal       │
+│ advice. Consult a qualified lawyer for specific matters.    │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 8. Design System & Aesthetics
+## 10. Prompt Engineering & Citation System
 
-### 8.1 Typography (via `next/font`)
+### 10.1 System Prompt (Full Draft)
 
-```typescript
-// app/layout.tsx
-import { Fraunces, Instrument_Sans, JetBrains_Mono } from 'next/font/google'
+```
+You are PatraSaar, an AI legal analyst specializing in Indian law.
 
-const heading = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-heading',
-  display: 'swap',
-  weight: ['400', '500', '700', '900'],
-})
+YOUR ROLE:
+You help users understand their legal documents by analyzing them against 
+actual Indian legal statutes, acts, and guidelines from our verified 
+knowledge base. You do NOT provide legal advice — you provide legal 
+information and analysis.
 
-const body = Instrument_Sans({
-  subsets: ['latin'],
-  variable: '--font-body',
-  display: 'swap',
-})
+CURRENT CONTEXT:
+- Legal Category: {category_name}
+- Jurisdiction (if specified): {jurisdiction}
+- User has uploaded: {document_summary_or_none}
 
-const mono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
-  weight: ['400', '500'],
-})
+YOU HAVE TWO VERIFIED SOURCES OF INFORMATION:
+
+1. KNOWLEDGE BASE (Marked as [KB-N]):
+   These are verified Indian legal statutes and acts. They are 
+   authoritative. When citing, use the format:
+   [Act Short Name, §Section Number]
+   Example: [TPA 1882, §105], [Delhi RCA 1958, §14]
+
+2. USER'S DOCUMENT (Marked as [DOC-N]):
+   This is the user's uploaded document. When citing, use the format:
+   [Your Document, Clause/Section X]
+   Example: [Your Document, Clause 7], [Your Document, Section 3.2]
+
+ANALYSIS RULES:
+1. ALWAYS compare the user's document clauses against the relevant law.
+2. Cite EVERY factual claim to its source. No un-cited assertions.
+3. When a document clause conflicts with the law, explain clearly:
+   - What the clause says
+   - What the law says
+   - What the practical implication is
+4. Flag potentially unfair, one-sided, or unenforceable clauses with ⚠️
+5. Highlight user rights that may not be mentioned in their document with ✅
+6. Use simple, everyday language. Define legal terms in parentheses.
+7. If you are not sure, say "Based on the available context, I cannot 
+   determine this with certainty."
+8. Do NOT invent legal provisions. Only cite what exists in the context.
+9. Note jurisdictional differences when relevant.
+10. ALWAYS end your response with:
+    "⚖️ This is for informational purposes only, not legal advice. 
+    For specific legal matters, consult a qualified lawyer."
+
+RESPONSE FORMAT:
+- Use clear headings and bullet points
+- Group analysis by topic (e.g., "Rent", "Eviction", "Security Deposit")
+- Lead with the most important findings
 ```
 
-**Rationale:** Fraunces is an editorial variable serif with optical weight — gives legal gravitas without being stuffy. Instrument Sans is a sharp, modern neo-grotesk that contrasts well. JetBrains Mono for citations and code-like references.
+### 10.2 Citation Extraction
 
-### 8.2 Color Tokens (CSS Custom Properties)
+The LLM outputs inline citations in two formats:
+- `[Act Name, §Section]` for KB references
+- `[Your Document, Clause X]` for user doc references
 
-```css
-/* globals.css */
-:root {
-  /* --- Surface & Background --- */
-  --bg-root: #0C0A09;            /* near-black, warm charcoal */
-  --bg-surface: #1A1816;         /* card / panel background */
-  --bg-elevated: #262220;        /* sidebar, dialogs */
-  --bg-accent-subtle: #2A2118;   /* warm tint for highlights */
-
-  /* --- Text --- */
-  --text-primary: #F5F0EB;       /* warm off-white, like aged paper */
-  --text-secondary: #A89F94;     /* muted warm gray */
-  --text-muted: #6B6056;
-  --text-inverse: #0C0A09;
-
-  /* --- Brand / Accent — Burnt Sienna & Gold --- */
-  --accent-primary: #C67A3C;     /* burnt sienna — like court seal wax */
-  --accent-primary-hover: #D48B4F;
-  --accent-secondary: #D4A853;   /* old gold — like manuscript headers */
-  --accent-glow: rgba(198, 122, 60, 0.15);
-
-  /* --- Semantic --- */
-  --color-success: #5B9A6F;      /* muted sage green */
-  --color-warning: #D4A853;      /* gold doubles as warning */
-  --color-danger: #C75450;       /* muted vermillion — like red ink stamps */
-  --color-info: #7B9EBD;         /* steel blue */
-
-  /* --- Citation & Legal --- */
-  --color-citation: #D4A853;
-  --color-risk-high: #C75450;
-  --color-risk-medium: #D4A853;
-  --color-risk-low: #5B9A6F;
-
-  /* --- Borders & Dividers --- */
-  --border-subtle: rgba(168, 159, 148, 0.12);
-  --border-strong: rgba(168, 159, 148, 0.25);
-
-  /* --- Texture --- */
-  --grain-opacity: 0.03;         /* faint paper grain overlay */
-}
-```
-
-**Design Inspiration:** Indian legal manuscripts, court stamps and wax seals, archival paper, ink and copper plate engravings. The palette avoids generic SaaS blues/purples in favour of warm earth tones that feel culturally grounded.
-
-### 8.3 Background & Atmosphere
-
-- **Root background**: Deep warm charcoal (`#0C0A09`), not pure black
-- **Grain texture**: Subtle SVG noise overlay at 3% opacity — simulates aged paper
-- **Radial gradient**: Faint warm glow behind hero content areas
-- **Section transitions**: Tone shifts between sections (slightly different bg tints)
-- No flat white backgrounds anywhere
-
-### 8.4 Motion (Framer Motion)
-
-```typescript
-// Orchestrated page reveal — not scattered micro-interactions
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 }
-  }
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16, filter: 'blur(4px)' },
-  show: {
-    opacity: 1, y: 0, filter: 'blur(0px)',
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
-  }
-}
-```
-
-**Principles:**
-- Single orchestrated page-load reveal per route transition
-- Subtle opacity + blur entrances reinforce trust
-- No bouncy animations, no random hover gimmicks
-- Chat message entry: gentle slide-up fade
-- Streaming text: immediate render, no per-character animation
-
-### 8.5 Layout Principles
-
-- **Server Components by default** — Client Components only for chat input, streaming, file upload
-- **Asymmetric whitespace** — large typography blocks breathe
-- **No Shadcn/UI or heavy component libraries** — custom primitives match the design language
-- **Sidebar**: collapsible on mobile, persistent on desktop
-- **No rounded-2xl everywhere** — mix sharp and subtle radius intentionally
+**Post-processing (future enhancement):**
+We can parse these from the streamed output and render them as interactive tags in the UI. For MVP, they display as styled inline text.
 
 ---
 
-## 9. Security & Compliance
+## 11. Security & Compliance
 
-### 9.1 Security Measures
+### 11.1 Data Isolation
 
-| Area | Implementation |
-|------|----------------|
-| **Authentication** | BetterAuth: secure httpOnly cookies, CSRF tokens, session rotation |
-| **Authorisation** | Every API route checks session + `user_id` ownership of resources |
-| **Input Validation** | Zod schemas on every Hono route (body, params, query) |
-| **File Validation** | MIME type check, magic bytes verification, size ≤10MB, pages ≤100 |
-| **Rate Limiting** | Cloudflare WAF rate rules + per-user limits in D1 |
-| **Data Isolation** | All queries scoped by `user_id` — no cross-user data leakage |
-| **Secrets** | Cloudflare Workers secrets (encrypted at rest), never in code |
-| **Transport** | TLS 1.3 enforced by Cloudflare edge |
-| **Headers** | Strict CSP, X-Frame-Options, X-Content-Type-Options via Hono middleware |
-| **SQL Injection** | D1 prepared statements with bound parameters only |
-| **XSS** | React's default escaping + sanitised markdown rendering |
-| **CORS** | Strict origin whitelist for API routes |
+| Data Type | Isolation Level | How |
+|-----------|----------------|-----|
+| **KB vectors** | Shared (read-only) | All users query the same KB. No user can modify it. |
+| **User document vectors** | Per-user, per-chat | Filtered by `user_id` AND `chat_id` in every Vectorize query |
+| **User files in R2** | Per-user | Key prefix: `{user_id}/{chat_id}/{doc_id}/` |
+| **Chat messages** | Per-user | All D1 queries include `user_id = ?` |
+| **Sessions** | Per-user | BetterAuth httpOnly cookies |
 
-### 9.2 Legal Disclaimers
+### 11.2 Security Measures
 
-```typescript
-const LEGAL_DISCLAIMER = `⚖️ This is for informational purposes only, not legal advice. 
-For specific legal matters, consult a qualified lawyer.`;
-```
+- CORS restricted to known origins
+- Session-based auth via BetterAuth (secure httpOnly cookies, no JWTs in localStorage)
+- Security headers on all responses (CSP, X-Frame-Options, HSTS)
+- File type and size validation on both client and server (extension + MIME)
+- All user data queries scoped by `user_id` at the SQL level
+- D1 prepared statements (prevents SQL injection)
+- React's default XSS escaping
+- Legal disclaimer on every AI response
 
-Appended to every AI response. Shown permanently in footer.
+### 11.3 Legal Compliance
 
-### 9.3 Data Privacy
-
-- Users can delete their account → cascade deletes all chats, docs, vectors
-- No analytics tracking beyond basic usage counts
-- No cross-user data access possible (all queries scoped)
-- Documents stored in R2 with user-scoped key prefixes
-- Vectors filtered by `user_id` metadata in every Vectorize query
-
-### 9.4 Practical Scope
-
-> [!NOTE]
-> For <500 users, we do NOT need: penetration testing, SOC2, GDPR DPA, or enterprise security audits. The measures above are industry-standard for a free MVP. Do not over-engineer security — the above is sufficient.
+- **Not legal advice.** Every response includes a disclaimer. The landing page, footer, and login page all state this clearly.
+- **Public domain legal texts.** All KB content is sourced from official government publications, which are in the public domain under Indian copyright law.
+- **No personal data retention beyond sessions.** We store user files for their active chats. Deleting a chat deletes all associated data (messages, documents, vectors).
 
 ---
 
-## 10. Infrastructure & Deployment
+## 12. Infrastructure & Deployment
 
-### 10.1 Cloudflare Architecture
+### 12.1 Technology Stack
 
-```mermaid
-graph TB
-    subgraph "Cloudflare Edge (Free Tier)"
-        PAGES["Cloudflare Workers<br/>Next.js via @opennextjs/cloudflare"]
-        HONO_WORKER["Cloudflare Workers<br/>Hono API"]
-        QUEUE_CONSUMER["Queue Consumer Worker<br/>Document Processing"]
-    end
+| Layer | Technology | Free Tier |
+|-------|------------|-----------|
+| Frontend | Next.js 16, React 19, Framer Motion | ✅ |
+| Backend | Hono on Cloudflare Workers | ✅ 100K req/day |
+| Database | Cloudflare D1 (SQLite) | ✅ 5GB, 5M reads/day |
+| Vector Search | Cloudflare Vectorize | ✅ Free tier |
+| File Storage | Cloudflare R2 | ✅ 10GB, 0 egress |
+| Auth | BetterAuth (OSS) + Google OAuth | ✅ Free |
+| LLM | Groq (Llama 3.3 70B) | ✅ 14.4K req/day |
+| Embeddings | CF Workers AI (bge-base-en-v1.5) | ✅ Free |
+| Monorepo | Turborepo | ✅ Free |
+| CI/CD | GitHub Actions | ✅ Free |
 
-    subgraph "Cloudflare Storage (Free Tier)"
-        D1[("D1 Database<br/>5GB, 5M reads/day")]
-        R2[("R2 Storage<br/>10GB, 0 egress")]
-        VEC[("Vectorize<br/>768-dim index")]
-        KV[("Workers KV<br/>Session cache (optional)")]
-    end
+### 12.2 Environments
 
-    subgraph "Cloudflare Services"
-        QUEUES["Cloudflare Queues"]
-        WAI["Workers AI<br/>Embeddings + OCR"]
-    end
-
-    subgraph "External (Free)"
-        GROQ["Groq API"]
-        OPENROUTER["OpenRouter (fallback)"]
-        GOOGLE_AUTH["Google OAuth"]
-    end
-
-    PAGES --> HONO_WORKER
-    HONO_WORKER --> D1
-    HONO_WORKER --> R2
-    HONO_WORKER --> VEC
-    HONO_WORKER --> QUEUES
-    HONO_WORKER --> GROQ
-    HONO_WORKER --> OPENROUTER
-    HONO_WORKER --> GOOGLE_AUTH
-    QUEUES --> QUEUE_CONSUMER
-    QUEUE_CONSUMER --> WAI
-    QUEUE_CONSUMER --> D1
-    QUEUE_CONSUMER --> VEC
-```
-
-### 10.2 Free Tier Limits
-
-| Service | Free Tier | Comfortable for <500 Users? |
-|---------|-----------|----------------------------|
-| **Cloudflare Workers** | 100K requests/day | ✅ Yes |
-| **Cloudflare D1** | 5M reads/day, 100K writes/day, 5GB | ✅ Yes |
-| **Cloudflare R2** | 10GB storage, 1M Class A, 10M Class B ops | ✅ Yes |
-| **Cloudflare Queues** | 1M operations/month | ✅ Yes |
-| **Workers AI** | 10K neurons/day (free) | ✅ Sufficient for embeddings+OCR |
-| **Cloudflare Vectorize** | Free for prototyping on Workers Free | ✅ Yes |
-| **Groq** | 30 req/min, 14.4K/day (free models) | ✅ Yes |
-| **OpenRouter** | Free models available | ✅ Fallback only |
-| **BetterAuth** | Self-hosted, unlimited | ✅ Yes |
-
-### 10.3 Deployment
-
-**Monorepo Structure:**
-```
-patrasaar/
-├── apps/
-│   ├── web/          # Next.js frontend
-│   │   ├── wrangler.jsonc
-│   │   └── ...
-│   └── api/          # Hono backend Worker
-│       ├── wrangler.jsonc
-│       └── src/
-│           ├── index.ts
-│           ├── routes/
-│           ├── middleware/
-│           ├── services/
-│           └── queue/    # consumer handler
-├── packages/
-│   └── shared/       # Shared Zod schemas, types
-├── turbo.json
-└── package.json
-```
-
-**CI/CD via GitHub Actions:**
-
-```mermaid
-graph LR
-    A["Push to main"] --> B["GitHub Actions"]
-    B --> C{"Type checks<br/>+ Lint pass?"}
-    C -->|Yes| D["wrangler deploy<br/>(API Worker)"]
-    C -->|No| E["Fail + Notify"]
-    D --> F["wrangler pages deploy<br/>(Next.js)"]
-    F --> G["Smoke test"]
-    G --> H["Done ✅"]
-```
+| Environment | Purpose | Infrastructure |
+|-------------|---------|---------------|
+| **Local dev** | Development | Wrangler local D1/R2 + local Next.js |
+| **Staging** | Pre-production testing | CF Workers (separate worker names) |
+| **Production** | Live | CF Workers + Pages |
 
 ---
 
-## 11. Implementation Phases
+## 13. Phased Roadmap
 
-### Phase 1: Foundation (Days 1–3)
-
-```
-Day 1:
-├── Init monorepo (Turborepo)
-├── Set up Hono API Worker scaffold
-├── Configure D1 database + run schema migrations
-├── Set up BetterAuth with Google OAuth
-├── Verify auth flow end-to-end (login/logout/session)
-└── Configure R2 bucket
-
-Day 2:
-├── Init Next.js app with @opennextjs/cloudflare
-├── Set up next/font (Fraunces, Instrument Sans, JetBrains Mono)
-├── Create globals.css with full design token system
-├── Build root layout.tsx + marketing layout
-├── Build landing page (Server Component + Framer Motion)
-├── Build login page (Google OAuth button)
-└── Build app shell layout (sidebar + main area)
-
-Day 3:
-├── Create Chats CRUD API routes (Hono + Zod)
-├── Create Messages API route
-├── Build ChatSidebar component
-├── Build ChatWindow + ChatInput components
-├── Wire up frontend to API (create chat, list chats, send message)
-└── Deploy first version to Cloudflare
-```
-
-### Phase 2: Document Processing (Days 4–5)
+### Phase 0: Planning & Data Sourcing (Before coding)
 
 ```
-Day 4:
-├── Set up Cloudflare Queues (producer + consumer)
-├── Implement file upload to R2 via API
-├── Implement URL fetch + HTML-to-text extraction
-├── Implement PDF text extraction (pdf-parse)
-├── Implement DOCX parsing (mammoth.js)
-├── Implement OCR for scanned docs (Workers AI vision model)
-└── Build FileUploadZone component + drag-and-drop
-
-Day 5:
-├── Implement legal-aware chunking service
-├── Set up Vectorize index (768-dim, cosine)
-├── Implement embedding generation (Workers AI bge-base-en-v1.5)
-├── Wire: upload → queue → parse → chunk → embed → vectorize
-├── Build progress tracking (processing_jobs table + polling)
-├── Build progress bar UI in chat window
-└── Test full upload pipeline with sample legal PDFs
+├── [ ] Finalize the list of legal texts for Rental/Tenancy KB
+├── [ ] Source and download all texts from India Code
+├── [ ] Clean and format into plain text files (UTF-8)
+├── [ ] Place in packages/ingest/sources/rental-tenancy/
+├── [ ] Verify completeness — do we have all relevant sections?
+├── [ ] Create category metadata (slug, name, description)
+└── [ ] Review and approve this implementation plan
 ```
 
-### Phase 3: RAG & Streaming (Days 6–7)
-
-```
-Day 6:
-├── Implement query embedding + Vectorize search
-├── Implement Groq LLM integration (streaming)
-├── Implement OpenRouter fallback
-├── Build SSE streaming from Hono to frontend
-├── Build StreamingResponse component
-├── Implement citation extraction from LLM output
-└── Build CitationTag component
-
-Day 7:
-├── Implement chat history context (last N messages sent to LLM)
-├── Build complete chat flow: type → send → stream → display
-├── Add legal disclaimer to every response
-├── Polish chat UX: auto-scroll, loading states, error handling
-├── Test with real legal documents (contracts, FIRs, judgments)
-└── Fix edge cases (empty docs, failed OCR, rate limits)
-```
-
-### Phase 4: Polish & Deploy (Days 8–10)
-
-```
-Day 8:
-├── Landing page polish: animations, copy, responsive
-├── Mobile responsive: sidebar drawer, touch-friendly chat input
-├── All screen sizes tested (320px → 2560px)
-├── Dark mode only (no light mode toggle — decisive design choice)
-└── Accessibility: keyboard nav, screen reader labels, focus states
-
-Day 9:
-├── Security hardening: CSP headers, rate limiting, input sanitisation
-├── Error boundaries throughout Next.js app
-├── Chat deletion + account deletion cascade
-├── Usage tracking (basic counts)
-└── Performance: ensure no unnecessary client components
-
-Day 10:
-├── End-to-end testing (manual)
-├── Deploy final version to Cloudflare (production)
-├── Custom domain + SSL (automatic via Cloudflare)
-├── Smoke test production
-├── Write README
-└── Handoff AI documentation to AI dev
-```
+**Milestone: We have 5-7 clean, complete legal text files ready for ingestion.**
 
 ---
 
-## 12. AI / LLM Technical Documentation
-
-> **This section is the complete guide for the AI/ML developer.** It contains everything needed to understand, implement, and maintain the AI components of PatraSaar — independent of frontend/backend knowledge.
-
-### 12.1 Overview — What the AI Does
-
-PatraSaar uses **Retrieval-Augmented Generation (RAG)** to answer questions about user-uploaded Indian legal documents. The AI does not hallucinate freely — it retrieves relevant document chunks first, then generates answers grounded in those chunks with citations.
-
-### 12.2 Architecture — AI Components
-
-```mermaid
-graph TB
-    subgraph "Ingestion (runs on document upload)"
-        A["Raw Document Text"] --> B["Legal-Aware Chunker"]
-        B --> C["Embedding Model<br/>@cf/baai/bge-base-en-v1.5"]
-        C --> D["Vectorize Index<br/>768-dim, cosine"]
-    end
-
-    subgraph "Retrieval (runs on each user query)"
-        E["User Question"] --> F["Embed Question<br/>bge-base-en-v1.5"]
-        F --> G["Vectorize Search<br/>topK=10, filtered by user+chat"]
-        G --> H["Retrieved Chunks<br/>(ranked by similarity)"]
-    end
-
-    subgraph "Generation (runs after retrieval)"
-        H --> I["Prompt Assembly<br/>System + Context + History + Question"]
-        I --> J["LLM API<br/>Groq (primary) / OpenRouter (fallback)"]
-        J --> K["Streamed Response<br/>with inline citations"]
-    end
-```
-
-### 12.3 TODO Checklist — 1-Day AI Dev Roadmap
-
-This is the complete list of tasks for the AI developer. Assumes frontend/backend/database are already built and the API endpoints are ready to integrate.
+### Phase 1: Knowledge Base Infrastructure
 
 ```
-Morning (4 hours):
-├── [ ] 1. UNDERSTAND: Read this entire section 12. Understand RAG flow.
-├── [ ] 2. CHUNKING: Implement legal-aware chunking function
-│   ├── Input: raw document text (string)
-│   ├── Output: array of { content, metadata: { section, page, clause_ref } }
-│   ├── Rules:
-│   │   ├── Detect section boundaries (Section X, Article X, Clause X, CHAPTER)
-│   │   ├── Max 512 tokens per chunk, 50 token overlap
-│   │   ├── Never split mid-sentence
-│   │   └── Preserve metadata: section number, page, clause reference
-│   └── Test with: contract PDF, court judgment, FIR copy
-│
-├── [ ] 3. EMBEDDINGS: Wire up Workers AI embedding
-│   ├── Model: @cf/baai/bge-base-en-v1.5 (768 dimensions)
-│   ├── API: env.AI.run('@cf/baai/bge-base-en-v1.5', { text: [chunks] })
-│   ├── Batch: embed all chunks in one call (max 100 per batch)
-│   └── Store: env.VECTORIZE.upsert(vectors) with metadata
-│
-├── [ ] 4. VECTORIZE SETUP: Configure index
-│   ├── Create index: wrangler vectorize create patrasaar-docs --dimensions=768 --metric=cosine
-│   ├── Metadata indexes: document_id, chat_id, user_id
-│   └── Test: insert sample vectors, query, verify results
-
-Afternoon (4 hours):
-├── [ ] 5. RETRIEVAL: Implement semantic search function
-│   ├── Input: user query string, chat_id, user_id
-│   ├── Process:
-│   │   ├── Embed query using same model (bge-base-en-v1.5)
-│   │   ├── Search Vectorize: topK=10, filter by { chat_id, user_id }
-│   │   └── Fetch chunk text from D1 using returned vector IDs
-│   ├── Output: array of { content, score, metadata }
-│   └── Filter: discard chunks with similarity score < 0.3
-│
-├── [ ] 6. PROMPT ENGINEERING: Implement prompt assembly
-│   ├── System prompt: see section 5.4 above
-│   ├── Context: format retrieved chunks as numbered references
-│   │   Example: "[1] Section 12.1 (Page 3): The tenant may terminate..."
-│   ├── Chat history: last 10 messages for conversational context
-│   ├── User query: the current question
-│   └── Test: manually verify prompt looks correct with sample data
-│
-├── [ ] 7. LLM INTEGRATION: Implement Groq streaming
-│   ├── Model: llama-3.3-70b-versatile (or latest available on Groq free tier)
-│   ├── API: POST https://api.groq.com/openai/v1/chat/completions
-│   │   ├── stream: true
-│   │   ├── temperature: 0.3 (low for factual accuracy)
-│   │   ├── max_tokens: 2048
-│   │   └── messages: [system, ...history, user]
-│   ├── Fallback: if Groq fails/rate-limited → try OpenRouter with free model
-│   └── Handle: SSE stream → forward tokens to frontend
-│
-├── [ ] 8. CITATION EXTRACTION: Parse citations from LLM output
-│   ├── LLM is prompted to use [1], [2] style references
-│   ├── Post-process: map [N] back to chunk metadata (section, page)
-│   ├── Return: array of { ref_number, section, page, snippet }
-│   └── Display: frontend renders these as clickable citation tags
-│
-├── [ ] 9. OCR: Implement scanned document handling
-│   ├── Detect: if PDF text extraction returns empty/garbage → likely scanned
-│   ├── Convert: PDF pages to images
-│   ├── OCR: use Workers AI vision model (e.g., @cf/meta/llama-3.2-11b-vision-instruct)
-│   │   ├── Prompt: "Extract all text from this legal document image. Preserve structure."
-│   │   └── Process page by page
-│   └── Fallback: if Workers AI vision unavailable, mark document as "OCR failed"
-│
-└── [ ] 10. TESTING: Verify full pipeline
-    ├── Upload a real rental agreement PDF → verify chunks are correct
-    ├── Ask "What is the notice period?" → verify relevant chunks retrieved
-    ├── Verify LLM response cites correct sections
-    ├── Test with scanned (image) PDF → verify OCR works
-    ├── Test with DOCX court order → verify parsing + chunking
-    └── Test streaming: response appears token-by-token in chat
+├── [ ] Create packages/ingest/ package with CLI scaffolding
+├── [ ] Update D1 schema.sql with kb_categories, kb_sources, kb_chunks tables
+├── [ ] Add category_id to chats table
+├── [ ] Build the ingest CLI pipeline:
+│   ├── [ ] Source reader (read + clean txt files)
+│   ├── [ ] Chunker integration (re-use apps/api/src/lib/chunking.ts)
+│   ├── [ ] Embedder (call Workers AI bge-base-en-v1.5)
+│   └── [ ] Uploader (write to D1 + Vectorize, with metadata)
+├── [ ] Run first ingestion of all Rental/Tenancy sources
+├── [ ] Verify: query Vectorize manually, confirm chunks are correct
+└── [ ] Add GET /api/categories endpoint
 ```
 
-### 12.4 Key Technical Decisions
-
-| Decision | Choice | Why |
-|----------|--------|-----|
-| Embedding model | `bge-base-en-v1.5` (768-dim) | Free on Workers AI, good quality, efficient dimensions |
-| LLM | Groq `llama-3.3-70b-versatile` | Free tier, fast inference, good reasoning |
-| LLM fallback | OpenRouter free models | Redundancy if Groq is down |
-| Temperature | 0.3 | Low for factual, citation-grounded answers |
-| Chunk size | 512 tokens, 50 overlap | Balanced: enough context per chunk, not too large |
-| topK retrieval | 10 | Enough relevant context without overloading prompt |
-| Similarity threshold | 0.3 | Discard irrelevant chunks |
-| No re-ranking | Skip for MVP | Vectorize similarity is sufficient for <500 users |
-| No hybrid search (BM25) | Skip for MVP | Add later if retrieval quality needs improvement |
-
-### 12.5 Environment Variables (AI-Related)
-
-```env
-GROQ_API_KEY=gsk_...
-OPENROUTER_API_KEY=sk-or-...
-# Workers AI and Vectorize are bound via wrangler.jsonc — no API keys needed
-```
-
-### 12.6 Groq API Quick Reference
-
-```typescript
-// Streaming completion
-const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${env.GROQ_API_KEY}`,
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    model: 'llama-3.3-70b-versatile',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      ...chatHistory,
-      { role: 'user', content: userQuery },
-    ],
-    stream: true,
-    temperature: 0.3,
-    max_tokens: 2048,
-  }),
-});
-
-// Read SSE stream
-const reader = response.body.getReader();
-const decoder = new TextDecoder();
-// ... parse SSE data lines, extract content deltas
-```
-
-### 12.7 Workers AI Quick Reference
-
-```typescript
-// Embedding generation
-const embeddings = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
-  text: ['chunk 1 text', 'chunk 2 text', ...],
-});
-// embeddings.data → array of 768-dim float arrays
-
-// Vectorize upsert
-await env.VECTORIZE.upsert(
-  chunks.map((chunk, i) => ({
-    id: chunk.id,
-    values: embeddings.data[i],
-    metadata: {
-      document_id: chunk.documentId,
-      chat_id: chunk.chatId,
-      user_id: chunk.userId,
-      chunk_index: i,
-      section: chunk.section,
-      page: chunk.page,
-    },
-  }))
-);
-
-// Vectorize query
-const results = await env.VECTORIZE.query(queryEmbedding, {
-  topK: 10,
-  filter: { chat_id: chatId, user_id: userId },
-  returnMetadata: 'all',
-});
-```
+**Milestone: The KB is populated in D1 + Vectorize. We can query it.**
 
 ---
 
-## 13. Verification Plan
+### Phase 2: Dual-RAG Query Engine
 
-### 13.1 Manual Testing Checklist
+```
+├── [ ] Update POST /api/chats to require category_id
+├── [ ] Refactor streamRagResponse in messages.ts:
+│   ├── [ ] Dual Vectorize search (KB + User)
+│   ├── [ ] Context assembly with labeled sections
+│   ├── [ ] New system prompt with analysis instructions
+│   └── [ ] Preserve SSE streaming
+├── [ ] Handle edge cases:
+│   ├── [ ] No user document → KB-only mode
+│   ├── [ ] No KB results → user-doc-only mode
+│   └── [ ] Neither → honest "I don't know"
+├── [ ] Test with real rental agreements vs KB
+└── [ ] Verify citation quality in responses
+```
 
-#### Auth Flow
-1. Click "Sign in with Google" → redirects to Google → returns logged in
-2. Refresh page → session persists
-3. Click sign out → session cleared
-4. Try accessing `/chat` without login → redirected to login
-
-#### Document Upload Flow
-1. Upload a 5-page rental agreement PDF → progress bar shows parsing → chunking → embedding → ready
-2. Upload a scanned (image) court order PDF → OCR processes → text extracted
-3. Upload a DOCX contract → parsed correctly
-4. Upload a TXT file → works
-5. Paste a web URL to a legal PDF → fetched and processed
-6. Upload a 15MB file → rejected with clear error
-7. Upload a non-supported file type → rejected
-
-#### Chat Flow
-1. Create new chat → appears in sidebar
-2. Upload document + ask question → streamed response with citations
-3. Ask follow-up question → uses chat history context
-4. Check citation references match actual document sections
-5. Check disclaimer appears on every response
-6. Delete chat → all data removed (docs, vectors, messages)
-
-#### Responsive Design
-1. Test on 320px mobile → sidebar collapses, chat usable
-2. Test on tablet → comfortable layout
-3. Test on desktop → full sidebar + spacious chat
-
-### 13.2 Performance Targets
-
-| Metric | Target | Notes |
-|--------|--------|-------|
-| Landing page load | < 2s | Server-rendered, minimal JS |
-| Chat page load | < 2s | Sidebar + recent messages |
-| Document upload (10MB) | < 5s | Upload to R2 |
-| Document processing | < 60s | Parse + chunk + embed |
-| Query response (first token) | < 3s | Embed + search + LLM start |
-| Query response (complete) | < 15s | Full streamed response |
-
-### 13.3 Security Checks
-- [ ] No API route accessible without valid session
-- [ ] User A cannot access User B's chats/documents
-- [ ] File upload validates MIME type + magic bytes
-- [ ] SQL injection attempted → prepared statements block it
-- [ ] Rate limiting works (test rapid-fire requests)
-- [ ] All secrets in Cloudflare Workers secrets, not in code
-- [ ] CORS only allows expected origins
+**Milestone: Ask a question about a rental agreement and get a response citing both the Act and the doc.**
 
 ---
 
-> [!IMPORTANT]
-> **Stack Confirmation:**
-> - Frontend: Next.js (latest) on Cloudflare Workers via `@opennextjs/cloudflare`
-> - Backend: Hono + TypeScript + Zod on Cloudflare Workers
-> - Auth: BetterAuth (free, OSS) with Google OAuth
-> - Database: Cloudflare D1
-> - Vectors: Cloudflare Vectorize
-> - Storage: Cloudflare R2
-> - LLM: Groq (primary) / OpenRouter (fallback)
-> - Embeddings + OCR: Cloudflare Workers AI
+### Phase 3: User Document Processing
 
-> [!NOTE]
-> **ts-go Status:** As of Feb 2026, ts-go (TypeScript compiler rewritten in Go) is still experimental — declaration emit and some output targets have gaps. We use standard `tsc` for now. ts-go can be adopted later when stable.
+```
+├── [ ] Enable R2 in wrangler.toml
+├── [ ] Implement inline document processing (no queue):
+│   ├── [ ] Text extraction (PDF text → Workers AI for scanned)
+│   ├── [ ] Chunking
+│   ├── [ ] Embedding + Vectorize upsert (type: 'user')
+│   └── [ ] Update document status
+├── [ ] Remove URL upload logic (simplify)
+├── [ ] Remove/simplify queue consumer code
+├── [ ] Frontend: loading state during inline processing
+└── [ ] Test full flow: upload PDF → process → ask question → get dual-cited answer
+```
 
-> [!NOTE]
-> **No micro-optimisation.** This app targets <500 users. The free tier limits are generous. Keep it simple, fast, and maintainable. A full rewrite is planned before scaling.
+**Milestone: Complete working pipeline — upload → ask → cited answer.**
 
 ---
 
-*Document Version: 2.0*
-*Last Updated: 2026-02-15*
-*Author: PatraSaar Development Team*
+### Phase 4: Frontend Polish
+
+```
+├── [ ] Rewrite landing page copy for dual-RAG value proposition
+├── [ ] Update "How It Works" section with new steps
+├── [ ] Build category selection UI (card-based, before chat creation)
+├── [ ] Add category badge to chats in sidebar
+├── [ ] Style KB citations differently from doc citations in chat
+├── [ ] Update the new-chat view to show selected category context
+├── [ ] Mobile responsive polish (320px → 2560px)
+└── [ ] Update all legal disclaimers for consistency
+```
+
+**Milestone: The frontend reflects the new vision end-to-end.**
+
+---
+
+### Phase 5: Hardening & Launch
+
+```
+├── [ ] Error handling throughout API (graceful failures)
+├── [ ] Input sanitization review
+├── [ ] Rate limiting (basic per-user counts)
+├── [ ] Chat deletion cascade (D1 messages + documents + chunks, R2 files, Vectorize vectors)
+├── [ ] Update README.md (final version)
+├── [ ] Update CI/CD workflows if needed
+├── [ ] Deploy to production Cloudflare
+├── [ ] Smoke test production deployment
+├── [ ] Test with 3-5 real rental agreements from different states
+└── [ ] Launch V1 🚀
+```
+
+**Milestone: V1 is live. Users can analyze rental agreements against Indian law.**
+
+---
+
+## 14. Risk Analysis & Mitigations
+
+### Technical Risks
+
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|------------|------------|
+| **Vectorize free tier limits hit** | Service degradation | Low (for <500 users) | Monitor usage. Paid tier is cheap if needed. |
+| **Groq rate limits** | Users get errors | Medium | Implement retry with backoff. Add OpenRouter as fallback LLM. |
+| **Workers AI embedding quality** | Poor retrieval | Low | bge-base-en-v1.5 is well-tested for English text. Monitor retrieval quality manually. |
+| **Legal text extraction issues** | Garbled KB content | Low (texts are plain text) | Manual verification of all ingested chunks. |
+| **Inline processing timeout** | Large docs fail to process | Medium | Set reasonable limits (10MB, 100 pages). Workers have 30s CPU time — should be enough. |
+
+### Product Risks
+
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|------------|------------|
+| **LLM hallucinating legal provisions** | User misled | Medium | Low temperature (0.3), strict system prompt ("cite only what's in context"), post-hoc verification. |
+| **Jurisdiction mismatches** | Wrong law applied | Medium | System prompt instructs LLM to note jurisdictional differences. Future: explicit jurisdiction selection. |
+| **Users treating output as legal advice** | Liability | Medium | Disclaimers everywhere. Clear "NOT legal advice" messaging. |
+| **KB going stale (law amended)** | Outdated information | Low (laws change slowly) | Track `ingested_at`. Periodic manual review of amendments. |
+
+### Data Risks
+
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|------------|------------|
+| **Incorrect legal text sourced** | Fundamentally wrong answers | Low | Source only from India Code (official). Cross-verify key sections. |
+| **Cross-user data leakage** | Privacy violation | Very Low | All queries scoped by user_id. Vectorize metadata filtering enforced. |
+| **R2 data loss** | User loses uploaded docs | Very Low | Cloudflare R2 has built-in redundancy. Not mission-critical (user has original). |
+
+---
+
+## 15. Future Vision & Expansion
+
+### V2: More Categories
+- Add Consumer Protection Law (Consumer Protection Act, 2019)
+- Add Employment Law (Industrial Disputes Act, PF Act, Gratuity Act)
+- Admin dashboard for KB management
+
+### V3: Smart Analysis
+- Automatic clause-by-clause analysis without user asking questions
+- Risk scoring: "This agreement has 3 potentially unfair clauses"
+- "Missing clauses" detection: "Your agreement doesn't mention security deposit return timelines, which is required under..."
+
+### V4: Multilingual Support
+- Hindi / Hinglish responses
+- Regional language document upload support
+- Translation layer for non-English legal texts
+
+### V5: Deeper Legal Intelligence
+- Landmark judgment citations (case law)
+- Comparative analysis ("In Maharashtra vs Delhi, here's how this differs...")
+- Template generation ("Here's what a fair version of this clause looks like")
+- Community-contributed legal commentary
+
+---
+
+*Document Version: 3.0*
+*Last Updated: 2026-04-08*
+*Vision: Dual-RAG Legal Document Analysis — Starting with Rental & Tenancy Law*

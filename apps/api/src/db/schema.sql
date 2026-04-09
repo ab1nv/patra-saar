@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS chats (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     title TEXT NOT NULL DEFAULT 'New Chat',
+    category_id TEXT REFERENCES kb_categories(id),
+    jurisdiction TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -118,6 +120,39 @@ CREATE TABLE IF NOT EXISTS usage_tracking (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Knowledge Base tables
+CREATE TABLE IF NOT EXISTS kb_categories (
+    id TEXT PRIMARY KEY,
+    slug TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    description TEXT,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS kb_sources (
+    id TEXT PRIMARY KEY,
+    category_id TEXT NOT NULL REFERENCES kb_categories(id),
+    title TEXT NOT NULL,
+    source_type TEXT NOT NULL DEFAULT 'central_act',
+    jurisdiction TEXT NOT NULL DEFAULT 'central',
+    year INTEGER,
+    filename TEXT,
+    chunk_count INTEGER NOT NULL DEFAULT 0,
+    ingested_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS kb_chunks (
+    id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL REFERENCES kb_sources(id) ON DELETE CASCADE,
+    category_id TEXT NOT NULL,
+    chunk_index INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    section_ref TEXT,
+    metadata TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_chats_user ON chats(user_id);
 CREATE INDEX IF NOT EXISTS idx_chats_updated ON chats(updated_at);
@@ -128,3 +163,6 @@ CREATE INDEX IF NOT EXISTS idx_documents_status ON documents(status);
 CREATE INDEX IF NOT EXISTS idx_chunks_document ON document_chunks(document_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_document ON processing_jobs(document_id);
 CREATE INDEX IF NOT EXISTS idx_usage_user ON usage_tracking(user_id);
+CREATE INDEX IF NOT EXISTS idx_kb_sources_category ON kb_sources(category_id);
+CREATE INDEX IF NOT EXISTS idx_kb_chunks_source ON kb_chunks(source_id);
+CREATE INDEX IF NOT EXISTS idx_kb_chunks_category ON kb_chunks(category_id);
