@@ -13,10 +13,9 @@ binding = "DB"
 database_name = "patrasaar-db"
 database_id = "0f96dcd7-feda-4103-9070-043abaa0a6fd"
 
-# R2 bucket (enable after activating R2 in dashboard)
-# [[r2_buckets]]
-# binding = "STORAGE"
-# bucket_name = "patrasaar-uploads"
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "patrasaar-uploads"
 
 # Queues (enable only after queues are available on your account)
 # [[queues.producers]]

@@ -31,11 +31,25 @@ chats.post('/', zValidator('json', createChatSchema), async (c) => {
   const body = c.req.valid('json')
   const id = nanoid()
   const title = body.title || 'New Chat'
+  const categoryId = body.categoryId ?? null
+  const jurisdiction = body.jurisdiction ?? null
+
+  // Validate category exists if provided
+  if (categoryId) {
+    const cat = await c.env.DB.prepare(
+      'SELECT id FROM kb_categories WHERE id = ? AND is_active = 1',
+    )
+      .bind(categoryId)
+      .first()
+    if (!cat) {
+      return c.json({ error: { message: 'Category not found', code: 'NOT_FOUND' } }, 404)
+    }
+  }
 
   await c.env.DB.prepare(
-    'INSERT INTO chats (id, user_id, title) VALUES (?, ?, ?)',
+    'INSERT INTO chats (id, user_id, title, category_id, jurisdiction) VALUES (?, ?, ?, ?, ?)',
   )
-    .bind(id, user.id, title)
+    .bind(id, user.id, title, categoryId, jurisdiction)
     .run()
 
   const chat = await c.env.DB.prepare('SELECT * FROM chats WHERE id = ?').bind(id).first()

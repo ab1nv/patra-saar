@@ -92,7 +92,7 @@ export function createSSEReader(
             } else if (parsed.type === 'error') {
               onError(parsed.message)
             } else if (parsed.type === 'progress' && onProgress) {
-              onProgress(parsed.status, parsed.progress)
+              onProgress(parsed.stage, parsed.progress)
             }
           } catch {
             // skip malformed lines

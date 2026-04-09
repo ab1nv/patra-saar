@@ -1,26 +1,5 @@
 import type { Metadata } from 'next'
-import { Fraunces, Instrument_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-
-const heading = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-heading',
-  display: 'swap',
-  weight: ['400', '500', '700', '900'],
-})
-
-const body = Instrument_Sans({
-  subsets: ['latin'],
-  variable: '--font-body',
-  display: 'swap',
-})
-
-const mono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
-  weight: ['400', '500'],
-})
 
 export const metadata: Metadata = {
   title: 'PatraSaar - Legal Clarity, Distilled',
@@ -31,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${heading.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
