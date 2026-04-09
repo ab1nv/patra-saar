@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { Suspense, useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import styles from './chat-layout.module.css'
@@ -10,17 +10,37 @@ interface Chat {
   title: string
 }
 
-export default function NewChatPage() {
+interface KbCategory {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+      <NewChatView />
+    </Suspense>
+  )
+}
+
+function NewChatView() {
   const [input, setInput] = useState('')
   const [creating, setCreating] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [categories, setCategories] = useState<KbCategory[]>([])
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   useEffect(() => {
     textareaRef.current?.focus()
+    api<{ data: KbCategory[] }>('/api/categories')
+      .then((res) => setCategories(res.data))
+      .catch(() => {})
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -32,7 +52,7 @@ export default function NewChatPage() {
     try {
       const res = await api<{ data: Chat }>('/api/chats', {
         method: 'POST',
-        json: {},
+        json: { categoryId: selectedCategoryId },
       })
       // Wait for animation to finish, then navigate seamlessly
       setTimeout(() => {
@@ -59,6 +79,48 @@ export default function NewChatPage() {
         <h1 className={`${styles.greeting} ${submitted ? styles.greetingHidden : ''}`}>
           Legal assistance, simplified.
         </h1>
+
+        {/* Category selection */}
+        {categories.length > 0 && !submitted && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '16px' }}>
+            <button
+              type="button"
+              onClick={() => setSelectedCategoryId(null)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: `1px solid ${selectedCategoryId === null ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                background: selectedCategoryId === null ? 'var(--accent-primary)' : 'transparent',
+                color: selectedCategoryId === null ? 'var(--text-inverse)' : 'var(--text-secondary)',
+                fontSize: 'var(--text-sm)',
+                cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
+              }}
+            >
+              General
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategoryId(cat.id)}
+                title={cat.description ?? undefined}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  border: `1px solid ${selectedCategoryId === cat.id ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                  background: selectedCategoryId === cat.id ? 'var(--accent-primary)' : 'transparent',
+                  color: selectedCategoryId === cat.id ? 'var(--text-inverse)' : 'var(--text-secondary)',
+                  fontSize: 'var(--text-sm)',
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)',
+                }}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className={styles.inputBarWrap}>
           {selectedFile && (

@@ -3,9 +3,10 @@ import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
 import type { Env } from './env'
 import { createAuth } from './auth/auth'
+import { categories } from './routes/categories'
 import { chats } from './routes/chats'
 import { messages } from './routes/messages'
-import { chunkText } from './lib/chunking'
+import { processDocument } from './lib/process-document'
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -39,6 +40,7 @@ app.all('/api/auth/*', async (c) => {
 })
 
 // App routes
+app.route('/api/categories', categories)
 app.route('/api/chats', chats)
 app.route('/api/chats', messages) // messages are nested under /api/chats/:chatId/messages
 
@@ -61,13 +63,9 @@ export default {
   fetch: app.fetch,
   async queue(batch: MessageBatch, env: Env): Promise<void> {
     for (const msg of batch.messages) {
-      try {
-        await processDocument(msg.body as any, env)
-        msg.ack()
-      } catch (err) {
-        console.error('Queue processing error:', err)
-        msg.retry()
-      }
+      // processDocument never throws — errors are recorded in D1
+      await processDocument(msg.body as any, env)
+      msg.ack()
     }
   },
 }
@@ -235,4 +233,3 @@ async function processDocument(
     await updateDocStatus('failed', errMsg)
   }
 }
-

@@ -1,0 +1,16 @@
+# API Environment Variables (Local Development)
+# Copy this to .dev.vars and fill in your actual values
+
+# BetterAuth Configuration
+BETTER_AUTH_SECRET=your-random-32-character-string-here
+BETTER_AUTH_URL=http://localhost:8787
+
+# Google OAuth (from Google Cloud Console)
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Groq API (from console.groq.com)
+GROQ_API_KEY=your-groq-api-key-here
+
+# Optional: OpenRouter API (fallback LLM)
+# OPENROUTER_API_KEY=your-openrouter-api-key

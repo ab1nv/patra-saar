@@ -1,9 +1,24 @@
 import { z } from 'zod'
 
+// -- Knowledge Base category schemas --
+
+export const kbCategorySchema = z.object({
+  id: z.string(),
+  slug: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  isActive: z.boolean(),
+  createdAt: z.string(),
+})
+
+export type KbCategory = z.infer<typeof kbCategorySchema>
+
 // -- Chat schemas --
 
 export const createChatSchema = z.object({
   title: z.string().min(1).max(200).optional(),
+  categoryId: z.string().optional(),
+  jurisdiction: z.string().optional(),
 })
 
 export const updateChatSchema = z.object({
@@ -14,6 +29,8 @@ export const chatSchema = z.object({
   id: z.string(),
   userId: z.string(),
   title: z.string(),
+  categoryId: z.string().nullable(),
+  jurisdiction: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 })
@@ -33,9 +50,12 @@ export const sendMessageSchema = z.object({
 
 export const citationSchema = z.object({
   refNumber: z.number(),
+  valid: z.boolean(),
+  snippet: z.string(),
   section: z.string().optional(),
   page: z.number().optional(),
-  snippet: z.string(),
+  documentId: z.string().optional(),
+  positions: z.array(z.number()),
 })
 
 export const messageSchema = z.object({
