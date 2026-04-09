@@ -24,9 +24,9 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     try {
       const res = await api<{ data: Chat[] }>('/api/chats')
       setChats(res.data)
-    } catch {
-      // not logged in, redirect
-      router.push('/login')
+    } catch (err) {
+      console.error('Failed to load chats:', err)
+      // Allow viewing chat page even if chats fail to load (test mode)
     }
   }
 

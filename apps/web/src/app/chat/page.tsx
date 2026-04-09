@@ -1,9 +1,14 @@
 'use client'
 
 import { Suspense, useRef, useEffect, useState } from 'react'
+<<<<<<< master
+import { useRouter } from 'next/navigation'
+import { api } from '@/lib/api'
+=======
 import { useRouter, useSearchParams } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import { api, createSSEReader } from '@/lib/api'
+>>>>>>> master
 import styles from './chat-layout.module.css'
 import chatStyles from './[id]/chat-page.module.css'
 
@@ -12,6 +17,13 @@ interface Chat {
   title: string
 }
 
+<<<<<<< master
+interface KbCategory {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+=======
 interface Message {
   id: string
   role: 'user' | 'assistant'
@@ -70,16 +82,23 @@ function CitationList({ citationsJson }: { citationsJson: string | null | undefi
       })}
     </div>
   )
+>>>>>>> master
 }
 
 export default function ChatPage() {
   return (
     <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+<<<<<<< master
+      <NewChatView />
+=======
       <ChatPageInner />
+>>>>>>> master
     </Suspense>
   )
 }
 
+<<<<<<< master
+=======
 function ChatPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -102,6 +121,7 @@ interface KbCategory {
   description: string | null
 }
 
+>>>>>>> master
 function NewChatView() {
   const [input, setInput] = useState('')
   const [creating, setCreating] = useState(false)

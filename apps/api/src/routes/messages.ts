@@ -7,7 +7,11 @@ import {
   LEGAL_DISCLAIMER,
 } from '@patrasaar/shared'
 import type { Env } from '../env'
+<<<<<<< master
+import { optionalAuth } from '../auth/middleware'
+=======
 import { requireAuth } from '../auth/middleware'
+>>>>>>> master
 import {
   extractDualCitations,
   verifyDualCitations,
@@ -26,7 +30,7 @@ type AuthVariables = {
 
 const messages = new Hono<{ Bindings: Env; Variables: AuthVariables }>()
 
-messages.use('*', requireAuth)
+messages.use('*', optionalAuth)
 
 // Send a message in a chat (with optional file upload)
 // Returns SSE stream — progress events during doc processing, then AI response tokens
@@ -151,6 +155,70 @@ messages.post('/:chatId/messages', async (c) => {
           env,
         )
 
+<<<<<<< master
+    await c.env.PROCESSING_QUEUE.send({
+      documentId,
+      jobId,
+      chatId,
+      userId: user.id,
+      sourceUrl,
+      filename: sourceUrl,
+      fileType: 'url',
+    })
+  }
+  // Update chat timestamp
+  await c.env.DB.prepare(
+    "UPDATE chats SET updated_at = datetime('now') WHERE id = ?",
+  )
+    .bind(chatId)
+    .run()
+
+  // File upload path — inline processing via SSE stream
+  if (file) {
+    const documentId = nanoid()
+    const jobId = nanoid()
+    const r2Key = `${user.id}/${chatId}/${documentId}/${file.name}`
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'unknown'
+
+    // Upload to R2 before opening stream
+    const fileBuffer = await file.arrayBuffer()
+    await c.env.STORAGE!.put(r2Key, fileBuffer, {
+      customMetadata: { userId: user.id, chatId, documentId, originalName: file.name },
+    })
+
+    // Create document + job records
+    await c.env.DB.prepare(
+      `INSERT INTO documents (id, chat_id, message_id, user_id, original_filename, file_type, file_size, r2_key, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+    )
+      .bind(documentId, chatId, userMessageId, user.id, file.name, ext, file.size, r2Key)
+      .run()
+
+    await c.env.DB.prepare(
+      'INSERT INTO processing_jobs (id, document_id) VALUES (?, ?)',
+    )
+      .bind(jobId, documentId)
+      .run()
+
+    const env = c.env
+    const capturedUserText = userText
+    const capturedUserId = user.id
+
+    // Stream: progress events → optional RAG response
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder()
+        const send = (obj: unknown) =>
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`))
+
+        send({ type: 'progress', stage: 'uploading', progress: 10, documentId, jobId })
+
+        // Process document inline
+        await processDocument(
+          { documentId, jobId, chatId, userId: capturedUserId, r2Key, filename: file.name, fileType: ext },
+          env,
+        )
+
         send({ type: 'progress', stage: 'ready', progress: 100, documentId })
 
         // If user included a query, run RAG immediately after processing
@@ -170,6 +238,27 @@ messages.post('/:chatId/messages', async (c) => {
         Connection: 'keep-alive',
       },
     })
+=======
+        send({ type: 'progress', stage: 'ready', progress: 100, documentId })
+
+        // If user included a query, run RAG immediately after processing
+        if (capturedUserText) {
+          await streamRagIntoController(controller, encoder, env, chatId, capturedUserId, capturedUserText, userMessageId)
+        } else {
+          send({ type: 'done', documentId })
+          controller.close()
+        }
+      },
+    })
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      },
+    })
+>>>>>>> master
   }
 
   // Text-only path — straight to dual-RAG
@@ -262,6 +351,7 @@ async function streamRagIntoController(
 ): Promise<void> {
   const send = (obj: unknown) =>
     controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`))
+<<<<<<< master
 
   // Get chat's category
   const chatRow = await env.DB.prepare(
@@ -281,6 +371,27 @@ async function streamRagIntoController(
     if (cat) categoryName = cat.name
   }
 
+=======
+
+  // Get chat's category
+  const chatRow = await env.DB.prepare(
+    'SELECT category_id, jurisdiction FROM chats WHERE id = ?',
+  )
+    .bind(chatId)
+    .first() as { category_id: string | null; jurisdiction: string | null } | null
+
+  const categoryId = chatRow?.category_id ?? null
+  const jurisdiction = chatRow?.jurisdiction ?? null
+
+  let categoryName = 'General Legal'
+  if (categoryId) {
+    const cat = await env.DB.prepare('SELECT name FROM kb_categories WHERE id = ?')
+      .bind(categoryId)
+      .first() as { name: string } | null
+    if (cat) categoryName = cat.name
+  }
+
+>>>>>>> master
   // Embed query
   let queryEmbedding: number[]
   try {
@@ -307,10 +418,17 @@ async function streamRagIntoController(
     const [kbResults, userResults] = await Promise.all([
       categoryId
         ? env.VECTORIZE.query(queryEmbedding, {
+<<<<<<< master
+          topK: 8,
+          filter: { type: 'kb', category_id: categoryId },
+          returnMetadata: 'all',
+        })
+=======
             topK: 8,
             filter: { type: 'kb', category_id: categoryId },
             returnMetadata: 'all',
           })
+>>>>>>> master
         : Promise.resolve({ matches: [] }),
       env.VECTORIZE.query(queryEmbedding, {
         topK: 5,

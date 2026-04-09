@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid'
 import { zValidator } from '@hono/zod-validator'
 import { createChatSchema, updateChatSchema } from '@patrasaar/shared'
 import type { Env } from '../env'
-import { requireAuth } from '../auth/middleware'
+import { optionalAuth } from '../auth/middleware'
 
 type AuthVariables = {
   user: { id: string; email: string; name: string }
@@ -11,7 +11,7 @@ type AuthVariables = {
 
 const chats = new Hono<{ Bindings: Env; Variables: AuthVariables }>()
 
-chats.use('*', requireAuth)
+chats.use('*', optionalAuth)
 
 // List all chats for the current user, newest first
 chats.get('/', async (c) => {

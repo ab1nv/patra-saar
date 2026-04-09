@@ -69,6 +69,144 @@ describe('chunkText', () => {
       expect(chunk.content.length).toBeLessThan(1700)
     }
   })
+
+  // --- Phase 1: Page number tracking ---
+
+  it('tracks page numbers using form-feed character', () => {
+    const text = 'Section 1 Page one content.\fSection 2 Page two content.'
+    const result = chunkText(text)
+    expect(result.length).toBe(2)
+    expect(result[0].metadata.page).toBe(1)
+    expect(result[1].metadata.page).toBe(2)
+  })
+
+  it('tracks page numbers using --- Page N --- markers', () => {
+    const text = 'Section 1 First page.\n--- Page 2 ---\nSection 2 Second page.'
+    const result = chunkText(text)
+    expect(result.length).toBe(2)
+    expect(result[0].metadata.page).toBe(1)
+    expect(result[1].metadata.page).toBe(2)
+  })
+
+  it('tracks page numbers using lowercase page marker', () => {
+    const text = 'Section 1 First page.\npage 2\nSection 2 Second page.'
+    const result = chunkText(text)
+    expect(result.length).toBe(2)
+    expect(result[0].metadata.page).toBe(1)
+    expect(result[1].metadata.page).toBe(2)
+  })
+
+  it('tracks page numbers using standalone digit page markers', () => {
+    const text = 'Section 1 First page content.\n3\nSection 2 Third page content.'
+    const result = chunkText(text)
+    expect(result.length).toBe(2)
+    expect(result[0].metadata.page).toBe(1)
+    expect(result[1].metadata.page).toBe(3)
+  })
+
+  it('sets page to 1 for document with no page markers', () => {
+    const text = 'Section 1 No page markers here.\nSection 2 Also no page markers.'
+    const result = chunkText(text)
+    expect(result.length).toBe(2)
+    result.forEach((chunk) => {
+      expect(chunk.metadata.page).toBe(1)
+    })
+  })
+
+  it('page number undefined when text has no sections and no page markers (fallback path)', () => {
+    const plainText = 'Just some plain text without any markers or sections.'
+    const result = chunkText(plainText)
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    // Fallback sliding window chunks should still get page 1
+    expect(result[0].metadata.page).toBe(1)
+  })
+
+  it('increments page number across multiple page breaks', () => {
+    const text = 'Section 1 Content.\f\f\fSection 2 Content.'
+    const result = chunkText(text)
+    // Three form feeds means page 4 by the time Section 2 starts
+    expect(result[1].metadata.page).toBe(4)
+  })
+
+  // --- Phase 1: Full section title capture ---
+
+  it('captures full section title including description text', () => {
+    const text =
+      'Section 420 - Cheating and Dishonestly Inducing Delivery of Property\nWhoever cheats and thereby dishonestly induces the person deceived.'
+    const result = chunkText(text)
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    expect(result[0].metadata.sectionTitle).toContain('Section 420')
+    expect(result[0].metadata.sectionTitle).toContain('Cheating')
+  })
+
+  it('captures full article title', () => {
+    const text =
+      'Article 21 - Protection of Life and Personal Liberty\nNo person shall be deprived of his life.'
+    const result = chunkText(text)
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    expect(result[0].metadata.sectionTitle).toContain('Article 21')
+    expect(result[0].metadata.sectionTitle).toContain('Protection of Life')
+  })
+
+  it('captures full clause title', () => {
+    const text =
+      'Clause 5 - Payment Obligations of the Party\nThe party shall pay within thirty days.'
+    const result = chunkText(text)
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    expect(result[0].metadata.sectionTitle).toContain('Clause 5')
+    expect(result[0].metadata.sectionTitle).toContain('Payment Obligations')
+  })
+
+  it('sectionTitle is undefined when text has no section markers', () => {
+    const plainText = 'Just some plain text without any section markers at all.'
+    const result = chunkText(plainText)
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    result.forEach((chunk) => {
+      expect(chunk.metadata.sectionTitle).toBeUndefined()
+    })
+  })
+
+  it('handles document with both page breaks and sections correctly', () => {
+    const text = [
+      'Section 1 Introduction',
+      'This is the introduction section content.',
+      '\f',
+      'Section 2 - Rights and Obligations',
+      'This section describes rights.',
+      '\n--- Page 3 ---\n',
+      'Section 3 - Penalties and Enforcement',
+      'This section covers penalties.',
+    ].join('\n')
+
+    const result = chunkText(text)
+    expect(result.length).toBeGreaterThanOrEqual(3)
+
+    const section1 = result.find((c) => c.content.includes('introduction'))
+    const section2 = result.find((c) => c.content.includes('rights'))
+    const section3 = result.find((c) => c.content.includes('penalties') || c.content.includes('Penalties'))
+
+    expect(section1?.metadata.page).toBe(1)
+    expect(section2?.metadata.page).toBe(2)
+    if (section3) {
+      expect(section3.metadata.page).toBe(3)
+    }
+  })
+
+  it('normalizes whitespace in captured section titles', () => {
+    const text = 'Section 10   -   Multiple   Spaces   In   Title\nContent here.'
+    const result = chunkText(text)
+    expect(result[0].metadata.sectionTitle).toBeDefined()
+    // Should not contain multiple consecutive spaces
+    expect(result[0].metadata.sectionTitle).not.toMatch(/\s{2,}/)
+  })
+
+  it('trims leading and trailing whitespace from section titles', () => {
+    const text = '   Section 7 - Rights of the Applicant   \nContent follows.'
+    const result = chunkText(text)
+    expect(result[0].metadata.sectionTitle).toBeDefined()
+    const title = result[0].metadata.sectionTitle as string
+    expect(title).toBe(title.trim())
+  })
 })
 
 describe('extractSectionMetadata', () => {
@@ -86,5 +224,71 @@ describe('extractSectionMetadata', () => {
 
   it('returns empty object for text without markers', () => {
     expect(extractSectionMetadata('Just some regular text')).toEqual({})
+  })
+})
+
+describe('extractSectionTitle', () => {
+  it('is exported from chunking module', async () => {
+    const module = await import('./chunking')
+    expect(typeof module.extractSectionTitle).toBe('function')
+  })
+
+  it('extracts the first line as section title for section-headed text', async () => {
+    const { extractSectionTitle } = await import('./chunking')
+    const text = 'Section 420 - Cheating and Dishonestly Inducing Delivery of Property\nContent follows here.'
+    const title = extractSectionTitle(text)
+    expect(title).toBe('Section 420 - Cheating and Dishonestly Inducing Delivery of Property')
+  })
+
+  it('returns undefined for text not starting with a recognized heading', async () => {
+    const { extractSectionTitle } = await import('./chunking')
+    const text = 'Some regular paragraph text without a heading.'
+    const title = extractSectionTitle(text)
+    expect(title).toBeUndefined()
+  })
+
+  it('normalizes whitespace in the returned title', async () => {
+    const { extractSectionTitle } = await import('./chunking')
+    const text = 'Section 5   -   Multiple   Spaces\nContent.'
+    const title = extractSectionTitle(text)
+    expect(title).toBeDefined()
+    expect(title).not.toMatch(/\s{2,}/)
+  })
+})
+
+describe('trackPageNumber', () => {
+  it('is exported from chunking module', async () => {
+    const module = await import('./chunking')
+    expect(typeof module.trackPageNumber).toBe('function')
+  })
+
+  it('returns current page when no page marker found', async () => {
+    const { trackPageNumber } = await import('./chunking')
+    expect(trackPageNumber('Regular text', 1)).toBe(1)
+  })
+
+  it('increments page on form-feed', async () => {
+    const { trackPageNumber } = await import('./chunking')
+    expect(trackPageNumber('\f', 1)).toBe(2)
+  })
+
+  it('increments page on --- Page N --- marker', async () => {
+    const { trackPageNumber } = await import('./chunking')
+    expect(trackPageNumber('\n--- Page 5 ---\n', 1)).toBe(5)
+  })
+
+  it('increments page count for multiple form feeds', async () => {
+    const { trackPageNumber } = await import('./chunking')
+    expect(trackPageNumber('\f\f\f', 1)).toBe(4)
+  })
+
+  it('extracts explicit page number from Page N marker', async () => {
+    const { trackPageNumber } = await import('./chunking')
+    expect(trackPageNumber('\nPage 10\n', 1)).toBe(10)
+  })
+
+  it('returns updated count for standalone digit marker', async () => {
+    const { trackPageNumber } = await import('./chunking')
+    expect(trackPageNumber('\n7\n', 1)).toBe(7)
   })
 })
