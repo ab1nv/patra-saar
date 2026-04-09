@@ -2,7 +2,18 @@ import { betterAuth } from 'better-auth'
 import { D1Dialect } from 'kysely-d1'
 import type { Env } from '../env'
 
-export function createAuth(env: Env) {
+export function createAuth(env: Env, requestOrigin?: string) {
+  const origins = [
+    env.BETTER_AUTH_URL,
+    'http://localhost:3000',
+    ...(env.TRUSTED_ORIGINS ? env.TRUSTED_ORIGINS.split(',') : []),
+  ]
+
+  // Dynamically trust Cloudflare Pages preview URLs for this project
+  if (requestOrigin && requestOrigin.includes('patrasaar.pages.dev')) {
+    origins.push(requestOrigin)
+  }
+
   return betterAuth({
     database: {
       dialect: new D1Dialect({ database: env.DB }),
@@ -10,7 +21,16 @@ export function createAuth(env: Env) {
     },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
-    trustedOrigins: [env.BETTER_AUTH_URL, 'http://localhost:3000'],
+    trustedOrigins: origins,
+    advanced: {
+      defaultCookieAttributes: {
+        sameSite: 'none',
+        secure: true,
+      },
+      crossSubDomainCookies: {
+        enabled: true,
+      },
+    },
     socialProviders: {
       google: {
         clientId: env.GOOGLE_CLIENT_ID,

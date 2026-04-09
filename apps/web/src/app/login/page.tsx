@@ -19,7 +19,7 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: 'google',
-          callbackURL: 'http://localhost:3000/chat',
+          callbackURL: `${window.location.origin}/chat`,
         }),
         credentials: 'include',
       })

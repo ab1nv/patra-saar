@@ -37,7 +37,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         json: {},
       })
       setChats((prev) => [res.data, ...prev])
-      router.push(`/chat/${res.data.id}`)
+      router.push(`/chat?id=${res.data.id}`)
       // close sidebar on mobile after creating
       if (window.innerWidth <= 768) setSidebarOpen(false)
     } catch (err) {
@@ -85,7 +85,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           {chats.map((chat) => (
             <a
               key={chat.id}
-              href={`/chat/${chat.id}`}
+              href={`/chat?id=${chat.id}`}
               className={styles.chatItem}
               onClick={() => {
                 if (window.innerWidth <= 768) setSidebarOpen(false)

@@ -35,7 +35,7 @@ app.get('/api/health', (c) => {
 
 // BetterAuth handler -- handles all /api/auth/* routes
 app.all('/api/auth/*', async (c) => {
-  const auth = createAuth(c.env)
+  const auth = createAuth(c.env, c.req.header('origin'))
   return auth.handler(c.req.raw)
 })
 
@@ -70,6 +70,7 @@ export default {
   },
 }
 
+<<<<<<< master
 // Document processing consumer
 async function processDocument(
   payload: {
@@ -233,3 +234,5 @@ async function processDocument(
     await updateDocStatus('failed', errMsg)
   }
 }
+=======
+>>>>>>> master

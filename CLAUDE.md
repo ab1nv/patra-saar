@@ -1,5 +1,6 @@
 # CLAUDE.md
 
+<<<<<<< master
 <<<<<<< HEAD
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -101,6 +102,8 @@ All user-scoped queries filter by `user_id` at the database level.
 - Max pages: 100
 - Formats: PDF, TXT, DOC, DOCX
 =======
+=======
+>>>>>>> master
 This file provides guidance to Claude Code when working with code in this repository.
 
 ## Project Overview
@@ -658,4 +661,7 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 2. Use `detect_changes` for code review.
 3. Use `get_affected_flows` to understand impact.
 4. Use `query_graph` pattern="tests_for" to check coverage.
+<<<<<<< master
 >>>>>>> 0b6e2ba (MVP Ready pre-test)
+=======
+>>>>>>> master
