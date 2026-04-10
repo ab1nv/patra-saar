@@ -16,7 +16,7 @@
   "dependencies": {
     "@patrasaar/shared": "workspace:*",
     "hono": "^4.12.10",
-    "zod": "^3.24.3"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.14.3",
