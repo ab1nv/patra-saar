@@ -6,6 +6,9 @@ export const inquiryRequestSchema = z.object({
   question: z.string().min(1).max(2000),
 })
 
+/** Max document upload size — KV allows 25MB but we cap at 15MB for speed. */
+export const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024
+
 /** Validates the body of POST /documents (metadata, not the file itself) */
 export const documentUploadSchema = z.object({
   name: z.string().min(1).max(255),

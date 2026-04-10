@@ -4,7 +4,7 @@ import type { Document } from '@patrasaar/shared'
 /** Create a document record in D1. */
 export async function createDocument(doc: Omit<Document, 'createdAt'>, env: Env): Promise<void> {
   await env.DB.prepare(
-    `INSERT INTO documents (id, user_id, case_id, name, doc_type, r2_key, page_count, language, status, summary)
+    `INSERT INTO documents (id, user_id, case_id, name, doc_type, kv_key, page_count, language, status, summary)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
@@ -13,7 +13,7 @@ export async function createDocument(doc: Omit<Document, 'createdAt'>, env: Env)
       doc.caseId ?? null,
       doc.name,
       doc.docType,
-      'pending', // r2_key set after upload
+      'pending', // kv_key set after upload
       doc.pageCount ?? null,
       doc.language,
       doc.status,

@@ -47,8 +47,9 @@ vercel login        # Opens browser → Vercel dashboard
 Run these commands once to create all required Cloudflare resources:
 
 ```bash
-# Create R2 bucket for document storage
-wrangler r2 bucket create patrasaar-documents
+# Create KV namespace for document storage (no credit card required)
+wrangler kv namespace create patrasaar-documents
+# → Copy the id from the output into apps/api/wrangler.toml (DOCUMENTS binding)
 
 # Create D1 database
 wrangler d1 create patrasaar-db
@@ -419,14 +420,14 @@ make dev
 
 ## 9. Cost Estimation at Scale
 
-| Service                  | Free Limit                | Paid Upgrade Trigger            |
-| ------------------------ | ------------------------- | ------------------------------- |
-| Cloudflare Workers       | 100k req/day              | >100k req/day → $5/mo           |
-| Cloudflare R2            | 10GB storage              | >10GB → $0.015/GB               |
-| Cloudflare Vectorize     | 30M dimensions queried/mo | >30M → $0.01/1M                 |
-| Cloudflare D1            | 5M rows                   | >5M rows → $0.75/M rows         |
-| Vercel                   | 100GB bandwidth           | >100GB → $20/mo Pro             |
-| OpenRouter (free models) | Rate-limited              | Add credits when hitting limits |
-| CodeRabbit               | Free for public repos     | Private repos → paid plan       |
+| Service                   | Free Limit                | Paid Upgrade Trigger            |
+| ------------------------- | ------------------------- | ------------------------------- |
+| Cloudflare Workers        | 100k req/day              | >100k req/day → $5/mo           |
+| Cloudflare KV (documents) | 1GB storage, 100k reads   | >1GB → $5/mo Workers Paid       |
+| Cloudflare Vectorize      | 30M dimensions queried/mo | >30M → $0.01/1M                 |
+| Cloudflare D1             | 5M rows                   | >5M rows → $0.75/M rows         |
+| Vercel                    | 100GB bandwidth           | >100GB → $20/mo Pro             |
+| OpenRouter (free models)  | Rate-limited              | Add credits when hitting limits |
+| CodeRabbit                | Free for public repos     | Private repos → paid plan       |
 
 **Estimated cost at 1,000 users/month: ₹0 – ₹500**

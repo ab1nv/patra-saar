@@ -8,7 +8,7 @@ documentRoutes.use('*', authMiddleware)
 
 // Upload a document — accepts multipart/form-data with a PDF file
 documentRoutes.post('/', async (c) => {
-  // TODO: Parse multipart upload, store raw PDF in R2, extract text,
+  // TODO: Parse multipart upload, validate 15MB limit, store raw PDF in KV,
   //       chunk, embed, insert into Vectorize, save metadata to D1
   return c.json({ error: 'Not implemented' }, 501)
 })
@@ -25,9 +25,9 @@ documentRoutes.get('/:id', async (c) => {
   return c.json({ error: 'Not implemented' }, 501)
 })
 
-// Delete a document and all associated data (R2 file, D1 rows, Vectorize vectors)
+// Delete a document and all associated data (KV file, D1 rows, Vectorize vectors)
 documentRoutes.delete('/:id', async (c) => {
-  // TODO: Delete from R2, D1 (document + chunks), and Vectorize
+  // TODO: Delete from KV, D1 (document + chunks), and Vectorize
   return c.json({ error: 'Not implemented' }, 501)
 })
 
