@@ -16,6 +16,7 @@
   "dependencies": {
     "@patrasaar/shared": "workspace:*",
     "hono": "^4.12.10",
+    "unpdf": "^1.4.0",
     "zod": "^3.24.3"
   },
   "devDependencies": {

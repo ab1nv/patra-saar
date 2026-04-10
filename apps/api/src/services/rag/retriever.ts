@@ -26,11 +26,11 @@ export async function retrieveChunks(
   const queryVector = await embedQuery(question, env)
 
   const [userResults, legalResults] = await Promise.all([
-    env.VECTORIZE.query(queryVector, {
+    env.CHUNKS_INDEX.query(queryVector, {
       topK: 5,
       filter: { documentId: { $in: documentIds }, userId },
     }),
-    env.LEGAL_CORPUS.query(queryVector, {
+    env.LEGAL_INDEX.query(queryVector, {
       topK: 3,
     }),
   ])

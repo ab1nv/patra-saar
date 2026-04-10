@@ -10,8 +10,8 @@ export interface Env {
   CACHE: KVNamespace
 
   // Vector search — two separate indexes for user docs vs legal corpus
-  VECTORIZE: VectorizeIndex
-  LEGAL_CORPUS: VectorizeIndex
+  CHUNKS_INDEX: VectorizeIndex
+  LEGAL_INDEX: VectorizeIndex
 
   // Workers AI for generating embeddings
   AI: Ai

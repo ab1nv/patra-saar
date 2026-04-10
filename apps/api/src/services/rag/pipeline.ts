@@ -24,7 +24,7 @@ export async function ingestDocument(
   )
 
   // Insert vectors into the user-docs namespace
-  await env.VECTORIZE.insert(
+  await env.CHUNKS_INDEX.insert(
     chunks.map((chunk, i) => ({
       id: `${documentId}:${chunk.chunkIndex}`,
       values: embeddings[i],
