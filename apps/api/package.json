@@ -1,0 +1,30 @@
+{
+  "name": "@patrasaar/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "deploy": "wrangler deploy",
+    "deploy:production": "wrangler deploy --env production",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "ingest-legal-corpus": "tsx scripts/ingest-legal-corpus.ts"
+  },
+  "dependencies": {
+    "@patrasaar/shared": "workspace:*",
+    "hono": "^4.12.10",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.14.3",
+    "@cloudflare/workers-types": "^4.20250410.0",
+    "@patrasaar/eslint-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "tsx": "^4.19.0",
+    "vitest": "^4.1.4",
+    "wrangler": "^4.80.0"
+  }
+}

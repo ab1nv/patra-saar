@@ -4,10 +4,10 @@
 
 PatraSaar is a monorepo with two deployable units:
 
-| Unit | Platform | Branch trigger |
-|---|---|---|
+| Unit       | Platform           | Branch trigger     |
+| ---------- | ------------------ | ------------------ |
 | `apps/api` | Cloudflare Workers | `prod` branch push |
-| `apps/web` | Vercel | `prod` branch push |
+| `apps/web` | Vercel             | `prod` branch push |
 
 Staging deployments happen automatically on every push to `master`.
 
@@ -54,8 +54,13 @@ wrangler r2 bucket create patrasaar-documents
 wrangler d1 create patrasaar-db
 # → Copy the database_id from the output into apps/api/wrangler.toml
 
-# Create Vectorize index (768 dims = bge-base-en-v1.5 output size)
+# Create Vectorize index for user-uploaded documents
 wrangler vectorize create patrasaar-chunks \
+  --dimensions=768 \
+  --metric=cosine
+
+# Create Vectorize index for pre-indexed Indian legal corpus
+wrangler vectorize create patrasaar-legal-corpus \
   --dimensions=768 \
   --metric=cosine
 
@@ -138,6 +143,7 @@ make deploy-api-prod
 ```
 
 Then add a custom domain in the Cloudflare dashboard:
+
 - Workers & Pages → patrasaar-api → Settings → Triggers → Add Custom Domain
 - Add: `api.patrasaar.in`
 
@@ -185,6 +191,7 @@ Go to Vercel Dashboard → patrasaar-web → Settings → Domains:
 - Add `staging.patrasaar.in` → assign to **Preview** (master branch)
 
 Update your DNS (in Cloudflare DNS since your domain is likely on Cloudflare):
+
 - `patrasaar.in` → CNAME → `cname.vercel-dns.com`
 - `staging.patrasaar.in` → CNAME → `cname.vercel-dns.com`
 
@@ -225,11 +232,29 @@ Go to [console.cloud.google.com](https://console.cloud.google.com):
 
 ---
 
-## 5. Automatic Deployment Setup (prod branch)
+## 5. CI/CD Pipeline Setup
 
-This is the most important part. Once configured, pushing to `prod` automatically deploys both services.
+### 5a. CodeRabbit — AI PR Reviews (Free Tier)
 
-### 5a. Add GitHub Secrets
+CodeRabbit provides free AI-powered PR reviews for public repositories. It runs as a GitHub App, not a GitHub Action — no API keys required.
+
+**Setup:**
+
+1. Go to [github.com/apps/coderabbitai](https://github.com/apps/coderabbitai)
+2. Click **Install** → select your `patrasaar` repository
+3. Grant the requested permissions (read PR contents, write review comments)
+4. That's it — CodeRabbit will automatically start reviewing PRs
+
+The `.coderabbit.yaml` in the repo root configures its behaviour (review depth, ignored paths, etc.). See the file for details.
+
+**What CodeRabbit does on every PR:**
+
+- Posts an AI-generated review summary
+- Leaves inline comments on logic errors, security issues, and code quality
+- Suggests improvements and catches common patterns
+- Learns from your codebase over time
+
+### 5b. Add GitHub Secrets
 
 Go to your GitHub repo → Settings → Secrets and variables → Actions → New repository secret:
 
@@ -239,15 +264,15 @@ VERCEL_TOKEN                # From Vercel → Settings → Tokens → Create
 VERCEL_ORG_ID               # From Vercel → Settings → General → Team ID (or personal account ID)
 VERCEL_PROJECT_ID           # From apps/web/.vercel/project.json after running vercel link
 OPENROUTER_API_KEY_TEST     # A separate OpenRouter key for CI tests (can be same key)
-CODECOV_TOKEN               # From codecov.io after linking your repo (free for private repos)
-OPENAI_API_KEY              # For CodeRabbit AI PR reviews (free tier available without this)
+CODECOV_TOKEN               # From codecov.io after linking your repo (free for public repos)
 ```
 
-### 5b. How the Auto-Deploy Works
+### 5c. How the Auto-Deploy Works
 
-The GitHub Actions workflows (already in `.github/workflows/`) handle everything:
+The GitHub Actions workflows (in `.github/workflows/`) handle everything:
 
 **On PR opened/updated:**
+
 1. Lint runs on all packages
 2. TypeScript typecheck runs
 3. All tests run with coverage
@@ -255,34 +280,107 @@ The GitHub Actions workflows (already in `.github/workflows/`) handle everything
 5. Codecov posts coverage diff comment
 
 **On push to `master`:**
+
 1. All CI checks run
 2. API deploys to Cloudflare staging
 3. Web deploys to Vercel preview (staging URL)
 
 **On push to `prod`:**
+
 1. All CI checks run
 2. API deploys to Cloudflare Workers production (`api.patrasaar.in`)
 3. Web deploys to Vercel production (`patrasaar.in`)
 
-### 5c. Deploying to Production
+---
 
-To release to production:
+## 6. Promoting Code to Production (master → prod)
+
+This is the workflow for shipping code to production once you're satisfied with quality on staging.
+
+### When to Promote
+
+- All CI checks pass on `master`
+- You've verified the feature on `staging.patrasaar.in` / `api-staging.patrasaar.workers.dev`
+- CodeRabbit has reviewed the PR (if applicable)
+- No known regressions
+
+### Option A: GitHub PR (Recommended)
+
+This is the safest approach — it creates a review trail and triggers CI before merging.
 
 ```bash
-# Option 1: Merge master into prod via GitHub PR (recommended)
-# → Open a PR from master → prod on GitHub
-# → Review + merge → auto-deploy triggers
+# 1. Make sure your local master is up to date
+git checkout master
+git pull origin master
 
-# Option 2: Direct push (use only for hotfixes)
+# 2. Open a PR on GitHub: master → prod
+# Go to: https://github.com/YOUR_ORG/patrasaar/compare/prod...master
+# Click "Create pull request"
+# Title: "Release: <summary of what's shipping>"
+# Add a brief description of what changed since last prod deploy
+
+# 3. CI runs automatically on the PR
+# Wait for all checks to pass
+
+# 4. Merge the PR on GitHub
+# This triggers deploy-prod.yml → auto-deploys both API and Web
+
+# 5. Verify production
+curl https://api.patrasaar.in/health
+# Visit https://patrasaar.in and smoke test the new features
+```
+
+### Option B: Direct Merge (Hotfixes Only)
+
+Use this only when you need to ship a fix immediately and can't wait for a PR review cycle.
+
+```bash
+# 1. Make sure both branches are up to date
+git checkout master
+git pull origin master
+
+# 2. Switch to prod and merge master into it
 git checkout prod
 git merge master
+
+# 3. Push to prod — this triggers the production deploy
 git push origin prod
-# → Triggers deploy-prod.yml automatically
+
+# 4. Switch back to master
+git checkout master
+
+# 5. Verify production
+curl https://api.patrasaar.in/health
+```
+
+### Post-Deploy Checklist
+
+After every production deployment:
+
+- [ ] `curl https://api.patrasaar.in/health` returns `{ "status": "ok" }`
+- [ ] Visit `https://patrasaar.in` — landing page loads
+- [ ] Login flow works (Google OAuth → dashboard)
+- [ ] Upload a test document → verify it processes
+- [ ] Submit a test inquiry → verify streaming response works
+- [ ] Check Cloudflare dashboard for any error spikes
+- [ ] Check Vercel dashboard for any build/function errors
+
+### Rollback if Something Breaks
+
+If production is broken after a deploy:
+
+```bash
+# API rollback (Cloudflare Workers)
+wrangler deployments list
+wrangler rollback [DEPLOYMENT_ID]
+
+# Frontend rollback (Vercel)
+# Dashboard → patrasaar-web → Deployments → find last good → ... → Promote to Production
 ```
 
 ---
 
-## 6. Local Development Setup
+## 7. Local Development Setup
 
 Full setup from scratch for a new engineer:
 
@@ -310,24 +408,6 @@ make dev
 
 ---
 
-## 7. Rollback
-
-### Rollback API (Cloudflare Workers)
-
-```bash
-# List recent deployments
-wrangler deployments list
-
-# Rollback to a previous deployment
-wrangler rollback [DEPLOYMENT_ID]
-```
-
-### Rollback Frontend (Vercel)
-
-Go to Vercel Dashboard → patrasaar-web → Deployments → find the last good deployment → click `...` → **Promote to Production**
-
----
-
 ## 8. Monitoring
 
 - **Cloudflare Workers:** Dashboard → Workers & Pages → patrasaar-api → Metrics (requests, errors, CPU time)
@@ -339,13 +419,14 @@ Go to Vercel Dashboard → patrasaar-web → Deployments → find the last good 
 
 ## 9. Cost Estimation at Scale
 
-| Service | Free Limit | Paid Upgrade Trigger |
-|---|---|---|
-| Cloudflare Workers | 100k req/day | >100k req/day → $5/mo |
-| Cloudflare R2 | 10GB storage | >10GB → $0.015/GB |
-| Cloudflare Vectorize | 30M dimensions queried/mo | >30M → $0.01/1M |
-| Cloudflare D1 | 5M rows | >5M rows → $0.75/M rows |
-| Vercel | 100GB bandwidth | >100GB → $20/mo Pro |
-| OpenRouter (free models) | Rate-limited | Add credits when hitting limits |
+| Service                  | Free Limit                | Paid Upgrade Trigger            |
+| ------------------------ | ------------------------- | ------------------------------- |
+| Cloudflare Workers       | 100k req/day              | >100k req/day → $5/mo           |
+| Cloudflare R2            | 10GB storage              | >10GB → $0.015/GB               |
+| Cloudflare Vectorize     | 30M dimensions queried/mo | >30M → $0.01/1M                 |
+| Cloudflare D1            | 5M rows                   | >5M rows → $0.75/M rows         |
+| Vercel                   | 100GB bandwidth           | >100GB → $20/mo Pro             |
+| OpenRouter (free models) | Rate-limited              | Add credits when hitting limits |
+| CodeRabbit               | Free for public repos     | Private repos → paid plan       |
 
 **Estimated cost at 1,000 users/month: ₹0 – ₹500**

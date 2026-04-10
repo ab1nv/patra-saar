@@ -1,0 +1,18 @@
+# .coderabbit.yaml — CodeRabbit AI review config
+# Free for public repos via the GitHub App: https://github.com/apps/coderabbitai
+language: en
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  path_instructions:
+    - path: 'apps/api/**'
+      instructions: 'Focus on security, input validation, and Cloudflare Workers compatibility. Flag any use of Node.js APIs not available in the Workers runtime.'
+    - path: 'apps/web/**'
+      instructions: 'Focus on accessibility, performance, and SvelteKit best practices. Check for proper SSR handling and client-side hydration.'
+    - path: 'packages/shared/**'
+      instructions: 'Ensure types are properly exported and backward compatible.'
+chat:
+  auto_reply: true

@@ -5,19 +5,25 @@ description: Generate semantic conventional commit messages from staged changes 
 # /commit — Semantic Conventional Commit Agent
 
 ## Purpose
+
 Analyzes staged git changes and generates a well-structured conventional commit message, then commits the code.
 
 ## Steps
 
 ### 1. Check for staged changes
+
 // turbo
+
 ```bash
 git diff --cached --stat
 ```
+
 If no staged changes exist, inform the user and stop. Suggest running `git add` first.
 
 ### 2. Get the full diff of staged changes
+
 // turbo
+
 ```bash
 git diff --cached
 ```
@@ -52,8 +58,9 @@ Based on the staged changes, generate a conventional commit message following th
 **Scope**: The module, component, or area affected (e.g., `auth`, `leave`, `api`, `frontend`, `docker`). Use lowercase. Omit if changes span many areas.
 
 **Rules**:
+
 - Short description: imperative mood, lowercase, no period, max 72 chars
-- Body: explain *what* and *why*, not *how*. Use bullet points.
+- Body: explain _what_ and _why_, not _how_. Use bullet points.
 - If there are breaking changes, add `BREAKING CHANGE:` in the footer
 - Reference issues when applicable: `Closes #123`
 - If changes span multiple logical units, suggest splitting into multiple commits
@@ -61,17 +68,21 @@ Based on the staged changes, generate a conventional commit message following th
 ### 4. Present the commit message to the user for review
 
 Show the generated commit message and ask for confirmation. The user may:
+
 - **Approve** → proceed to commit
 - **Edit** → modify the message
 - **Reject** → abort
 
 ### 5. Commit with the approved message
+
 ```bash
 git commit -m "<type>(<scope>): <short description>" -m "<body>" -m "<footer>"
 ```
 
 ### 6. Show the result
+
 // turbo
+
 ```bash
 git log -1 --pretty=format:"%h %s%n%n%b"
 ```
@@ -79,6 +90,7 @@ git log -1 --pretty=format:"%h %s%n%n%b"
 ## Examples
 
 **Single feature**:
+
 ```
 feat(leave): add sandwich rule configuration for leave policies
 
@@ -90,6 +102,7 @@ Closes #45
 ```
 
 **Bug fix**:
+
 ```
 fix(auth): prevent token refresh race condition on concurrent requests
 
@@ -99,6 +112,7 @@ fix(auth): prevent token refresh race condition on concurrent requests
 ```
 
 **Multi-scope refactor**:
+
 ```
 refactor(api,services): extract common pagination logic into shared utility
 

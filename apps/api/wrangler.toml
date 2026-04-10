@@ -1,0 +1,36 @@
+name = "patrasaar-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "patrasaar-documents"
+
+# User-uploaded document vectors
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "patrasaar-chunks"
+
+# Pre-indexed Indian legal corpus (IPC, BNS, SC judgements, etc.)
+[[vectorize]]
+binding = "LEGAL_CORPUS"
+index_name = "patrasaar-legal-corpus"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "patrasaar-db"
+database_id = "YOUR_D1_ID"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "YOUR_KV_ID"
+
+[ai]
+binding = "AI"
+
+[vars]
+ENVIRONMENT = "development"
+
+[env.production]
+vars = { ENVIRONMENT = "production" }
