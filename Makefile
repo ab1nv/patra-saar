@@ -28,6 +28,14 @@ test-api:
 test-e2e:
 	cd apps/web && pnpm playwright test
 
+## Run e2e tests with UI (headed mode)
+test-e2e-ui:
+	cd apps/web && pnpm playwright test --ui
+
+## Show last e2e test report
+test-e2e-report:
+	cd apps/web && pnpm playwright show-report
+
 ## Run tests in watch mode
 test-watch:
 	cd apps/api && pnpm vitest
