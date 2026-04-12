@@ -5,9 +5,9 @@ export type TaskType = 'simple_qa' | 'summary' | 'contract_analysis' | 'multi_do
  * Swap these strings to upgrade to paid models without touching any other code.
  */
 export const MODELS = {
-  primary: 'qwen/qwen3-next-80b-a3b-instruct:free',
-  fallback: 'google/gemma-4-26b-a4b:free',
-  heavy: 'openai/gpt-oss-120b:free',
+  primary: 'openrouter/free',
+  fallback: 'openrouter/free',
+  heavy: 'openrouter/free',
 } as const
 
 /** Pick the right model based on task complexity. */
