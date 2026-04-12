@@ -11,9 +11,11 @@
     "test:watch": "vitest",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "ingest-legal-corpus": "tsx scripts/ingest-legal-corpus.ts"
+    "ingest-legal-corpus": "python3 scripts/ingest_legal_corpus.py"
   },
   "dependencies": {
+    "@langchain/community": "^1.1.27",
+    "@langchain/core": "^1.1.39",
     "@patrasaar/shared": "workspace:*",
     "hono": "^4.12.10",
     "unpdf": "^1.4.0",
