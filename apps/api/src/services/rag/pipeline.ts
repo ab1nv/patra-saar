@@ -70,20 +70,42 @@ export async function buildContext(
 ): Promise<{ context: string; chunkIds: string[] }> {
   const retrieved = await retrieveChunks(documentIds, question, userId, env)
 
-  // Fetch full text for each retrieved chunk from D1
   const chunkIds = retrieved.map((r) => r.id)
 
-  // Build context window with source attribution
+  if (retrieved.length === 0) {
+    return { context: '', chunkIds: [] }
+  }
+
+  // Fetch full text for all retrieved chunks from D1 in a single query
+  const placeholders = retrieved.map(() => '?').join(', ')
+  const rows = await env.DB.prepare(
+    `SELECT vector_id, text, document_id FROM chunks WHERE vector_id IN (${placeholders})`,
+  )
+    .bind(...chunkIds)
+    .all<{ vector_id: string; text: string; document_id: string }>()
+
+  const textByVectorId = new Map(rows.results.map((r) => [r.vector_id, r]))
+
+  // Build context window with source attribution and full chunk text
   const contextParts: string[] = []
 
   for (const chunk of retrieved) {
-    // The actual chunk text fetch from D1 will be implemented here
+    const row = textByVectorId.get(chunk.id)
+    if (!row) continue
+
     const label = chunk.source === 'legal-corpus' ? 'LEGAL REFERENCE' : 'DOCUMENT CONTEXT'
-    contextParts.push(`[${label}] (score: ${chunk.score.toFixed(2)})`)
+    const source =
+      chunk.source === 'legal-corpus'
+        ? ((chunk.metadata.file_name as string) ?? 'legal corpus')
+        : row.document_id
+
+    contextParts.push(
+      `[${label}: ${source}] (relevance: ${chunk.score.toFixed(2)})\n${row.text}`,
+    )
   }
 
   return {
-    context: contextParts.join('\n\n'),
+    context: contextParts.join('\n\n---\n\n'),
     chunkIds,
   }
 }
