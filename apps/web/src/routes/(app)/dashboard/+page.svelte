@@ -12,6 +12,36 @@
   let isStreaming = $state(false)
   let activeTab = $state<'laws' | 'timeline'>('laws')
 
+  onMount(async () => {
+    const apiUrl = env.PUBLIC_API_URL ?? 'http://localhost:8787'
+    try {
+      const res = await fetch(`${apiUrl}/inquiries`, { credentials: 'omit' })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.inquiries && data.inquiries.length > 0) {
+          const loadedMessages: { role: 'user' | 'assistant'; content: string }[] = []
+          for (const inq of data.inquiries) {
+            loadedMessages.push({ role: 'user', content: inq.question })
+            if (inq.answer) {
+              loadedMessages.push({ role: 'assistant', content: inq.answer })
+              // Optimistically parse timelines from historical messages
+              const dataMatch = inq.answer.match(/<data>([\s\S]*?)<\/data>/)
+              if (dataMatch) {
+                try {
+                  const json = JSON.parse(dataMatch[1])
+                  if (json.timeline) {
+                    $timelineEvents = json.timeline
+                  }
+                } catch {}
+              }
+            }
+          }
+          messages = loadedMessages
+        }
+      }
+    } catch {}
+  })
+
   let abortController: AbortController | null = null
 
   // Cross-question selection state

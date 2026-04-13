@@ -145,6 +145,25 @@ inquiryRoutes.post('/stream', async (c) => {
       }
     } finally {
       await writer.close()
+
+      // Save global user's inquiry context to cloudflare D1.
+      // We wrap it in a microtask/catch to not explode node process on background failure.
+      try {
+        await c.env.DB.prepare(
+          'INSERT INTO inquiries (id, user_id, document_ids, question, answer, model_used) VALUES (?, ?, ?, ?, ?, ?)',
+        )
+          .bind(
+            inquiryId,
+            userId,
+            JSON.stringify(documentIds),
+            finalQuestion,
+            fullAnswer,
+            MODELS.primary,
+          )
+          .run()
+      } catch (err) {
+        console.error('Failed to log inquiry background:', err)
+      }
     }
   }
 
@@ -161,7 +180,19 @@ inquiryRoutes.post('/stream', async (c) => {
 
 /** List past inquiries for the current user */
 inquiryRoutes.get('/', async (c) => {
-  return c.json({ inquiries: [] })
+  const userId = c.get('userId')
+  try {
+    const { results } = await c.env.DB.prepare(
+      'SELECT question, answer, created_at FROM inquiries WHERE user_id = ? ORDER BY created_at ASC',
+    )
+      .bind(userId)
+      .all()
+
+    return c.json({ inquiries: results })
+  } catch (err) {
+    console.error('Failed to fetch inquiries:', err)
+    return c.json({ inquiries: [] })
+  }
 })
 
 /** Get a single inquiry with its full answer and citations */

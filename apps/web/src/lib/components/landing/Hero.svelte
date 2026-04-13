@@ -51,7 +51,8 @@
 
     <div class="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
       <a
-        href="/auth/login"
+        href="/dashboard"
+        data-sveltekit-preload-data="hover"
         class="px-10 py-4 bg-[var(--color-accent)] text-white font-bold rounded-xl hover:bg-[#d56213] transform hover:-translate-y-0.5 transition-all duration-200 shadow-[0_0_40px_rgba(249,115,22,0.3)] text-lg"
       >
         Open Workspace
