@@ -29,7 +29,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
   cookies.delete('oauth_next', { path: '/' })
 
   // Exchange code for JWT via the API
-  const apiUrl = env.PUBLIC_API_URL ?? 'http://127.0.0.1:8787'
+  const apiUrl = (env.PUBLIC_API_URL ?? 'http://127.0.0.1:8787').replace(/\/+$/, '')
   const callbackUrl = `${url.origin}/auth/callback`
 
   const response = await fetch(`${apiUrl}/auth/google`, {

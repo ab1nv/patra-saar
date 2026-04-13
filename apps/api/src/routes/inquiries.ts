@@ -14,9 +14,50 @@ const streamSchema = z.object({
   question: z.string().min(1).max(2000),
   mode: z.enum(['lawyer', 'client']).optional().default('lawyer'),
   crossQuestionContext: z.string().optional(),
+  caseId: z.string().min(1).optional(),
 })
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
+
+function buildCaseNameFromQuestion(question: string): string {
+  const words = question
+    .trim()
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .map((word) => word.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''))
+    .filter(Boolean)
+
+  const titleWords = words.slice(0, 6)
+  while (titleWords.length < 3) {
+    titleWords.push('inquiry')
+  }
+
+  return titleWords.join(' ').slice(0, 80)
+}
+
+function extractStreamText(payload: any): string {
+  const choice = payload?.choices?.[0]
+  const delta = choice?.delta ?? choice?.message ?? {}
+  const content = delta?.content ?? choice?.text ?? payload?.text ?? ''
+
+  if (typeof content === 'string') {
+    return content
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === 'string') return part
+        if (part && typeof part === 'object' && typeof part.text === 'string') {
+          return part.text
+        }
+        return ''
+      })
+      .join('')
+  }
+
+  return ''
+}
 
 function buildSystemPrompt(mode: 'lawyer' | 'client') {
   const modeTone =
@@ -32,6 +73,11 @@ You must strictly organize your response into these exact sections using markdow
 ## Case Summary
 ## Applicable Laws & Potential Charges
 ## Actionable Next Steps
+
+DEPTH REQUIREMENT:
+- Provide a substantial, practical answer by default.
+- Unless the user explicitly asks for a short response, each section should contain multiple concrete bullet points and explanatory detail.
+- Aim for legal and procedural completeness over brevity.
 
 CRITICAL INSTRUCTION FOR LAWS:
 Whenever you mention an Indian statute, act, or section (e.g. Section 302 of IPC), you MUST format it as a markdown link using this exact custom URI scheme with a trailing short description:
@@ -55,8 +101,45 @@ inquiryRoutes.post('/stream', async (c) => {
     return c.json({ error: 'Invalid request', details: parsed.error.flatten() }, 400)
   }
 
-  const { documentIds, question, mode, crossQuestionContext } = parsed.data
+  const { documentIds, question, mode, crossQuestionContext, caseId } = parsed.data
   const userId = c.get('userId')
+
+  let activeCaseId = caseId ?? ''
+  let activeCaseName = ''
+  const derivedCaseName = buildCaseNameFromQuestion(question)
+  let casePersisted = false
+
+  if (activeCaseId) {
+    const caseRow = await c.env.DB.prepare(
+      'SELECT id, name FROM cases WHERE id = ? AND user_id = ? LIMIT 1',
+    )
+      .bind(activeCaseId, userId)
+      .first<{ id: string; name: string }>()
+
+    if (caseRow) {
+      activeCaseName = caseRow.name
+      casePersisted = true
+    } else {
+      activeCaseName = derivedCaseName
+    }
+  } else {
+    activeCaseId = crypto.randomUUID().replace(/-/g, '')
+    activeCaseName = derivedCaseName
+  }
+
+  const ensureCasePersisted = async () => {
+    if (casePersisted) return true
+    try {
+      await c.env.DB.prepare('INSERT INTO cases (id, user_id, name) VALUES (?, ?, ?)')
+        .bind(activeCaseId, userId, activeCaseName)
+        .run()
+      casePersisted = true
+      return true
+    } catch (err) {
+      console.error('Failed to persist case for stream:', err)
+      return false
+    }
+  }
 
   // Fetch from RAG regardless of whether user uploaded docs
   // The system will hit the LEGAL_INDEX for general laws and CHUNKS_INDEX if they provided documentIds
@@ -89,7 +172,13 @@ inquiryRoutes.post('/stream', async (c) => {
       'Content-Type': 'application/json',
       'HTTP-Referer': c.env.FRONTEND_URL,
     },
-    body: JSON.stringify({ model: MODELS.primary, messages, stream: true }),
+    body: JSON.stringify({
+      model: MODELS.primary,
+      messages,
+      stream: true,
+      max_tokens: 1800,
+      temperature: 0.2,
+    }),
   })
 
   if (!llmRes.ok || !llmRes.body) {
@@ -105,19 +194,81 @@ inquiryRoutes.post('/stream', async (c) => {
   const { readable, writable } = new TransformStream()
   const writer = writable.getWriter()
   const encoder = new TextEncoder()
+  const fallbackAnswer =
+    "I'm sorry, I couldn't generate a response right now. Please retry your question."
 
   // Collect full answer in background to persist after stream completes
   let fullAnswer = ''
+  let inquiryPersisted = false
 
   const pump = async () => {
     const reader = llmRes.body!.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
 
+    const ensureInquiryPersisted = async () => {
+      if (inquiryPersisted) return true
+
+      try {
+        await c.env.DB.prepare(
+          'INSERT INTO inquiries (id, user_id, case_id, document_ids, question, answer, model_used) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        )
+          .bind(
+            inquiryId,
+            userId,
+            activeCaseId,
+            JSON.stringify(documentIds),
+            finalQuestion,
+            '',
+            MODELS.primary,
+          )
+          .run()
+
+        inquiryPersisted = true
+        return true
+      } catch (err) {
+        console.error('Failed to create inquiry row during stream:', err)
+        return false
+      }
+    }
+
+    const processLine = async (rawLine: string) => {
+      const trimmed = rawLine.trim()
+      if (!trimmed.startsWith('data:') || trimmed.includes('[DONE]')) return
+
+      const jsonPayload = trimmed.replace(/^data:\s*/, '')
+      if (!jsonPayload) return
+
+      try {
+        const delta = JSON.parse(jsonPayload)
+        const text = extractStreamText(delta)
+
+        if (!text) return
+
+        if (!(await ensureCasePersisted())) {
+          return
+        }
+
+        if (!(await ensureInquiryPersisted())) {
+          return
+        }
+
+        fullAnswer += text
+        await writer.write(encoder.encode(text))
+      } catch {
+        // malformed SSE line — skip
+      }
+    }
+
     try {
       while (true) {
         const { done, value } = await reader.read()
-        if (done) break
+        if (done) {
+          if (buffer.trim()) {
+            await processLine(buffer)
+          }
+          break
+        }
 
         buffer += decoder.decode(value, { stream: true })
 
@@ -125,55 +276,60 @@ inquiryRoutes.post('/stream', async (c) => {
         const lines = buffer.split('\n')
         buffer = lines.pop() || ''
 
-        // Parse OpenRouter SSE format to extract just the text/reasoning tokens
         for (const line of lines) {
-          const trimmed = line.trim()
-          if (!trimmed.startsWith('data: ') || trimmed.includes('[DONE]')) continue
-          try {
-            const delta = JSON.parse(trimmed.slice(6))
-            const text = delta?.choices?.[0]?.delta?.content ?? ''
-
-            if (text) {
-              fullAnswer += text
-              // Forward clean raw text token to client instead of SSE block
-              await writer.write(encoder.encode(text))
-            }
-          } catch {
-            // malformed SSE line — skip
-          }
+          await processLine(line)
         }
+      }
+
+      if (!fullAnswer.trim()) {
+        fullAnswer = fallbackAnswer
+        await writer.write(encoder.encode(fallbackAnswer))
       }
     } finally {
       await writer.close()
 
       // Save global user's inquiry context to cloudflare D1.
       // We wrap it in a microtask/catch to not explode node process on background failure.
-      try {
-        await c.env.DB.prepare(
-          'INSERT INTO inquiries (id, user_id, document_ids, question, answer, model_used) VALUES (?, ?, ?, ?, ?, ?)',
-        )
-          .bind(
-            inquiryId,
-            userId,
-            JSON.stringify(documentIds),
-            finalQuestion,
-            fullAnswer,
-            MODELS.primary,
-          )
-          .run()
-      } catch (err) {
-        console.error('Failed to log inquiry background:', err)
+      if (fullAnswer.trim() && (await ensureCasePersisted())) {
+        try {
+          if (!inquiryPersisted) {
+            await c.env.DB.prepare(
+              'INSERT INTO inquiries (id, user_id, case_id, document_ids, question, answer, model_used) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            )
+              .bind(
+                inquiryId,
+                userId,
+                activeCaseId,
+                JSON.stringify(documentIds),
+                finalQuestion,
+                fullAnswer,
+                MODELS.primary,
+              )
+              .run()
+            inquiryPersisted = true
+          } else {
+            await c.env.DB.prepare(
+              'UPDATE inquiries SET answer = ?, model_used = ? WHERE id = ? AND user_id = ?',
+            )
+              .bind(fullAnswer, MODELS.primary, inquiryId, userId)
+              .run()
+          }
+        } catch (err) {
+          console.error('Failed to log inquiry background:', err)
+        }
       }
     }
   }
 
-  pump()
+  c.executionCtx.waitUntil(pump())
 
   return new Response(readable, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'X-Inquiry-Id': inquiryId,
+      'X-Case-Id': activeCaseId,
+      'X-Case-Name': encodeURIComponent(activeCaseName),
     },
   })
 })

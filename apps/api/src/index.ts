@@ -10,15 +10,25 @@ import type { Env } from './types/bindings'
 
 const app = new Hono<{ Bindings: Env }>()
 
+function normalizeOrigin(value: string): string {
+  return value.trim().replace(/\/+$/, '')
+}
+
 app.use('*', logger())
 app.use(
   '*',
   cors({
     origin: (origin, c) => {
-      const allowed = c.env.FRONTEND_URL ?? 'http://localhost:5173'
-      return origin === allowed ? origin : null
+      const configuredOrigins = (c.env.FRONTEND_URL ?? 'http://localhost:5173')
+        .split(',')
+        .map((item: string) => normalizeOrigin(item))
+        .filter(Boolean)
+
+      const incoming = normalizeOrigin(origin || '')
+      return configuredOrigins.includes(incoming) ? origin : null
     },
     credentials: true,
+    exposeHeaders: ['X-Inquiry-Id', 'X-Case-Id', 'X-Case-Name'],
   }),
 )
 

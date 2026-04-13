@@ -4,6 +4,9 @@
 > For the non-technical product overview, see [PatraSaar.md](./PatraSaar.md).  
 > For full deployment instructions, see [deploy.md](./deploy.md).
 
+Presentation Link: https://docs.google.com/presentation/d/1TkXPoq0qyS15ulVyzyfMCZjt-UXFRGg-0iaT0drLncI/edit?usp=sharing  
+Live Demo Link: https://patra-saar.vercel.app/
+
 ---
 
 ## What This Repo Contains
