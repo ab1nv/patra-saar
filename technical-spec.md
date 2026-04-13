@@ -565,28 +565,13 @@ Without the legal corpus, if a user uploads an FIR mentioning "Section 406 IPC" 
 ```typescript
 // services/llm/models.ts
 export const MODELS = {
-  // For standard Q&A, summarization, clause analysis
-  primary: 'qwen/qwen3-next-80b-a3b-instruct:free',
-
-  // Fallback if primary rate-limits
-  fallback: 'google/gemma-4-26b-a4b:free',
-
-  // For heavy reasoning: contract red-flag detection, complex multi-doc analysis
-  heavy: 'openai/gpt-oss-120b:free',
+  // PatraSaar strictly leverages robust, high-parameter open-source models via OpenRouter
+  // Primary routing defaults to openrouter/free which dynamically sniffs the fastest node.
+  // When high-capacity instruction following is needed, PatraSaar scales up to Nvidia Nemotron 120B.
+  primary: 'openrouter/free',
+  fallback: 'openrouter/free',
+  heavy: 'openrouter/free',
 } as const
-
-export function selectModel(taskType: TaskType): string {
-  switch (taskType) {
-    case 'contract_analysis':
-    case 'multi_document':
-      return MODELS.heavy
-    case 'simple_qa':
-    case 'summary':
-      return MODELS.primary
-    default:
-      return MODELS.primary
-  }
-}
 ```
 
 ### System Prompt
@@ -716,9 +701,9 @@ src/routes/
 ├── +page.svelte                # Landing page (public)
 ├── auth/
 │   ├── callback/
-│   │   └── +page.server.ts     # Handle Google OAuth callback
-│   └── signout/
-│       └── +page.server.ts
+│   │   └── +page.server.ts     # Generate generic user session (Auth disabled for testing)
+│   └── login/
+│       └── +server.ts          # Bypass OAuth directly to /dashboard
 ├── (app)/                      # Protected route group
 │   ├── +layout.svelte          # App shell: sidebar + topbar
 │   ├── +layout.ts              # Auth guard — redirect if not logged in
@@ -783,7 +768,7 @@ components/
 The landing page follows the design shown in the mockups exactly:
 
 1. **Navbar** — `PatraSaar` logo left, nav links (Case Law, RAG Search, Intelligence, Firm Solutions), `Request Access` CTA button right
-2. **Hero** — Full-width dark section, "The Local LLM of Bharat" label, `Sovereign` (white) + `Intelligence` (orange) heading, subtitle, two CTAs
+2. **Hero** — Full-width dark section, "Real Citations. Real Laws. Zero Hallucinations." label, `Sovereign` (white) + `Intelligence` (orange) heading, subtitle, two CTAs
 3. **Scales of Justice** visual — dramatic dark imagery
 4. **Trusted by** — Law firm logos (CAM, Trilegal, AZB, Khaitan, SAM)
 5. **Neural RAG Pipeline** section — Left: description + two feature bullets. Right: live query demo card

@@ -28,15 +28,15 @@ function buildSystemPrompt(mode: 'lawyer' | 'client') {
 ${modeTone}
 
 REQUIRED RESPONSE STRUCTURE:
-You must strictly organize your response into these exact sections using markdown headers:
+You must strictly organize your response into these exact sections using markdown level 2 headers (i.e. '## '). DO NOT output any introductory or conversational text (like "Namaste!" or "I understand..."). Start immediately with the first header:
 ## Case Summary
 ## Applicable Laws & Potential Charges
 ## Actionable Next Steps
 
 CRITICAL INSTRUCTION FOR LAWS:
-Whenever you mention an Indian statute, act, or section (e.g. Section 302 of IPC), you MUST format it as a markdown link using this exact custom URI scheme:
-[Display Text](law:ActShortcut:Section)
-Example: [Section 302 of the IPC](law:IPC:302) or [Article 21 of the Constitution](law:Constitution:21).
+Whenever you mention an Indian statute, act, or section (e.g. Section 302 of IPC), you MUST format it as a markdown link using this exact custom URI scheme with a trailing short description:
+[Display Text](law:ActShortcut:Section:A brief 1-sentence description of what this section covers)
+Example: [Section 302 of the IPC](law:IPC:302:Outlines the punishment for committing murder).
 
 OUT-OF-THE-BOX TIMELINE INSTRUCTION:
 At the very end of your response, you MUST output a hidden JSON block wrapping timeline events you gathered from the user's facts. Format it EXACTLY like this:

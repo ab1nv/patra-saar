@@ -206,11 +206,24 @@
         {:else}
           <div class="py-6">
             {#each messages as msg}
-              <ChatBubble content={msg.content} role={msg.role} />
+              {#if !(isStreaming && msg.role === 'assistant' && msg.content === '')}
+                <ChatBubble content={msg.content} role={msg.role} />
+              {/if}
             {/each}
             {#if isStreaming}
-              <div class="text-xs text-[var(--color-text-muted)] animate-pulse mb-8 ml-10">
-                PatraSaar intelligence is working...
+              <div class="flex gap-4 mb-8 animate-pulse text-opacity-80">
+                <div
+                  class="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-bg-tertiary)] to-[var(--color-bg-secondary)] border border-[var(--color-border)] flex items-center justify-center shrink-0 mt-1 shadow-sm"
+                >
+                  <Scale size={20} class="text-[var(--color-accent)]" />
+                </div>
+                <div
+                  class="relative w-full bg-[var(--color-bg-secondary)] rounded-3xl border border-[var(--color-border)] p-6 shadow-sm flex items-center"
+                >
+                  <div class="text-[var(--color-text-muted)] tracking-wide">
+                    PatraSaar intelligence is working...
+                  </div>
+                </div>
               </div>
             {/if}
           </div>
@@ -293,7 +306,7 @@
   <aside
     class="w-[340px] bg-[var(--color-bg-secondary)] flex flex-col shrink-0 border-l border-[var(--color-border)]"
   >
-    <div class="h-14 border-b border-[var(--color-border)] flex">
+    <div class="h-14 border-b border-[var(--color-border)] flex shrink-0">
       <button
         onclick={() => (activeTab = 'laws')}
         class="flex-1 flex items-center justify-center gap-2 {activeTab === 'laws'
@@ -321,7 +334,7 @@
             <h3
               class="text-xs uppercase tracking-wider font-semibold text-[var(--color-text-muted)] mb-4"
             >
-              Referenced Sources
+              Referenced Act Sections
             </h3>
             {#each $referencedLaws as law}
               <a
@@ -329,24 +342,37 @@
                   law.act + ' ' + law.section,
                 )}"
                 target="_blank"
-                class="block p-3 border border-[var(--color-border)] bg-[var(--color-bg-primary)] rounded-lg hover:border-[var(--color-accent-muted)] transition-colors group"
+                class="block p-4 border border-[var(--color-border)] bg-[var(--color-bg-primary)] rounded-xl hover:border-[var(--color-accent-muted)] transition-colors group"
               >
-                <div class="flex items-start justify-between">
+                <div class="flex flex-col gap-2">
                   <div>
-                    <div class="text-xs font-mono text-[var(--color-accent)] mb-1">{law.act}</div>
                     <div
-                      class="text-sm font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors"
+                      class="text-xs font-mono text-[var(--color-accent)] mb-1 inline-block bg-[var(--color-accent)]/10 px-2 py-0.5 rounded"
+                    >
+                      {law.act} Section {law.section}
+                    </div>
+                    <div
+                      class="text-sm font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors mt-1"
                     >
                       {law.display}
                     </div>
                   </div>
+                  {#if law.description}
+                    <div
+                      class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed border-t border-[var(--color-border)] pt-2 mt-1"
+                    >
+                      {law.description}
+                    </div>
+                  {/if}
                 </div>
               </a>
             {/each}
           </div>
         {:else}
-          <div class="text-center text-sm text-[var(--color-text-muted)] mt-10">
-            Mentioned statutes and case laws will appear here during your chat.
+          <div
+            class="text-center flex flex-col items-center justify-center h-fullopacity-60 text-sm text-[var(--color-text-muted)] mt-10"
+          >
+            Mentioned statutes and case laws will appear here automatically with summaries.
           </div>
         {/if}
       {/if}
