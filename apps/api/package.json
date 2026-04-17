@@ -15,11 +15,11 @@
   },
   "dependencies": {
     "@langchain/community": "^1.1.27",
-    "@langchain/core": "^1.1.39",
+    "@langchain/core": "^1.1.40",
     "@patrasaar/shared": "workspace:*",
-    "hono": "^4.12.10",
-    "unpdf": "^1.4.0",
-    "zod": "^3.24.3"
+    "hono": "^4.12.14",
+    "unpdf": "^1.6.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.14.3",
