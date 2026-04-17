@@ -22,12 +22,12 @@
     "zod": "^3.24.3"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.14.3",
-    "@cloudflare/workers-types": "^4.20250410.0",
+    "@cloudflare/vitest-pool-workers": "^0.14.7",
+    "@cloudflare/workers-types": "^4.20260417.1",
     "@patrasaar/eslint-config": "workspace:*",
-    "@types/node": "^22.15.3",
+    "@types/node": "^25.6.0",
     "tsx": "^4.19.0",
     "vitest": "^4.1.4",
-    "wrangler": "^4.80.0"
+    "wrangler": "^4.83.0"
   }
 }
