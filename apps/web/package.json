@@ -17,7 +17,7 @@
   "dependencies": {
     "@patrasaar/shared": "workspace:*",
     "lucide-svelte": "^1.0.1",
-    "marked": "^18.0.4"
+    "marked": "^18.0.5"
   },
   "devDependencies": {
     "@patrasaar/eslint-config": "workspace:*",
@@ -26,7 +26,7 @@
     "@sveltejs/kit": "^2.61.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tailwindcss/vite": "^4.3.0",
-    "eslint": "^10.4.0",
+    "eslint": "^10.4.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.5",
     "prettier": "^3.8.3",
