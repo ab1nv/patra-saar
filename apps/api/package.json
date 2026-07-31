@@ -14,11 +14,11 @@
     "ingest-legal-corpus": "python3 scripts/ingest_legal_corpus.py"
   },
   "dependencies": {
-    "@langchain/community": "^1.1.28",
-    "@langchain/core": "^1.1.48",
+    "@langchain/community": "^1.1.29",
+    "@langchain/core": "^1.2.3",
     "@patrasaar/shared": "workspace:*",
-    "hono": "^4.12.22",
-    "unpdf": "^1.6.2",
+    "hono": "^4.12.32",
+    "unpdf": "^1.8.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
