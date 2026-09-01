@@ -1,3 +1,0 @@
-# Exclude from GitHub language statistics
-*.css linguist-detectable=false
-Makefile linguist-detectable=false

@@ -1,424 +1,263 @@
-# PatraSaar
+# PatraSaar — Sovereign Intelligence for Indian Law
 
-Legal clarity, distilled.
+> Internal engineering documentation. This repo is private.  
+> For the non-technical product overview, see [PatraSaar.md](./PatraSaar.md).  
+> For full deployment instructions, see [deploy.md](./deploy.md).
 
-PatraSaar is an AI-powered platform that simplifies Indian legal documents. Upload a contract, FIR, court order, or legal notice, ask questions about it, and get plain-language explanations with source citations.
+---
 
-## What it does
+## What This Repo Contains
 
-- **Upload legal documents** in PDF, DOCX, TXT format, or provide a web link
-- **Ask questions** in natural language, like chatting with a knowledgeable assistant
-- **Get cited answers** where every claim references the exact section, clause, or page
-- **Stream responses** in real-time so you can start reading immediately
-
-PatraSaar does not provide legal advice. It is a research and comprehension tool.
-
-## Tech stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 15, React 19, Framer Motion |
-| Backend | Hono on Cloudflare Workers |
-| Database | Cloudflare D1 (SQLite) |
-| Vector search | Cloudflare Vectorize |
-| File storage | Cloudflare R2 |
-| Auth | BetterAuth with Google OAuth |
-| LLM | Groq (Llama 3.3 70B) with OpenRouter fallback |
-| Document AI | Workers AI for embeddings, unpdf for PDFs, mammoth.js for DOCX |
-| Monorepo | Turborepo |
-
-## Project structure
+PatraSaar is a full-stack RAG + LLM monorepo. It has two deployable applications and two shared packages:
 
 ```
 patrasaar/
-  apps/
-    api/          Hono API worker (auth, chat, file processing, RAG)
-    web/          Next.js frontend
-  packages/
-    shared/       Zod schemas, types, validation helpers
+├── apps/
+│   ├── api/        Hono backend on Cloudflare Workers
+│   └── web/        SvelteKit frontend on Vercel
+├── packages/
+│   ├── shared/     Shared TypeScript types used by both apps
+│   └── eslint-config/  Shared ESLint rules
 ```
 
-## Getting started
+---
 
-### Prerequisites
+## Tech Stack
+
+| Layer | Technology | Why |
+|---|---|---|
+| Backend runtime | Cloudflare Workers | Zero cold start, native Vectorize/R2/D1 access |
+| Backend framework | Hono v4 | Fastest TS framework on edge, zero deps |
+| Frontend | SvelteKit 2 on Vercel | Best performance/complexity ratio, SSR |
+| Vector DB | Cloudflare Vectorize | Native Workers integration, free tier |
+| Document storage | Cloudflare R2 | S3-compatible, no egress fees |
+| Metadata DB | Cloudflare D1 | SQLite at the edge, free tier |
+| Embeddings | Workers AI (bge-base-en-v1.5) | Free, runs in same Workers infra |
+| LLM | OpenRouter (Qwen3/Gemma4/gpt-oss) | Free models, easy swap to paid |
+| Auth | Google OAuth 2.0 + JWT | Simple, trusted, no extra service |
+| Package manager | pnpm | Faster installs, better monorepo support |
+| Task runner | Turborepo | Parallel builds, smart caching |
+
+---
+
+## Quick Start
+
+### Requirements
 
 - Node.js 20+
-- A Cloudflare account
-- Google Cloud OAuth credentials
-- A Groq API key
+- pnpm 9+
+- A Cloudflare account (free)
+- A Vercel account (free)
+- A Google Cloud project with OAuth credentials
 
 ### Setup
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/patra-saar.git
-   cd patra-saar
-   ```
-
-2. Install dependencies:
-   ```
-   make install
-   ```
-
-3. Copy the env template and fill in your values:
-   ```
-   cp .env.example .env
-   ```
-
-4. Run database migrations locally:
-   ```
-   make db-migrate
-   ```
-
-5. Start the dev servers:
-   ```
-   make dev
-   ```
-
-   The API runs on `http://localhost:8787` and the web app on `http://localhost:3000`.
-
-### Docker
-
-If you prefer Docker:
-
-```
-make docker-up
-```
-
-This builds and starts both the API and web services with hot reloading.
-
-## Available commands
-
-```
-make install        Install all dependencies
-make dev            Start dev servers (API + Web)
-make test           Run all tests
-make test-coverage  Run tests with coverage
-make build          Build all packages
-make lint           Run linters
-make typecheck      Run TypeScript type checking
-make format         Format code with Prettier
-make db-migrate     Run D1 migrations locally
-make docker-up      Start Docker dev environment
-make docker-down    Stop Docker dev environment
-make clean          Remove node_modules and build artifacts
-```
-
-## Running tests
-
-```
-make test
-```
-
-### Test Coverage
-
-**RAG Pipeline**: 96.03% statements, 100% functions
-
-- Document Parsing (PDF/DOCX/TXT): 100% coverage, 58 tests
-- Citation Extraction: 97.72% coverage, 42 tests
-- Process Document Pipeline: 100% coverage, 58 tests
-- Legal Text Chunking: 82.5% coverage
-- **Total**: 113 tests passing
-
-Tests cover:
-- Document parsing and extraction (PDF, DOCX, TXT)
-- Citation extraction and verification from LLM responses
-- Legal text chunking and section extraction
-- RAG pipeline end-to-end processing
-- Shared schemas and validation logic
-- Landing page rendering and content
-- Login page and OAuth flow
-
-## Security
-
-- CORS restricted to known origins
-- Session-based auth via BetterAuth (no JWTs in localStorage)
-- Security headers on all responses (CSP, X-Frame-Options, HSTS)
-- File type and size validation on both client and server
-- All user data is scoped by user ID at the query level
-
-## Deployment — Cloudflare Setup Guide
-
-PatraSaar runs entirely on Cloudflare's platform. Here is everything you need to set up.
-
-### Prerequisites
-
-| Service | Purpose |
-|---------|---------|
-| [Cloudflare account](https://dash.cloudflare.com/sign-up) | Hosts everything |
-| [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) | `npm i -g wrangler` — deploys and manages Workers |
-| [Google Cloud Console](https://console.cloud.google.com/apis/credentials) | OAuth credentials for login |
-| [Groq](https://console.groq.com/) | LLM API key for AI responses |
-
-### RAG Pipeline Status
-
-**Phase 1 & 2 Complete** ✅
-
-- Document parsing: PDF, DOCX, TXT extraction working
-- Citation extraction: LLM responses parsed and verified against source chunks
-- Test coverage: 96%+ with 113 tests
-- Ready for Phase 3: Knowledge base creation and bulk ingestion
-
-**Current flow**:
-1. User uploads document → extracted via unpdf (PDF) or mammoth (DOCX)
-2. Text chunked using legal-aware section detection
-3. Chunks embedded using Workers AI (bge-base-en-v1.5, 768-dim)
-4. User query → embedded → searched in Vectorize
-5. Top-K chunks + query → Groq Llama 3.3 70B
-6. Response streamed with extracted citations
-
-### Step 1 — Authenticate Wrangler
-
 ```bash
-wrangler login
+# 1. Clone
+git clone git@github.com:your-org/patrasaar.git && cd patrasaar
+
+# 2. Install all dependencies
+make install
+
+# 3. Set up local environment files
+cp apps/api/.dev.vars.example apps/api/.dev.vars
+cp apps/web/.env.example apps/web/.env
+# Edit both files with your credentials (ask a teammate for values)
+
+# 4. Run local DB migrations
+make db-migrate
+
+# 5. Start dev servers (frontend + backend simultaneously)
+make dev
 ```
 
-This opens a browser to authorize Wrangler with your Cloudflare account.
+**Frontend:** http://localhost:5173  
+**API:** http://localhost:8787  
+**API Health check:** http://localhost:8787/health
 
-### Step 2 — Create Cloudflare resources
+---
 
-Run these from the repo root:
+## Repository Structure
 
-```bash
-# 1. Create the D1 database
-wrangler d1 create patrasaar-db
-
-# 2. Create the R2 bucket for file uploads
-wrangler r2 bucket create patrasaar-uploads
-
-# 3. Create the Queue for document processing
-wrangler queues create document-processing
-
-# 4. Create the Vectorize index (768 dimensions for bge-base-en-v1.5)
-wrangler vectorize create patrasaar-docs --dimensions=768 --metric=cosine
-```
-
-After creating the D1 database, Wrangler prints a `database_id`. Update `apps/api/wrangler.toml`:
-
-```toml
-[[d1_databases]]
-binding = "DB"
-database_name = "patrasaar-db"
-database_id = "<paste-your-database-id-here>"
-```
-
-### Step 3 — Run database migrations
-
-```bash
-# For remote (production) database
-cd apps/api
-npm run db:migrate:remote
-```
-
-### Step 4 — Set secrets
-
-These are stored securely in Cloudflare and never committed to git:
-
-```bash
-cd apps/api
-
-wrangler secret put BETTER_AUTH_SECRET
-# Paste a random 32+ character string
-
-wrangler secret put BETTER_AUTH_URL
-# Your deployed API URL, e.g. https://patrasaar-api.<your-subdomain>.workers.dev
-
-wrangler secret put GOOGLE_CLIENT_ID
-# From Google Cloud Console (see Step 5)
-
-wrangler secret put GOOGLE_CLIENT_SECRET
-# From Google Cloud Console (see Step 5)
-
-wrangler secret put GROQ_API_KEY
-# From https://console.groq.com/
-```
-
-### Step 5 — Set up Google OAuth
-
-1. Go to [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
-2. Create a new **OAuth 2.0 Client ID** (Web application)
-3. Add these **Authorized redirect URIs**:
-   - `http://localhost:8787/api/auth/callback/google` (for local dev)
-   - `https://patrasaar-api.<your-subdomain>.workers.dev/api/auth/callback/google` (for production)
-4. Copy the Client ID and Client Secret into your `.dev.vars` (local) and Wrangler secrets (production)
-
-### Step 6 — Deploy the API
-
-```bash
-cd apps/api
-npx wrangler deploy
-```
-
-After deploying, your API will be live at `https://patrasaar-api.<your-subdomain>.workers.dev`.
-
-### Step 7 — Deploy the web frontend
-
-### Prerequisites
-
-| Service | Purpose |
-|---------|---------|
-| [Cloudflare account](https://dash.cloudflare.com/sign-up) | Hosts everything |
-| [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) | `npm i -g wrangler` — deploys and manages Workers |
-| [Google Cloud Console](https://console.cloud.google.com/apis/credentials) | OAuth credentials for login |
-| [Groq](https://console.groq.com/) | LLM API key for AI responses |
-
-### RAG Pipeline Status
-
-**Phase 1 & 2 Complete** ✅
-
-- Document parsing: PDF, DOCX, TXT extraction working
-- Citation extraction: LLM responses parsed and verified against source chunks
-- Test coverage: 96%+ with 113 tests
-- Ready for Phase 3: Knowledge base creation and bulk ingestion
-
-**Current flow**:
-1. User uploads document → extracted via unpdf (PDF) or mammoth (DOCX)
-2. Text chunked using legal-aware section detection
-3. Chunks embedded using Workers AI (bge-base-en-v1.5, 768-dim)
-4. User query → embedded → searched in Vectorize
-5. Top-K chunks + query → Groq Llama 3.3 70B
-6. Response streamed with extracted citations
-
-### Step 1 — Authenticate Wrangler
-
-```bash
-wrangler login
-```
-
-This opens a browser to authorize Wrangler with your Cloudflare account.
-
-### Step 2 — Create Cloudflare resources
-
-Run these from the repo root:
-
-```bash
-# 1. Create the D1 database
-wrangler d1 create patrasaar-db
-
-# 2. Create the R2 bucket for file uploads
-wrangler r2 bucket create patrasaar-uploads
-
-# 3. Create the Queue for document processing
-wrangler queues create document-processing
-
-# 4. Create the Vectorize index (768 dimensions for bge-base-en-v1.5)
-wrangler vectorize create patrasaar-docs --dimensions=768 --metric=cosine
-```
-
-After creating the D1 database, Wrangler prints a `database_id`. Update `apps/api/wrangler.toml`:
-
-```toml
-[[d1_databases]]
-binding = "DB"
-database_name = "patrasaar-db"
-database_id = "<paste-your-database-id-here>"
-```
-
-### Step 3 — Run database migrations
-
-```bash
-# For remote (production) database
-cd apps/api
-npm run db:migrate:remote
-```
-
-### Step 4 — Set secrets
-
-These are stored securely in Cloudflare and never committed to git:
-
-```bash
-cd apps/api
-
-wrangler secret put BETTER_AUTH_SECRET
-# Paste a random 32+ character string
-
-wrangler secret put BETTER_AUTH_URL
-# Your deployed API URL, e.g. https://patrasaar-api.<your-subdomain>.workers.dev
-
-wrangler secret put GOOGLE_CLIENT_ID
-# From Google Cloud Console (see Step 5)
-
-wrangler secret put GOOGLE_CLIENT_SECRET
-# From Google Cloud Console (see Step 5)
-
-wrangler secret put GROQ_API_KEY
-# From https://console.groq.com/
-```
-
-### Step 5 — Set up Google OAuth
-
-1. Go to [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
-2. Create a new **OAuth 2.0 Client ID** (Web application)
-3. Add these **Authorized redirect URIs**:
-   - `http://localhost:8787/api/auth/callback/google` (for local dev)
-   - `https://patrasaar-api.<your-subdomain>.workers.dev/api/auth/callback/google` (for production)
-4. Copy the Client ID and Client Secret into your `.dev.vars` (local) and Wrangler secrets (production)
-
-### Step 6 — Deploy the API
-
-```bash
-cd apps/api
-npx wrangler deploy
-```
-
-After deploying, your API will be live at `https://patrasaar-api.<your-subdomain>.workers.dev`.
-
-### Step 7 — Deploy the web frontend
-
-The web frontend is built as a static export and deployed to Cloudflare Pages.
-
-```bash
-# Build the static site
-cd apps/web
-npx next build
-# Deploy to Cloudflare Pages
-npx wrangler pages deploy out --project-name=patrasaar
-```
-
-This also runs automatically via GitHub Actions on push to `master`.
-
-### Step 8 — Set up GitHub Actions (CI/CD)
-
-The repo includes two workflows:
-- **CI** (`.github/workflows/ci.yml`) — runs typecheck, format check, tests, and build on every push/PR
-- **Deploy** (`.github/workflows/deploy.yml`) — deploys API to Workers and web to Cloudflare Pages on push to `master`
-
-Add these **secrets** in your GitHub repo (Settings → Secrets → Actions):
-
-| Secret | Where to get it |
-|--------|----------------|
-| `CLOUDFLARE_API_TOKEN` | [Cloudflare Dashboard → API Tokens](https://dash.cloudflare.com/profile/api-tokens) — create a token with **Edit Cloudflare Workers** permissions |
-| `CLOUDFLARE_ACCOUNT_ID` | [Cloudflare Dashboard](https://dash.cloudflare.com/) → click your account → copy the Account ID from the URL or overview page |
-| `API_URL` | Your deployed API URL, e.g. `https://patrasaar-api.<your-subdomain>.workers.dev` |
-
-> **Important:** The deploy workflow will fail without `CLOUDFLARE_API_TOKEN`. This is the cause of the `non-interactive environment` error — the secret must be configured in GitHub.
-
-### How the app works (current flow)
+### `apps/api/` — Backend
 
 ```
-User uploads document → R2 storage + Queue
-User asks question → Groq LLM → streamed response (SSE)
+src/
+├── index.ts              Entry point — Hono app, route registration
+├── routes/               HTTP route handlers (thin — delegate to services)
+│   ├── auth.ts           Google OAuth callback, /me, sign out
+│   ├── documents.ts      PDF upload, list, delete, status
+│   ├── inquiries.ts      RAG + LLM streaming endpoint
+│   ├── cases.ts          Case folder CRUD
+│   └── health.ts         Health check
+├── middleware/
+│   ├── auth.ts           JWT validation — applied to all protected routes
+│   ├── ratelimit.ts      KV-based per-user rate limiting
+│   └── logger.ts         Structured request logging
+├── services/
+│   ├── rag/              All RAG pipeline logic
+│   │   ├── chunker.ts    PDF text → overlapping token chunks
+│   │   ├── embedder.ts   Chunks → 768-dim vectors via Workers AI
+│   │   ├── retriever.ts  Query → top-k chunks from Vectorize
+│   │   └── pipeline.ts   Orchestrates full ingestion + retrieval flow
+│   ├── llm/              LLM interaction layer
+│   │   ├── client.ts     OpenRouter API client
+│   │   ├── models.ts     Model registry + task-based model selection
+│   │   ├── prompts.ts    System prompts (PatraSaar Intelligence persona)
+│   │   └── stream.ts     SSE streaming from OpenRouter → client
+│   ├── documents/        Document lifecycle management
+│   │   ├── parser.ts     PDF binary → plain text extraction
+│   │   ├── storage.ts    R2 upload/download helpers
+│   │   └── metadata.ts   D1 CRUD for documents and chunks
+│   └── citations/
+│       └── extractor.ts  Post-process LLM output → structured Citations
+├── types/
+│   └── bindings.ts       TypeScript type for Cloudflare Worker `Env` bindings
+└── utils/
+    ├── errors.ts          Typed HTTP error classes (BadRequest, Unauthorized, etc.)
+    └── validation.ts      Zod schemas for all request bodies
 ```
 
-1. **Authentication**: User signs in with Google OAuth via BetterAuth
-2. **Chat creation**: User creates a new chat session
-3. **Document upload** (optional): Files are uploaded to R2, a processing job is queued
-4. **Question**: User sends a text message
-5. **Response**: The API calls Groq's Llama 3.3 70B with the user's question and chat history, streaming the response back via Server-Sent Events
-6. **Legal disclaimer**: Every response ends with a legal disclaimer that this is not legal advice
+**Key rule:** Routes are thin. All business logic lives in `services/`. Routes just validate input, call a service, and return.
 
-Once RAG is enabled, Step 5 will also:
-- Embed the query using Cloudflare Workers AI (bge-base-en-v1.5)
-- Search Vectorize for relevant document chunks
-- Include the matching chunks as context in the LLM prompt
+### `apps/web/` — Frontend
 
-## File limits
+```
+src/
+├── routes/               SvelteKit file-based routing
+│   ├── +page.svelte      Public landing page
+│   ├── auth/             OAuth callback handler
+│   └── (app)/            Protected route group — requires auth
+│       ├── dashboard/    Home after login
+│       ├── inquiries/    Chat interface + citation panel
+│       ├── cases/        Case folder management
+│       ├── library/      Uploaded documents list
+│       └── profile/      User profile + subscription info
+├── lib/
+│   ├── components/       All Svelte components
+│   │   ├── layout/       App shell, sidebar, topbar
+│   │   ├── inquiry/      Chat bubbles, citation panel, streaming
+│   │   ├── documents/    Upload, cards, summary
+│   │   ├── cases/        Case cards, timeline
+│   │   ├── ui/           Generic: Button, Badge, Card, Modal
+│   │   └── landing/      Public landing page sections
+│   ├── api/              API client functions (typed fetch wrappers)
+│   ├── stores/           Svelte writable stores (auth, current inquiry, etc.)
+│   └── utils/            Date formatters, string helpers, etc.
+└── app.css               Global styles + design tokens (CSS variables)
+```
 
-- Maximum file size: 10MB
-- Maximum page count: 100 pages
-- Supported formats: PDF, TXT, DOC, DOCX
+### `packages/shared/`
 
-## License
+TypeScript types shared between `apps/api` and `apps/web`. Import as:
 
-This project is private and not licensed for redistribution.
+```typescript
+import type { Document, Citation, InquiryStreamEvent } from '@patrasaar/shared'
+```
 
+Never put business logic here — types and constants only.
+
+---
+
+## Make Commands
+
+| Command | What it does |
+|---|---|
+| `make install` | Install all dependencies |
+| `make dev` | Start frontend + backend with live reload |
+| `make dev-api` | Start only the Cloudflare Workers backend |
+| `make dev-web` | Start only the SvelteKit frontend |
+| `make test` | Run all tests across all packages |
+| `make test-api` | Run only backend unit/integration tests |
+| `make test-e2e` | Run Playwright end-to-end tests |
+| `make test-watch` | Run backend tests in watch mode |
+| `make lint` | Check linting across all packages |
+| `make lint-fix` | Auto-fix lint issues |
+| `make typecheck` | TypeScript typecheck across all packages |
+| `make build` | Production build all packages |
+| `make db-migrate` | Apply D1 migrations locally |
+| `make db-migrate-prod` | Apply D1 migrations to production |
+| `make db-new-migration name=add_tags` | Create a new migration file |
+| `make deploy-api-staging` | Deploy Workers to staging |
+| `make deploy-api-prod` | Deploy Workers to production |
+| `make deploy-web-prod` | Deploy SvelteKit to Vercel production |
+| `make clean` | Remove all build artifacts + node_modules |
+
+---
+
+## Branch Strategy
+
+```
+feature/my-feature  →  PR to master  →  CI runs  →  merge  →  staging deploy
+master              →  PR to prod    →  CI runs  →  merge  →  production deploy
+```
+
+- `master` → automatically deploys to staging on every push
+- `prod` → automatically deploys to production on every push
+- Never push directly to `prod` except for hotfixes
+
+---
+
+## Adding a New Feature (Correct Process)
+
+1. Branch off `master`: `git checkout -b feature/my-feature`
+2. **Write tests first** in `apps/api/test/` or `apps/web/e2e/`
+3. Write the implementation to make tests pass
+4. Run `make test` + `make lint` + `make typecheck` locally — all must pass
+5. Open PR to `master` — CI runs automatically, CodeRabbit posts review
+6. Address review comments, get approval, merge
+7. Verify on staging, then open PR from `master` → `prod` to release
+
+---
+
+## LLM Model Strategy
+
+PatraSaar uses three models from OpenRouter, all currently free:
+
+| Role | Model | Used For |
+|---|---|---|
+| Primary | `qwen/qwen3-next-80b-a3b-instruct:free` | Standard Q&A, summaries, most queries |
+| Fallback | `google/gemma-4-26b-a4b:free` | When primary hits rate limits |
+| Heavy | `openai/gpt-oss-120b:free` | Complex contract analysis, multi-doc |
+
+When upgrading to paid models, change the strings in `apps/api/src/services/llm/models.ts`. Nothing else needs to change.
+
+---
+
+## CI/CD Overview
+
+All CI is in `.github/workflows/`:
+
+| Workflow | Trigger | What it does |
+|---|---|---|
+| `ci.yml` | PR to master or prod | Lint, typecheck, test, coverage |
+| `deploy-staging.yml` | Push to master | Deploy API to CF staging + web to Vercel preview |
+| `deploy-prod.yml` | Push to prod | Deploy API to CF production + web to Vercel production |
+| `ai-review.yml` | PR opened/updated | CodeRabbit AI posts inline review comments |
+
+Required GitHub secrets — see [deploy.md](./deploy.md) section 5a for the full list.
+
+---
+
+## Environment Variables
+
+See `.dev.vars.example` (API) and `.env.example` (web) for all required variables.  
+See [deploy.md](./deploy.md) for how to set these in production.
+
+---
+
+## Database
+
+PatraSaar uses Cloudflare D1 (SQLite at the edge). Migrations live in `apps/api/migrations/`.
+
+- Never edit D1 directly in production — always write a migration
+- Migration naming: `0001_create_users.sql`, `0002_create_documents.sql`, etc.
+- Schema reference: [technical-spec.md](./technical-spec.md) section 9
+
+---
+
+## Questions?
+
+Read [technical-spec.md](./technical-spec.md) for architecture decisions.  
+Read [deploy.md](./deploy.md) for deployment procedures.  
+Read [PatraSaar.md](./PatraSaar.md) to understand what the product does and why.
