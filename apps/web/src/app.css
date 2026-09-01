@@ -1,0 +1,66 @@
+@import 'tailwindcss';
+
+/*
+ * PatraSaar design tokens.
+ * Using Tailwind v4's CSS-first @theme directive instead of tailwind.config.js.
+ * All custom values are available as Tailwind utilities: bg-bg-primary, text-accent, etc.
+ */
+@theme {
+  /* Core palette — dark-first legal aesthetic */
+  --color-bg-primary: #0a0a0a;
+  --color-bg-secondary: #111111;
+  --color-bg-tertiary: #1a1a1a;
+  --color-border: #2a2a2a;
+
+  /* Brand */
+  --color-accent: #f97316;
+  --color-accent-muted: #7c2d12;
+  --color-accent-glow: rgba(249, 115, 22, 0.15);
+
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted: #525252;
+
+  /* Semantic — citation verification, risk flags */
+  --color-verified: #22c55e;
+  --color-warning: #eab308;
+  --color-danger: #ef4444;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Playfair Display', serif;
+}
+
+/* Base styles */
+html {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Scrollbar styling for the dark theme */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}

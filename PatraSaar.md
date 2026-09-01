@@ -1,6 +1,6 @@
 # PatraSaar — Sovereign Intelligence for Indian Law
 
-> *The Local LLM of Bharat*
+> _The Local LLM of Bharat_
 
 ---
 
@@ -32,7 +32,7 @@ This is the most important distinction to understand.
 
 ### 1. ChatGPT Does Not Know Your Document. PatraSaar Does.
 
-When you paste a contract into ChatGPT, it reads it once, has no memory of it, and cannot tell you exactly *where* in the document a risk exists. PatraSaar indexes your document and can point to the exact paragraph, clause, and page number that is problematic.
+When you paste a contract into ChatGPT, it reads it once, has no memory of it, and cannot tell you exactly _where_ in the document a risk exists. PatraSaar indexes your document and can point to the exact paragraph, clause, and page number that is problematic.
 
 ### 2. ChatGPT Hallucinates Case Law. PatraSaar Cites Verified Sources.
 
@@ -96,4 +96,4 @@ PatraSaar is not a substitute for legal advice. It is a legal intelligence tool.
 
 PatraSaar's long-term vision is to become the intelligence layer of the Indian legal system — the platform that every advocate, judge's clerk, corporate counsel, and informed citizen uses to navigate the complexity of Indian law. A platform where sovereign intelligence meets the rule of law.
 
-*Redefining Indian legal discovery with a context-aware Neural RAG pipeline built for the complexity of Indian statutes and case law.*
+_Redefining Indian legal discovery with a context-aware Neural RAG pipeline built for the complexity of Indian statutes and case law._

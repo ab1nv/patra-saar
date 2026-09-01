@@ -13,16 +13,17 @@
 3. [Infrastructure & Hosting](#3-infrastructure--hosting)
 4. [Backend Specification](#4-backend-specification)
 5. [RAG Pipeline Specification](#5-rag-pipeline-specification)
-6. [LLM Strategy](#6-llm-strategy)
-7. [Frontend Specification](#7-frontend-specification)
-8. [Authentication](#8-authentication)
-9. [Database Schema](#9-database-schema)
-10. [API Reference](#10-api-reference)
-11. [Streaming Architecture](#11-streaming-architecture)
-12. [CI/CD & GitHub Configuration](#12-cicd--github-configuration)
-13. [Testing Strategy](#13-testing-strategy)
-14. [Environment Variables](#14-environment-variables)
-15. [Makefile Commands](#15-makefile-commands)
+6. [Legal Corpus Knowledge Base](#6-legal-corpus-knowledge-base)
+7. [LLM Strategy](#7-llm-strategy)
+8. [Frontend Specification](#8-frontend-specification)
+9. [Authentication](#9-authentication)
+10. [Database Schema](#10-database-schema)
+11. [API Reference](#11-api-reference)
+12. [Streaming Architecture](#12-streaming-architecture)
+13. [CI/CD & GitHub Configuration](#13-cicd--github-configuration)
+14. [Testing Strategy](#14-testing-strategy)
+15. [Environment Variables](#15-environment-variables)
+16. [Makefile Commands](#16-makefile-commands)
 
 ---
 
@@ -46,9 +47,11 @@ PatraSaar is a full-stack RAG + LLM legal intelligence platform. The architectur
     │                  │
 ┌───▼──────┐    ┌──────▼──────────────────────────────┐
 │Cloudflare│    │  Cloudflare Vectorize (Vector DB)    │
-│    R2    │    │  + D1 (SQLite metadata)              │
-│(raw docs)│    │  + Workers AI (embeddings)           │
-└──────────┘    └─────────────────────────────────────┘
+│    R2    │    │  ├── user-docs namespace              │
+│(raw docs)│    │  └── legal-corpus namespace           │
+└──────────┘    │  + D1 (SQLite metadata)              │
+                │  + Workers AI (embeddings)           │
+                └─────────────────────────────────────┘
                          │
               ┌──────────▼──────────┐
               │   OpenRouter API    │
@@ -71,6 +74,8 @@ patrasaar/
 ├── apps/
 │   ├── web/                        # SvelteKit frontend (Vercel)
 │   └── api/                        # Hono backend (Cloudflare Workers)
+│       └── scripts/                # Standalone CLI tools
+│           └── ingest-legal-corpus.ts
 ├── packages/
 │   ├── shared/                     # Shared TypeScript types, constants, utils
 │   │   ├── src/
@@ -92,6 +97,7 @@ patrasaar/
 ├── .husky/
 │   ├── pre-commit                  # lint-staged
 │   └── commit-msg                  # commitlint
+├── .coderabbit.yaml                # CodeRabbit AI review config
 ├── Makefile
 ├── pnpm-workspace.yaml
 ├── turbo.json
@@ -115,7 +121,7 @@ packages:
 ```json
 {
   "$schema": "https://turbo.build/schema.json",
-  "pipeline": {
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".svelte-kit/**", "dist/**"]
@@ -157,14 +163,14 @@ packages:
 
 ### Cloudflare Services Used
 
-| Service | Purpose | Free Tier |
-|---|---|---|
-| Workers | API runtime | 100k req/day |
-| R2 | Raw PDF/document storage | 10GB storage |
-| Vectorize | Vector embeddings store | 30M dimensions queried/month |
-| Workers AI | Generate embeddings (`bge-base-en-v1.5`) | 10k neurons/day |
-| D1 | SQLite metadata database | 5GB storage, 5M rows |
-| KV | Session cache, rate limiting | 100k reads/day |
+| Service    | Purpose                                  | Free Tier                    |
+| ---------- | ---------------------------------------- | ---------------------------- |
+| Workers    | API runtime                              | 100k req/day                 |
+| R2         | Raw PDF/document storage                 | 10GB storage                 |
+| Vectorize  | Vector embeddings store (two namespaces) | 30M dimensions queried/month |
+| Workers AI | Generate embeddings (`bge-base-en-v1.5`) | 10k neurons/day              |
+| D1         | SQLite metadata database                 | 5GB storage, 5M rows         |
+| KV         | Session cache, rate limiting             | 100k reads/day               |
 
 ---
 
@@ -173,6 +179,7 @@ packages:
 ### Framework: Hono
 
 Hono is chosen over Express because:
+
 - Native TypeScript, zero dependencies
 - Runs natively on Cloudflare Workers (no Node.js shim overhead)
 - Built-in middleware for CORS, JWT, streaming
@@ -198,7 +205,7 @@ apps/api/
 │   │   ├── rag/
 │   │   │   ├── chunker.ts      # PDF → text chunks
 │   │   │   ├── embedder.ts     # Chunks → vectors via Workers AI
-│   │   │   ├── retriever.ts    # Query → top-k chunks from Vectorize
+│   │   │   ├── retriever.ts    # Query → top-k chunks from both Vectorize namespaces
 │   │   │   └── pipeline.ts     # Orchestrates full RAG flow
 │   │   ├── llm/
 │   │   │   ├── client.ts       # OpenRouter API client
@@ -216,6 +223,8 @@ apps/api/
 │   └── utils/
 │       ├── errors.ts           # Typed error classes
 │       └── validation.ts       # Zod schemas for request validation
+├── scripts/
+│   └── ingest-legal-corpus.ts  # Standalone CLI: pre-index Indian legal corpus
 ├── test/
 │   ├── routes/
 │   ├── services/
@@ -237,11 +246,15 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DOCUMENTS"
 bucket_name = "patrasaar-documents"
 
+# User-uploaded document vectors
 [[vectorize]]
 binding = "VECTORIZE"
 index_name = "patrasaar-chunks"
-dimensions = 768
-metric = "cosine"
+
+# Pre-indexed Indian legal corpus (IPC, BNS, SC judgements, etc.)
+[[vectorize]]
+binding = "LEGAL_CORPUS"
+index_name = "patrasaar-legal-corpus"
 
 [[d1_databases]]
 binding = "DB"
@@ -278,10 +291,13 @@ import type { Env } from './types/bindings'
 const app = new Hono<{ Bindings: Env }>()
 
 app.use('*', logger())
-app.use('*', cors({
-  origin: [process.env.FRONTEND_URL ?? 'http://localhost:5173'],
-  credentials: true,
-}))
+app.use(
+  '*',
+  cors({
+    origin: [process.env.FRONTEND_URL ?? 'http://localhost:5173'],
+    credentials: true,
+  }),
+)
 
 app.route('/auth', authRoutes)
 app.route('/documents', documentRoutes)
@@ -316,14 +332,14 @@ PDF Upload
     - Output: 768-dimension float32 vector
     │
     ▼
-[Cloudflare Vectorize] Insert vectors
+[Cloudflare Vectorize] Insert vectors into user-docs namespace
     - Each vector carries metadata: { documentId, chunkIndex, pageNumber, userId }
     │
     ▼
 [D1] Store document metadata + chunk text for retrieval
 ```
 
-### Query Flow
+### Query Flow (Dual-Namespace Retrieval)
 
 ```
 User question + documentId(s)
@@ -331,29 +347,39 @@ User question + documentId(s)
     ▼
 [embedder.ts] Embed the question → query vector
     │
-    ▼
-[Cloudflare Vectorize] top_k=8, filter by { documentId, userId }
-    - Returns top 8 most semantically similar chunks
-    │
-    ▼
-[retriever.ts] Fetch full chunk text from D1 by chunkId
+    ├──────────────────────────────────────┐
+    ▼                                      ▼
+[VECTORIZE: user-docs]              [VECTORIZE: legal-corpus]
+  top_k=5, filter by                  top_k=3, no user filter
+  { documentId, userId }              (shared across all users)
+    │                                      │
+    └──────────────┬───────────────────────┘
+                   ▼
+[retriever.ts] Merge results from both namespaces
+    - Fetch full chunk text from D1 by chunkId
     - Re-rank by relevance score
     - Filter chunks below 0.72 cosine similarity threshold
-    │
-    ▼
+    - Tag each chunk with its source (user-doc vs legal-corpus)
+                   │
+                   ▼
 [pipeline.ts] Assemble context window:
     """
-    [DOCUMENT CONTEXT]
+    [DOCUMENT CONTEXT — User's Document]
     [Page 3, Para 2]: {chunk_text}
     [Page 5, Para 1]: {chunk_text}
-    ...
+
+    [LEGAL REFERENCE — Indian Penal Code 1860]
+    [Section 302]: {chunk_text}
+
+    [LEGAL REFERENCE — Supreme Court of India]
+    [Velji Raghavji Patel vs State, 1965]: {chunk_text}
     [END CONTEXT]
     """
-    │
-    ▼
+                   │
+                   ▼
 [llm/client.ts] Send to OpenRouter with system prompt
-    │
-    ▼
+                   │
+                   ▼
 [stream.ts] Stream SSE back to frontend
 ```
 
@@ -385,7 +411,13 @@ export function chunkDocument(text: string, documentId: string): Chunk[] {
   }
 
   if (buffer.trim()) {
-    chunks.push({ documentId, text: buffer.trim(), pageNumber, chunkIndex: chunks.length, tokenCount: estimateTokens(buffer) })
+    chunks.push({
+      documentId,
+      text: buffer.trim(),
+      pageNumber,
+      chunkIndex: chunks.length,
+      tokenCount: estimateTokens(buffer),
+    })
   }
 
   return chunks
@@ -394,7 +426,140 @@ export function chunkDocument(text: string, documentId: string): Chunk[] {
 
 ---
 
-## 6. LLM Strategy
+## 6. Legal Corpus Knowledge Base
+
+This is the architectural core that separates PatraSaar from a generic PDF chatbot. Without a pre-indexed legal corpus, the LLM answers from training data — which can be outdated, hallucinated, or Western-biased. With a legal corpus in Vectorize, every answer is grounded in verified Indian law.
+
+### Two-Namespace Architecture
+
+PatraSaar's RAG queries **two separate Vectorize indexes simultaneously**:
+
+| Namespace                | Binding        | Purpose                            | Who writes to it          |
+| ------------------------ | -------------- | ---------------------------------- | ------------------------- |
+| `patrasaar-chunks`       | `VECTORIZE`    | User-uploaded documents            | Automatic on PDF upload   |
+| `patrasaar-legal-corpus` | `LEGAL_CORPUS` | Pre-indexed Indian legal knowledge | One-time ingestion script |
+
+Both indexes use the same embedding model (`bge-base-en-v1.5`, 768 dims, cosine similarity) so retrieved chunks from both namespaces are directly comparable.
+
+### What Gets Pre-Indexed
+
+```
+├── All IPC sections (with BNS cross-references)
+├── All BNS/BNSS sections
+├── CrPC / BNSS procedural rules
+├── Indian Contract Act 1872
+├── Key Supreme Court judgements (from IndianKanoon)
+├── Selected High Court precedents
+└── Companies Act, IT Act, etc. (expand over time)
+```
+
+### Free Data Sources
+
+| Source                 | URL                           | Content                                                  |
+| ---------------------- | ----------------------------- | -------------------------------------------------------- |
+| India Kanoon           | `indiankanoon.org`            | SC + all HCs, free API for non-commercial use            |
+| Legislative.gov.in     | `legislative.gov.in`          | Official GoI site, all Acts in plain text, public domain |
+| Supreme Court of India | `sci.gov.in`                  | Judgements archive                                       |
+| Devgan IPC             | `devgan.in/indian_penal_code` | Clean IPC section text, scrapeable                       |
+
+### Ingestion Script — `apps/api/scripts/ingest-legal-corpus.ts`
+
+A standalone CLI tool that reads legal documents and indexes them into the `legal-corpus` namespace. Lives inside `apps/api/` because it shares the same Cloudflare bindings and embedding logic.
+
+```typescript
+// Standalone CLI — run with: pnpm --filter api run ingest-legal-corpus
+
+interface LegalAct {
+  name: string
+  source: string
+  bnsEquivalent?: string
+  sections: LegalSection[]
+}
+
+interface LegalSection {
+  number: string
+  title: string
+  text: string
+  bnsSection?: string
+}
+
+async function ingestLegalCorpus(dataDir: string, env: Env) {
+  const acts = await loadActsFromDirectory(dataDir)
+
+  for (const act of acts) {
+    console.log(`Indexing: ${act.name} (${act.sections.length} sections)`)
+
+    for (const section of act.sections) {
+      // Chunk each section (some are long enough to need splitting)
+      const chunks = chunkDocument(section.text, `${act.name}:${section.number}`)
+      const vectors = await embedChunks(chunks, env)
+
+      await env.LEGAL_CORPUS.insert(
+        vectors.map((v, i) => ({
+          id: `${act.name}:${section.number}:${i}`,
+          values: v.embedding,
+          metadata: {
+            source: act.source,
+            act: act.name,
+            section: section.number,
+            title: section.title,
+            bnsEquivalent: section.bnsSection ?? null,
+          },
+        })),
+      )
+
+      // Store chunk text in D1 for retrieval (same table, tagged as legal-corpus)
+      await storeChunksInD1(chunks, { source: 'legal-corpus', act: act.name }, env)
+    }
+
+    console.log(`Done: ${act.name}`)
+  }
+}
+```
+
+### Dual-Namespace Retrieval
+
+```typescript
+// services/rag/retriever.ts — query both namespaces in parallel
+export async function retrieveChunks(
+  documentIds: string[],
+  question: string,
+  userId: string,
+  env: Env,
+): Promise<RetrievedChunk[]> {
+  const queryVector = await embedQuery(question, env)
+
+  // Fan out to both namespaces simultaneously
+  const [userChunks, legalChunks] = await Promise.all([
+    env.VECTORIZE.query(queryVector, {
+      topK: 5,
+      filter: { documentId: { $in: documentIds }, userId },
+    }),
+    env.LEGAL_CORPUS.query(queryVector, {
+      topK: 3,
+      // No user filter — legal corpus is shared across all users
+    }),
+  ])
+
+  // Merge, fetch full text from D1, and re-rank by relevance
+  const merged = [
+    ...userChunks.matches.map((m) => ({ ...m, source: 'user-doc' as const })),
+    ...legalChunks.matches.map((m) => ({ ...m, source: 'legal-corpus' as const })),
+  ]
+    .filter((m) => m.score >= 0.72)
+    .sort((a, b) => b.score - a.score)
+
+  return fetchChunkTexts(merged, env)
+}
+```
+
+### Why This Matters
+
+Without the legal corpus, if a user uploads an FIR mentioning "Section 406 IPC" and asks "is this bailable?", the LLM answers from its training data — which may be outdated or wrong. With the legal corpus, the retriever pulls the actual text of Section 406 from the pre-indexed IPC, the BNS equivalent (Section 316), and relevant SC precedents. The LLM now answers from verified sources with proper citations.
+
+---
+
+## 7. LLM Strategy
 
 ### Model Registry
 
@@ -414,10 +579,13 @@ export const MODELS = {
 export function selectModel(taskType: TaskType): string {
   switch (taskType) {
     case 'contract_analysis':
-    case 'multi_document': return MODELS.heavy
+    case 'multi_document':
+      return MODELS.heavy
     case 'simple_qa':
-    case 'summary': return MODELS.primary
-    default: return MODELS.primary
+    case 'summary':
+      return MODELS.primary
+    default:
+      return MODELS.primary
   }
 }
 ```
@@ -469,7 +637,7 @@ export async function streamInquiry(
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+      Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
       'X-Title': 'PatraSaar Intelligence',
     },
@@ -478,7 +646,10 @@ export async function streamInquiry(
       stream: true,
       messages: [
         { role: 'system', content: PATRASAAR_SYSTEM_PROMPT },
-        { role: 'user', content: `[DOCUMENT CONTEXT]\n${context}\n[END CONTEXT]\n\nQuestion: ${question}` },
+        {
+          role: 'user',
+          content: `[DOCUMENT CONTEXT]\n${context}\n[END CONTEXT]\n\nQuestion: ${question}`,
+        },
       ],
     }),
   })
@@ -489,7 +660,7 @@ export async function streamInquiry(
 
 ---
 
-## 7. Frontend Specification
+## 8. Frontend Specification
 
 ### Tech Stack
 
@@ -510,30 +681,30 @@ Based on the provided mockups, PatraSaar uses a dark-first premium legal aesthet
 /* Design tokens — apps/web/src/app.css */
 :root {
   /* Core palette */
-  --color-bg-primary:    #0a0a0a;   /* Near-black background */
-  --color-bg-secondary:  #111111;   /* Card/panel background */
-  --color-bg-tertiary:   #1a1a1a;   /* Input/hover states */
-  --color-border:        #2a2a2a;   /* Subtle borders */
+  --color-bg-primary: #0a0a0a; /* Near-black background */
+  --color-bg-secondary: #111111; /* Card/panel background */
+  --color-bg-tertiary: #1a1a1a; /* Input/hover states */
+  --color-border: #2a2a2a; /* Subtle borders */
 
   /* Brand */
-  --color-accent:        #f97316;   /* PatraSaar orange */
-  --color-accent-muted:  #7c2d12;   /* Muted orange for tags/badges */
-  --color-accent-glow:   rgba(249, 115, 22, 0.15);
+  --color-accent: #f97316; /* PatraSaar orange */
+  --color-accent-muted: #7c2d12; /* Muted orange for tags/badges */
+  --color-accent-glow: rgba(249, 115, 22, 0.15);
 
   /* Text */
-  --color-text-primary:  #ffffff;
-  --color-text-secondary:#a3a3a3;
-  --color-text-muted:    #525252;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted: #525252;
 
   /* Semantic */
-  --color-verified:      #22c55e;   /* Green for verified citations */
-  --color-warning:       #eab308;   /* Yellow for risk flags */
-  --color-danger:        #ef4444;   /* Red for high-risk clauses */
+  --color-verified: #22c55e; /* Green for verified citations */
+  --color-warning: #eab308; /* Yellow for risk flags */
+  --color-danger: #ef4444; /* Red for high-risk clauses */
 
   /* Typography */
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --font-display: 'Playfair Display', serif;  /* For hero headings */
+  --font-display: 'Playfair Display', serif; /* For hero headings */
 }
 ```
 
@@ -679,7 +850,10 @@ export async function streamInquiry(
 
   while (true) {
     const { done, value } = await reader.read()
-    if (done) { onDone(); break }
+    if (done) {
+      onDone()
+      break
+    }
 
     const lines = decoder.decode(value).split('\n')
     for (const line of lines) {
@@ -723,7 +897,7 @@ export async function streamInquiry(
 
 ---
 
-## 8. Authentication
+## 9. Authentication
 
 ### Flow: Google OAuth 2.0
 
@@ -759,25 +933,23 @@ Redirect to /dashboard
 import { createMiddleware } from 'hono/factory'
 import { verify } from 'hono/jwt'
 
-export const authMiddleware = createMiddleware<{ Bindings: Env }>(
-  async (c, next) => {
-    const token = getCookie(c, 'patrasaar_token')
-    if (!token) return c.json({ error: 'Unauthorized' }, 401)
+export const authMiddleware = createMiddleware<{ Bindings: Env }>(async (c, next) => {
+  const token = getCookie(c, 'patrasaar_token')
+  if (!token) return c.json({ error: 'Unauthorized' }, 401)
 
-    try {
-      const payload = await verify(token, c.env.JWT_SECRET)
-      c.set('userId', payload.sub as string)
-      await next()
-    } catch {
-      return c.json({ error: 'Invalid token' }, 401)
-    }
+  try {
+    const payload = await verify(token, c.env.JWT_SECRET)
+    c.set('userId', payload.sub as string)
+    await next()
+  } catch {
+    return c.json({ error: 'Invalid token' }, 401)
   }
-)
+})
 ```
 
 ---
 
-## 9. Database Schema
+## 10. Database Schema
 
 ### D1 (Cloudflare SQLite)
 
@@ -809,15 +981,16 @@ CREATE TABLE documents (
   created_at   INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
--- Chunks (text of each vector chunk, for retrieval)
+-- Chunks (stores text for both user docs and legal corpus)
 CREATE TABLE chunks (
   id           TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-  document_id  TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  document_id  TEXT NOT NULL,            -- References documents.id OR legal corpus identifier
   chunk_index  INTEGER NOT NULL,
   page_number  INTEGER NOT NULL,
   text         TEXT NOT NULL,
   token_count  INTEGER,
-  vector_id    TEXT UNIQUE  -- ID in Cloudflare Vectorize
+  vector_id    TEXT UNIQUE,              -- ID in Cloudflare Vectorize
+  source       TEXT NOT NULL DEFAULT 'user-doc' -- 'user-doc' | 'legal-corpus'
 );
 
 -- Cases (folders grouping related documents)
@@ -846,12 +1019,13 @@ CREATE TABLE inquiries (
 -- Indexes
 CREATE INDEX idx_documents_user_id ON documents(user_id);
 CREATE INDEX idx_chunks_document_id ON chunks(document_id);
+CREATE INDEX idx_chunks_source ON chunks(source);
 CREATE INDEX idx_inquiries_user_id ON inquiries(user_id);
 ```
 
 ---
 
-## 10. API Reference
+## 11. API Reference
 
 All endpoints are prefixed with `/api/v1`. Protected endpoints require `patrasaar_token` cookie.
 
@@ -900,7 +1074,7 @@ GET    /health                   { status: 'ok', version: '1.0.0' }
 
 ---
 
-## 11. Streaming Architecture
+## 12. Streaming Architecture
 
 PatraSaar uses **Server-Sent Events (SSE)** for streaming LLM responses. The stream emits typed events:
 
@@ -929,19 +1103,16 @@ inquiryRoutes.post('/stream', authMiddleware, async (c) => {
   const { documentIds, question } = await c.req.json()
   const userId = c.get('userId')
 
-  // RAG retrieval
+  // RAG retrieval — queries both user-docs and legal-corpus namespaces
   const chunks = await retrieveChunks(documentIds, question, userId, c.env)
-  const context = chunks.map(ch => `[Page ${ch.pageNumber}]: ${ch.text}`).join('\n\n')
+  const context = chunks.map((ch) => `[Page ${ch.pageNumber}]: ${ch.text}`).join('\n\n')
 
-  // Model selection
   const model = selectModel('standard_qa')
 
-  // Start streaming response
   const { readable, writable } = new TransformStream()
   const writer = writable.getWriter()
   const encoder = new TextEncoder()
 
-  // Fire-and-forget: pipe LLM stream → SSE
   streamInquiry(context, question, model, c.env).then(async (llmStream) => {
     const reader = llmStream.getReader()
     let fullText = ''
@@ -951,16 +1122,18 @@ inquiryRoutes.post('/stream', authMiddleware, async (c) => {
       if (done) break
       const chunk = new TextDecoder().decode(value)
       fullText += chunk
-      await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: chunk })}\n\n`))
+      await writer.write(
+        encoder.encode(`data: ${JSON.stringify({ type: 'text', content: chunk })}\n\n`),
+      )
     }
 
-    // Extract and emit citations after stream completes
     const citations = await extractCitations(fullText, chunks)
-    await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'citations', citations })}\n\n`))
+    await writer.write(
+      encoder.encode(`data: ${JSON.stringify({ type: 'citations', citations })}\n\n`),
+    )
     await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`))
     await writer.close()
 
-    // Persist inquiry to D1
     await saveInquiry({ userId, documentIds, question, answer: fullText, citations }, c.env)
   })
 
@@ -968,7 +1141,7 @@ inquiryRoutes.post('/stream', authMiddleware, async (c) => {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+      Connection: 'keep-alive',
     },
   })
 })
@@ -976,7 +1149,7 @@ inquiryRoutes.post('/stream', authMiddleware, async (c) => {
 
 ---
 
-## 12. CI/CD & GitHub Configuration
+## 13. CI/CD & GitHub Configuration
 
 ### Branch Strategy
 
@@ -987,6 +1160,8 @@ prod    → production environment (auto-deploy on push to prod)
 
 Feature branches → PR to `master` → CI passes → merge → staging deploy  
 Staging verified → PR `master` → `prod` → CI passes → merge → production deploy
+
+See [deploy.md §6](./deploy.md) for the complete master → prod promotion workflow.
 
 ### `.github/workflows/ci.yml`
 
@@ -1005,7 +1180,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
 
@@ -1028,7 +1203,7 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY_TEST }}
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 ```
@@ -1047,7 +1222,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
@@ -1092,30 +1267,31 @@ updates:
       interval: monthly
 ```
 
-### PR AI Review — `.github/workflows/ai-review.yml`
+### CodeRabbit — AI PR Reviews
+
+CodeRabbit is configured via the [CodeRabbit GitHub App](https://github.com/apps/coderabbitai), which is free for public repositories. Install the app on your repo and it automatically reviews every PR with inline comments.
+
+Configuration lives in `.coderabbit.yaml` at the repo root:
 
 ```yaml
-name: AI PR Review
-
-on:
-  pull_request:
-    types: [opened, synchronize]
-
-jobs:
-  review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: coderabbitai/ai-pr-reviewer@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        with:
-          review_simple_changes: false
-          review_comment_lgtm: false
+# .coderabbit.yaml
+language: en
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  path_instructions:
+    - path: 'apps/api/**'
+      instructions: 'Focus on security, input validation, and Cloudflare Workers compatibility'
+    - path: 'apps/web/**'
+      instructions: 'Focus on accessibility, performance, and SvelteKit best practices'
+chat:
+  auto_reply: true
 ```
 
-> **Note:** CodeRabbit offers a free tier for open-source and small private repos. It adds inline PR comments with AI analysis of logic, security, and code quality.
+No GitHub Action workflow needed — the app handles everything.
 
 ### Husky + lint-staged + commitlint
 
@@ -1134,11 +1310,12 @@ jobs:
 
 ---
 
-## 13. Testing Strategy
+## 14. Testing Strategy
 
 ### Philosophy: Test-First for Backend
 
 All new backend features follow this order:
+
 1. Write failing tests (unit + integration)
 2. Write implementation to make tests pass
 3. Write e2e test for the full flow
@@ -1157,7 +1334,7 @@ describe('chunkDocument', () => {
   it('splits long text into overlapping chunks under 512 tokens', () => {
     const text = 'Para 1.\n\nPara 2.\n\n'.repeat(100)
     const chunks = chunkDocument(text, 'doc-1')
-    expect(chunks.every(c => c.tokenCount <= 512)).toBe(true)
+    expect(chunks.every((c) => c.tokenCount <= 512)).toBe(true)
     expect(chunks.length).toBeGreaterThan(1)
   })
 
@@ -1205,7 +1382,9 @@ describe('POST /documents', () => {
 // e2e/inquiry.spec.ts
 import { test, expect } from '@playwright/test'
 
-test('authenticated user can submit a legal inquiry and see streamed response', async ({ page }) => {
+test('authenticated user can submit a legal inquiry and see streamed response', async ({
+  page,
+}) => {
   await page.goto('/dashboard')
   await page.click('text=New Legal Inquiry')
   await page.setInputFiles('[data-testid=file-upload]', 'test/fixtures/sample-contract.pdf')
@@ -1225,7 +1404,7 @@ test('authenticated user can submit a legal inquiry and see streamed response', 
 
 ---
 
-## 14. Environment Variables
+## 15. Environment Variables
 
 ### `apps/api/.dev.vars` (local) / Cloudflare Secrets (production)
 
@@ -1248,7 +1427,7 @@ JWT_SECRET=your_jwt_secret_min_32_chars
 
 ---
 
-## 15. Makefile Commands
+## 16. Makefile Commands
 
 ```makefile
 # Makefile (root)
@@ -1359,6 +1538,7 @@ export interface Chunk {
   text: string
   tokenCount: number
   vectorId?: string
+  source: 'user-doc' | 'legal-corpus'
 }
 
 // packages/shared/src/types/inquiry.ts
@@ -1368,10 +1548,10 @@ export interface Citation {
   title: string
   court?: string
   year?: number
-  relevance: number   // 0.0 to 1.0
+  relevance: number // 0.0 to 1.0
   verified: boolean
-  url?: string        // India Kanoon deep link
-  excerpt?: string    // Relevant excerpt from the source
+  url?: string // India Kanoon deep link
+  excerpt?: string // Relevant excerpt from the source
 }
 
 export interface InquiryStreamEvent {
