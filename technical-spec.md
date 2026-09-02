@@ -47,7 +47,7 @@ PatraSaar is a full-stack RAG + LLM legal intelligence platform. The architectur
     │                  │
 ┌───▼──────┐    ┌──────▼──────────────────────────────┐
 │Cloudflare│    │  Cloudflare Vectorize (Vector DB)    │
-│    R2    │    │  ├── user-docs namespace              │
+│    KV    │    │  ├── user-docs namespace              │
 │(raw docs)│    │  └── legal-corpus namespace           │
 └──────────┘    │  + D1 (SQLite metadata)              │
                 │  + Workers AI (embeddings)           │
@@ -60,7 +60,7 @@ PatraSaar is a full-stack RAG + LLM legal intelligence platform. The architectur
 ```
 
 **Why Cloudflare Workers for backend:**  
-Cloudflare Workers provides zero cold starts, global edge distribution, native integration with Vectorize (vector DB) and R2 (object storage), and a free tier generous enough for MVP. Vercel Functions cannot access Cloudflare Vectorize natively.
+Cloudflare Workers provides zero cold starts, global edge distribution, native integration with Vectorize (vector DB) and KV (key-value storage), and a free tier generous enough for MVP — all without requiring a credit card. Vercel Functions cannot access Cloudflare Vectorize natively.
 
 **Why SvelteKit on Vercel for frontend:**  
 SvelteKit offers the best performance-per-complexity ratio for a content-heavy, streaming-heavy UI. Vercel's SvelteKit adapter handles SSR, edge rendering, and static assets out of the box.
@@ -166,11 +166,10 @@ packages:
 | Service    | Purpose                                  | Free Tier                    |
 | ---------- | ---------------------------------------- | ---------------------------- |
 | Workers    | API runtime                              | 100k req/day                 |
-| R2         | Raw PDF/document storage                 | 10GB storage                 |
+| KV         | Raw PDF/document storage + session cache | 100k reads/day, 1GB storage  |
 | Vectorize  | Vector embeddings store (two namespaces) | 30M dimensions queried/month |
 | Workers AI | Generate embeddings (`bge-base-en-v1.5`) | 10k neurons/day              |
 | D1         | SQLite metadata database                 | 5GB storage, 5M rows         |
-| KV         | Session cache, rate limiting             | 100k reads/day               |
 
 ---
 
@@ -214,7 +213,7 @@ apps/api/
 │   │   │   └── stream.ts       # SSE streaming handler
 │   │   ├── documents/
 │   │   │   ├── parser.ts       # PDF text extraction
-│   │   │   ├── storage.ts      # R2 upload/download
+│   │   │   ├── storage.ts      # KV upload/download (15MB limit)
 │   │   │   └── metadata.ts     # D1 document metadata CRUD
 │   │   └── citations/
 │   │       └── extractor.ts    # Extract + verify citations from LLM output
@@ -973,7 +972,7 @@ CREATE TABLE documents (
   case_id      TEXT REFERENCES cases(id) ON DELETE SET NULL,
   name         TEXT NOT NULL,
   doc_type     TEXT NOT NULL, -- 'contract' | 'fir' | 'court_order' | 'legal_notice' | 'statute'
-  r2_key       TEXT NOT NULL UNIQUE,     -- R2 storage key
+  kv_key       TEXT NOT NULL UNIQUE,     -- KV storage key
   page_count   INTEGER,
   language     TEXT DEFAULT 'en',        -- 'en' | 'hi' | 'mixed'
   status       TEXT DEFAULT 'processing',-- 'processing' | 'ready' | 'failed'
@@ -1043,7 +1042,7 @@ GET    /auth/me                  Get current user profile
 POST   /documents                Upload document (multipart/form-data)
 GET    /documents                List user's documents
 GET    /documents/:id            Get document metadata + summary
-DELETE /documents/:id            Delete document (R2 + D1 + Vectorize)
+DELETE /documents/:id            Delete document (KV + D1 + Vectorize)
 GET    /documents/:id/status     Get processing status (SSE)
 ```
 

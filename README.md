@@ -26,11 +26,11 @@ patrasaar/
 
 | Layer             | Technology                        | Why                                            |
 | ----------------- | --------------------------------- | ---------------------------------------------- |
-| Backend runtime   | Cloudflare Workers                | Zero cold start, native Vectorize/R2/D1 access |
+| Backend runtime   | Cloudflare Workers                | Zero cold start, native Vectorize/KV/D1 access |
 | Backend framework | Hono v4                           | Fastest TS framework on edge, zero deps        |
 | Frontend          | SvelteKit 2 on Vercel             | Best performance/complexity ratio, SSR         |
 | Vector DB         | Cloudflare Vectorize              | Native Workers integration, free tier          |
-| Document storage  | Cloudflare R2                     | S3-compatible, no egress fees                  |
+| Document storage  | Cloudflare KV                     | No credit card required, fast edge reads       |
 | Metadata DB       | Cloudflare D1                     | SQLite at the edge, free tier                  |
 | Embeddings        | Workers AI (bge-base-en-v1.5)     | Free, runs in same Workers infra               |
 | LLM               | OpenRouter (Qwen3/Gemma4/gpt-oss) | Free models, easy swap to paid                 |
@@ -108,7 +108,7 @@ src/
 │   │   └── stream.ts     SSE streaming from OpenRouter → client
 │   ├── documents/        Document lifecycle management
 │   │   ├── parser.ts     PDF binary → plain text extraction
-│   │   ├── storage.ts    R2 upload/download helpers
+│   │   ├── storage.ts    KV upload/download (15MB limit)
 │   │   └── metadata.ts   D1 CRUD for documents and chunks
 │   └── citations/
 │       └── extractor.ts  Post-process LLM output → structured Citations

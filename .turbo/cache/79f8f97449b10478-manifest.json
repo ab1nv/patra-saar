@@ -1,0 +1,11 @@
+{
+  "files": {
+    "apps/api/.turbo/turbo-typecheck.log": {
+      "size": 93,
+      "mtime_nanos": 1775798315431959314,
+      "mode": 420,
+      "is_dir": false
+    }
+  },
+  "order": ["apps/api/.turbo/turbo-typecheck.log"]
+}

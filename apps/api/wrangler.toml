@@ -3,9 +3,11 @@ main = "src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
-[[r2_buckets]]
+# Document storage via KV (no credit card required, unlike R2)
+# Max 25MB per value — we cap user uploads at 15MB
+[[kv_namespaces]]
 binding = "DOCUMENTS"
-bucket_name = "patrasaar-documents"
+id = "YOUR_DOCUMENTS_KV_ID"
 
 # User-uploaded document vectors
 [[vectorize]]

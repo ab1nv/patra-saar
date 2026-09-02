@@ -4,8 +4,8 @@
  * See wrangler.toml for the binding configuration.
  */
 export interface Env {
-  // Storage
-  DOCUMENTS: R2Bucket
+  // Storage — KV used for documents (no credit card required, unlike R2)
+  DOCUMENTS: KVNamespace
   DB: D1Database
   CACHE: KVNamespace
 

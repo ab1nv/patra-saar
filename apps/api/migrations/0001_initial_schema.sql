@@ -26,7 +26,7 @@ CREATE TABLE documents (
   case_id      TEXT REFERENCES cases(id) ON DELETE SET NULL,
   name         TEXT NOT NULL,
   doc_type     TEXT NOT NULL,
-  r2_key       TEXT NOT NULL UNIQUE,
+  kv_key       TEXT NOT NULL UNIQUE,
   page_count   INTEGER,
   language     TEXT DEFAULT 'en',
   status       TEXT DEFAULT 'processing',
