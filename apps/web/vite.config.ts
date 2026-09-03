@@ -6,5 +6,6 @@ export default defineConfig({
   plugins: [tailwindcss(), sveltekit()],
   test: {
     passWithNoTests: true,
+    exclude: ['tests/e2e/**', 'node_modules/**'],
   },
 })

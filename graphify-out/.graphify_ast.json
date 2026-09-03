@@ -1,0 +1,4868 @@
+{
+  "nodes": [
+    {
+      "id": "eslint_config_js",
+      "label": "eslint.config.js",
+      "file_type": "code",
+      "source_file": "eslint.config.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_vite_config_ts",
+      "label": "vite.config.ts",
+      "file_type": "code",
+      "source_file": "apps/web/vite.config.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_playwright_config_ts",
+      "label": "playwright.config.ts",
+      "file_type": "code",
+      "source_file": "apps/web/playwright.config.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_svelte_config_js",
+      "label": "svelte.config.js",
+      "file_type": "code",
+      "source_file": "apps/web/svelte.config.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_tests_e2e_landing_spec_ts",
+      "label": "landing.spec.ts",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/landing.spec.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_tests_e2e_auth_auth_guard_spec_ts",
+      "label": "auth-guard.spec.ts",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/auth/auth-guard.spec.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_tests_e2e_fixtures_auth_ts",
+      "label": "auth.ts",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/fixtures/auth.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "auth_mockauthsession",
+      "label": "mockAuthSession()",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/fixtures/auth.ts",
+      "source_location": "L7"
+    },
+    {
+      "id": "auth_clearauthsession",
+      "label": "clearAuthSession()",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/fixtures/auth.ts",
+      "source_location": "L21"
+    },
+    {
+      "id": "apps_web_tests_e2e_inquiries_inquiry_flow_spec_ts",
+      "label": "inquiry-flow.spec.ts",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/inquiries/inquiry-flow.spec.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_tests_e2e_library_document_management_spec_ts",
+      "label": "document-management.spec.ts",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/library/document-management.spec.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_tests_e2e_cases_cases_spec_ts",
+      "label": "cases.spec.ts",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/cases/cases.spec.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_tests_e2e_pages_applayout_ts",
+      "label": "AppLayout.ts",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/pages/AppLayout.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "applayout_applayout",
+      "label": "AppLayout",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/pages/AppLayout.ts",
+      "source_location": "L7"
+    },
+    {
+      "id": "applayout_applayout_constructor",
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/pages/AppLayout.ts",
+      "source_location": "L16"
+    },
+    {
+      "id": "applayout_applayout_navigateto",
+      "label": ".navigateTo()",
+      "file_type": "code",
+      "source_file": "apps/web/tests/e2e/pages/AppLayout.ts",
+      "source_location": "L26"
+    },
+    {
+      "id": "apps_web_coverage_block_navigation_js",
+      "label": "block-navigation.js",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "block_navigation_toggleclass",
+      "label": "toggleClass()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L24"
+    },
+    {
+      "id": "block_navigation_makecurrent",
+      "label": "makeCurrent()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L31"
+    },
+    {
+      "id": "block_navigation_gotoprevious",
+      "label": "goToPrevious()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L41"
+    },
+    {
+      "id": "block_navigation_gotonext",
+      "label": "goToNext()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L52"
+    },
+    {
+      "id": "apps_web_coverage_prettify_js",
+      "label": "prettify.js",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "prettify_k",
+      "label": "k()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_a",
+      "label": "a()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_b",
+      "label": "B()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_o",
+      "label": "o()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_g",
+      "label": "g()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_i",
+      "label": "i()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_q",
+      "label": "Q()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_d",
+      "label": "D()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_c",
+      "label": "c()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_y",
+      "label": "y()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "apps_web_coverage_sorter_js",
+      "label": "sorter.js",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "sorter_gettable",
+      "label": "getTable()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L11"
+    },
+    {
+      "id": "sorter_gettableheader",
+      "label": "getTableHeader()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L15"
+    },
+    {
+      "id": "sorter_gettablebody",
+      "label": "getTableBody()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L19"
+    },
+    {
+      "id": "sorter_getnthcolumn",
+      "label": "getNthColumn()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L23"
+    },
+    {
+      "id": "sorter_onfilterinput",
+      "label": "onFilterInput()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L27"
+    },
+    {
+      "id": "sorter_addsearchbox",
+      "label": "addSearchBox()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L59"
+    },
+    {
+      "id": "sorter_loadcolumns",
+      "label": "loadColumns()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L67"
+    },
+    {
+      "id": "sorter_loadrowdata",
+      "label": "loadRowData()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L92"
+    },
+    {
+      "id": "sorter_loaddata",
+      "label": "loadData()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L111"
+    },
+    {
+      "id": "sorter_sortbyindex",
+      "label": "sortByIndex()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L120"
+    },
+    {
+      "id": "sorter_removesortindicators",
+      "label": "removeSortIndicators()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L151"
+    },
+    {
+      "id": "sorter_addsortindicators",
+      "label": "addSortIndicators()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L159"
+    },
+    {
+      "id": "sorter_enableui",
+      "label": "enableUI()",
+      "file_type": "code",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L165"
+    },
+    {
+      "id": "apps_web_src_app_d_ts",
+      "label": "app.d.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app.d.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_routes_layout_svelte",
+      "label": "+layout.svelte",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/+layout.svelte",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_routes_page_svelte",
+      "label": "+page.svelte",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/+page.svelte",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_routes_auth_callback_server_ts",
+      "label": "+server.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/auth/callback/+server.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_get",
+      "label": "GET()",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/auth/callback/+server.ts",
+      "source_location": "L5"
+    },
+    {
+      "id": "apps_web_src_routes_auth_login_server_ts",
+      "label": "+server.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/auth/login/+server.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_get",
+      "label": "GET()",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/auth/login/+server.ts",
+      "source_location": "L8"
+    },
+    {
+      "id": "apps_web_src_routes_app_layout_server_ts",
+      "label": "+layout.server.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/(app)/+layout.server.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "layout_server_load",
+      "label": "load()",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/(app)/+layout.server.ts",
+      "source_location": "L4"
+    },
+    {
+      "id": "apps_web_src_routes_app_layout_svelte",
+      "label": "+layout.svelte",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/(app)/+layout.svelte",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_routes_app_inquiries_page_svelte",
+      "label": "+page.svelte",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/(app)/inquiries/+page.svelte",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_routes_app_inquiries_id_page_svelte",
+      "label": "+page.svelte",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/(app)/inquiries/[id]/+page.svelte",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_routes_app_profile_page_svelte",
+      "label": "+page.svelte",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/(app)/profile/+page.svelte",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_routes_app_dashboard_page_svelte",
+      "label": "+page.svelte",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/(app)/dashboard/+page.svelte",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_routes_app_library_page_svelte",
+      "label": "+page.svelte",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/(app)/library/+page.svelte",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_routes_app_cases_page_svelte",
+      "label": "+page.svelte",
+      "file_type": "code",
+      "source_file": "apps/web/src/routes/(app)/cases/+page.svelte",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_lib_index_ts",
+      "label": "index.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/lib/index.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_lib_components_landing_hero_svelte",
+      "label": "Hero.svelte",
+      "file_type": "code",
+      "source_file": "apps/web/src/lib/components/landing/Hero.svelte",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_vitest_config_ts",
+      "label": "vitest.config.ts",
+      "file_type": "code",
+      "source_file": "apps/api/vitest.config.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_eslint_config_js",
+      "label": "eslint.config.js",
+      "file_type": "code",
+      "source_file": "apps/api/eslint.config.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_coverage_block_navigation_js",
+      "label": "block-navigation.js",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "block_navigation_toggleclass",
+      "label": "toggleClass()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L24"
+    },
+    {
+      "id": "block_navigation_makecurrent",
+      "label": "makeCurrent()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L31"
+    },
+    {
+      "id": "block_navigation_gotoprevious",
+      "label": "goToPrevious()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L41"
+    },
+    {
+      "id": "block_navigation_gotonext",
+      "label": "goToNext()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L52"
+    },
+    {
+      "id": "apps_api_coverage_prettify_js",
+      "label": "prettify.js",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "prettify_k",
+      "label": "k()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_a",
+      "label": "a()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_b",
+      "label": "B()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_o",
+      "label": "o()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_g",
+      "label": "g()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_i",
+      "label": "i()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_q",
+      "label": "Q()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_d",
+      "label": "D()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_c",
+      "label": "c()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_y",
+      "label": "y()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "apps_api_coverage_sorter_js",
+      "label": "sorter.js",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "sorter_gettable",
+      "label": "getTable()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L11"
+    },
+    {
+      "id": "sorter_gettableheader",
+      "label": "getTableHeader()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L15"
+    },
+    {
+      "id": "sorter_gettablebody",
+      "label": "getTableBody()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L19"
+    },
+    {
+      "id": "sorter_getnthcolumn",
+      "label": "getNthColumn()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L23"
+    },
+    {
+      "id": "sorter_onfilterinput",
+      "label": "onFilterInput()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L27"
+    },
+    {
+      "id": "sorter_addsearchbox",
+      "label": "addSearchBox()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L59"
+    },
+    {
+      "id": "sorter_loadcolumns",
+      "label": "loadColumns()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L67"
+    },
+    {
+      "id": "sorter_loadrowdata",
+      "label": "loadRowData()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L92"
+    },
+    {
+      "id": "sorter_loaddata",
+      "label": "loadData()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L111"
+    },
+    {
+      "id": "sorter_sortbyindex",
+      "label": "sortByIndex()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L120"
+    },
+    {
+      "id": "sorter_removesortindicators",
+      "label": "removeSortIndicators()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L151"
+    },
+    {
+      "id": "sorter_addsortindicators",
+      "label": "addSortIndicators()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L159"
+    },
+    {
+      "id": "sorter_enableui",
+      "label": "enableUI()",
+      "file_type": "code",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L165"
+    },
+    {
+      "id": "apps_api_src_index_ts",
+      "label": "index.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/index.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_utils_errors_ts",
+      "label": "errors.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "errors_apperror",
+      "label": "AppError",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L7"
+    },
+    {
+      "id": "errors_apperror_constructor",
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L8"
+    },
+    {
+      "id": "errors_badrequest",
+      "label": "BadRequest",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L17"
+    },
+    {
+      "id": "errors_badrequest_constructor",
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L18"
+    },
+    {
+      "id": "errors_unauthorized",
+      "label": "Unauthorized",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L24"
+    },
+    {
+      "id": "errors_unauthorized_constructor",
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L25"
+    },
+    {
+      "id": "errors_forbidden",
+      "label": "Forbidden",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L31"
+    },
+    {
+      "id": "errors_forbidden_constructor",
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L32"
+    },
+    {
+      "id": "errors_notfound",
+      "label": "NotFound",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L38"
+    },
+    {
+      "id": "errors_notfound_constructor",
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L39"
+    },
+    {
+      "id": "apps_api_src_utils_validation_ts",
+      "label": "validation.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/utils/validation.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_services_llm_models_ts",
+      "label": "models.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/llm/models.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "models_selectmodel",
+      "label": "selectModel()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/llm/models.ts",
+      "source_location": "L14"
+    },
+    {
+      "id": "apps_api_src_services_llm_stream_ts",
+      "label": "stream.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/llm/stream.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "stream_streaminquiry",
+      "label": "streamInquiry()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/llm/stream.ts",
+      "source_location": "L9"
+    },
+    {
+      "id": "apps_api_src_services_llm_client_ts",
+      "label": "client.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/llm/client.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "client_callopenrouter",
+      "label": "callOpenRouter()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/llm/client.ts",
+      "source_location": "L8"
+    },
+    {
+      "id": "apps_api_src_services_llm_prompts_ts",
+      "label": "prompts.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/llm/prompts.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_services_citations_extractor_ts",
+      "label": "extractor.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/citations/extractor.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "extractor_extractcitations",
+      "label": "extractCitations()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/citations/extractor.ts",
+      "source_location": "L14"
+    },
+    {
+      "id": "apps_api_src_services_documents_parser_ts",
+      "label": "parser.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/parser.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "parser_extracttext",
+      "label": "extractText()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/parser.ts",
+      "source_location": "L7"
+    },
+    {
+      "id": "apps_api_src_services_documents_storage_ts",
+      "label": "storage.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/storage.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "storage_uploaddocument",
+      "label": "uploadDocument()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/storage.ts",
+      "source_location": "L15"
+    },
+    {
+      "id": "storage_downloaddocument",
+      "label": "downloadDocument()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/storage.ts",
+      "source_location": "L37"
+    },
+    {
+      "id": "storage_deletedocument",
+      "label": "deleteDocument()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/storage.ts",
+      "source_location": "L42"
+    },
+    {
+      "id": "apps_api_src_services_documents_metadata_ts",
+      "label": "metadata.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "metadata_createdocument",
+      "label": "createDocument()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L5"
+    },
+    {
+      "id": "metadata_getdocument",
+      "label": "getDocument()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L26"
+    },
+    {
+      "id": "metadata_listdocuments",
+      "label": "listDocuments()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L39"
+    },
+    {
+      "id": "metadata_maprowtodocument",
+      "label": "mapRowToDocument()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L50"
+    },
+    {
+      "id": "apps_api_src_services_rag_chunker_ts",
+      "label": "chunker.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/chunker.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "chunker_estimatetokens",
+      "label": "estimateTokens()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/chunker.ts",
+      "source_location": "L6"
+    },
+    {
+      "id": "chunker_chunkdocument",
+      "label": "chunkDocument()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/chunker.ts",
+      "source_location": "L17"
+    },
+    {
+      "id": "apps_api_src_services_rag_retriever_ts",
+      "label": "retriever.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/retriever.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "retriever_retrievechunks",
+      "label": "retrieveChunks()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/retriever.ts",
+      "source_location": "L20"
+    },
+    {
+      "id": "apps_api_src_services_rag_pipeline_ts",
+      "label": "pipeline.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/pipeline.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "pipeline_ingestdocument",
+      "label": "ingestDocument()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/pipeline.ts",
+      "source_location": "L12"
+    },
+    {
+      "id": "pipeline_buildcontext",
+      "label": "buildContext()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/pipeline.ts",
+      "source_location": "L65"
+    },
+    {
+      "id": "apps_api_src_services_rag_embedder_ts",
+      "label": "embedder.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/embedder.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "embedder_embedtexts",
+      "label": "embedTexts()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/embedder.ts",
+      "source_location": "L10"
+    },
+    {
+      "id": "embedder_embedquery",
+      "label": "embedQuery()",
+      "file_type": "code",
+      "source_file": "apps/api/src/services/rag/embedder.ts",
+      "source_location": "L17"
+    },
+    {
+      "id": "apps_api_src_types_bindings_ts",
+      "label": "bindings.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/types/bindings.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_routes_health_ts",
+      "label": "health.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/routes/health.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_routes_documents_ts",
+      "label": "documents.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/routes/documents.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_routes_cases_ts",
+      "label": "cases.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/routes/cases.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_routes_auth_ts",
+      "label": "auth.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/routes/auth.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_routes_inquiries_ts",
+      "label": "inquiries.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/routes/inquiries.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_middleware_logger_ts",
+      "label": "logger.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/middleware/logger.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_middleware_ratelimit_ts",
+      "label": "ratelimit.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/middleware/ratelimit.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_src_middleware_auth_ts",
+      "label": "auth.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/middleware/auth.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_scripts_ingest_legal_corpus_py",
+      "label": "ingest_legal_corpus.py",
+      "file_type": "code",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "ingest_legal_corpus_get_embeddings",
+      "label": "get_embeddings()",
+      "file_type": "code",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L27"
+    },
+    {
+      "id": "ingest_legal_corpus_insert_vectors",
+      "label": "insert_vectors()",
+      "file_type": "code",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "ingest_legal_corpus_process_batch",
+      "label": "process_batch()",
+      "file_type": "code",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L65"
+    },
+    {
+      "id": "ingest_legal_corpus_process_file",
+      "label": "process_file()",
+      "file_type": "code",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L78"
+    },
+    {
+      "id": "ingest_legal_corpus_async_main",
+      "label": "async_main()",
+      "file_type": "code",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L139"
+    },
+    {
+      "id": "ingest_legal_corpus_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L165"
+    },
+    {
+      "id": "apps_api_test_services_chunker_test_ts",
+      "label": "chunker.test.ts",
+      "file_type": "code",
+      "source_file": "apps/api/test/services/chunker.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_api_test_routes_auth_test_ts",
+      "label": "auth.test.ts",
+      "file_type": "code",
+      "source_file": "apps/api/test/routes/auth.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "auth_test_makeapp",
+      "label": "makeApp()",
+      "file_type": "code",
+      "source_file": "apps/api/test/routes/auth.test.ts",
+      "source_location": "L6"
+    },
+    {
+      "id": "apps_api_test_routes_health_test_ts",
+      "label": "health.test.ts",
+      "file_type": "code",
+      "source_file": "apps/api/test/routes/health.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_shared_coverage_block_navigation_js",
+      "label": "block-navigation.js",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "block_navigation_toggleclass",
+      "label": "toggleClass()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L24"
+    },
+    {
+      "id": "block_navigation_makecurrent",
+      "label": "makeCurrent()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L31"
+    },
+    {
+      "id": "block_navigation_gotoprevious",
+      "label": "goToPrevious()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L41"
+    },
+    {
+      "id": "block_navigation_gotonext",
+      "label": "goToNext()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L52"
+    },
+    {
+      "id": "packages_shared_coverage_prettify_js",
+      "label": "prettify.js",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "prettify_k",
+      "label": "k()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_a",
+      "label": "a()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_b",
+      "label": "B()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_o",
+      "label": "o()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_g",
+      "label": "g()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_i",
+      "label": "i()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_q",
+      "label": "Q()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_d",
+      "label": "D()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_c",
+      "label": "c()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_y",
+      "label": "y()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "packages_shared_coverage_sorter_js",
+      "label": "sorter.js",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "sorter_gettable",
+      "label": "getTable()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L11"
+    },
+    {
+      "id": "sorter_gettableheader",
+      "label": "getTableHeader()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L15"
+    },
+    {
+      "id": "sorter_gettablebody",
+      "label": "getTableBody()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L19"
+    },
+    {
+      "id": "sorter_getnthcolumn",
+      "label": "getNthColumn()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L23"
+    },
+    {
+      "id": "sorter_onfilterinput",
+      "label": "onFilterInput()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L27"
+    },
+    {
+      "id": "sorter_addsearchbox",
+      "label": "addSearchBox()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L59"
+    },
+    {
+      "id": "sorter_loadcolumns",
+      "label": "loadColumns()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L67"
+    },
+    {
+      "id": "sorter_loadrowdata",
+      "label": "loadRowData()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L92"
+    },
+    {
+      "id": "sorter_loaddata",
+      "label": "loadData()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L111"
+    },
+    {
+      "id": "sorter_sortbyindex",
+      "label": "sortByIndex()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L120"
+    },
+    {
+      "id": "sorter_removesortindicators",
+      "label": "removeSortIndicators()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L151"
+    },
+    {
+      "id": "sorter_addsortindicators",
+      "label": "addSortIndicators()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L159"
+    },
+    {
+      "id": "sorter_enableui",
+      "label": "enableUI()",
+      "file_type": "code",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L165"
+    },
+    {
+      "id": "packages_shared_src_index_ts",
+      "label": "index.ts",
+      "file_type": "code",
+      "source_file": "packages/shared/src/index.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_shared_src_types_document_ts",
+      "label": "document.ts",
+      "file_type": "code",
+      "source_file": "packages/shared/src/types/document.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_shared_src_types_inquiry_ts",
+      "label": "inquiry.ts",
+      "file_type": "code",
+      "source_file": "packages/shared/src/types/inquiry.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_shared_src_types_user_ts",
+      "label": "user.ts",
+      "file_type": "code",
+      "source_file": "packages/shared/src/types/user.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_ingest_coverage_block_navigation_js",
+      "label": "block-navigation.js",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "block_navigation_toggleclass",
+      "label": "toggleClass()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L24"
+    },
+    {
+      "id": "block_navigation_makecurrent",
+      "label": "makeCurrent()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L31"
+    },
+    {
+      "id": "block_navigation_gotoprevious",
+      "label": "goToPrevious()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L41"
+    },
+    {
+      "id": "block_navigation_gotonext",
+      "label": "goToNext()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L52"
+    },
+    {
+      "id": "packages_ingest_coverage_prettify_js",
+      "label": "prettify.js",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "prettify_k",
+      "label": "k()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_a",
+      "label": "a()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_b",
+      "label": "B()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_o",
+      "label": "o()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_g",
+      "label": "g()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_i",
+      "label": "i()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_q",
+      "label": "Q()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_d",
+      "label": "D()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_c",
+      "label": "c()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "prettify_y",
+      "label": "y()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "packages_ingest_coverage_sorter_js",
+      "label": "sorter.js",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "sorter_gettable",
+      "label": "getTable()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L11"
+    },
+    {
+      "id": "sorter_gettableheader",
+      "label": "getTableHeader()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L15"
+    },
+    {
+      "id": "sorter_gettablebody",
+      "label": "getTableBody()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L19"
+    },
+    {
+      "id": "sorter_getnthcolumn",
+      "label": "getNthColumn()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L23"
+    },
+    {
+      "id": "sorter_onfilterinput",
+      "label": "onFilterInput()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L27"
+    },
+    {
+      "id": "sorter_addsearchbox",
+      "label": "addSearchBox()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L59"
+    },
+    {
+      "id": "sorter_loadcolumns",
+      "label": "loadColumns()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L67"
+    },
+    {
+      "id": "sorter_loadrowdata",
+      "label": "loadRowData()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L92"
+    },
+    {
+      "id": "sorter_loaddata",
+      "label": "loadData()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L111"
+    },
+    {
+      "id": "sorter_sortbyindex",
+      "label": "sortByIndex()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L120"
+    },
+    {
+      "id": "sorter_removesortindicators",
+      "label": "removeSortIndicators()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L151"
+    },
+    {
+      "id": "sorter_addsortindicators",
+      "label": "addSortIndicators()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L159"
+    },
+    {
+      "id": "sorter_enableui",
+      "label": "enableUI()",
+      "file_type": "code",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L165"
+    },
+    {
+      "id": "packages_eslint_config_index_js",
+      "label": "index.js",
+      "file_type": "code",
+      "source_file": "packages/eslint-config/index.js",
+      "source_location": "L1"
+    }
+  ],
+  "edges": [
+    {
+      "source": "eslint_config_js",
+      "target": "packages_eslint_config_index_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "eslint.config.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_vite_config_ts",
+      "target": "vite",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/vite.config.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_vite_config_ts",
+      "target": "vite",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/vite.config.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_vite_config_ts",
+      "target": "config",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/vite.config.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_playwright_config_ts",
+      "target": "test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/playwright.config.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_svelte_config_js",
+      "target": "adapter_vercel",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/svelte.config.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_landing_spec_ts",
+      "target": "test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/landing.spec.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_auth_auth_guard_spec_ts",
+      "target": "test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/auth/auth-guard.spec.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_auth_auth_guard_spec_ts",
+      "target": "apps_web_tests_e2e_auth_fixtures_auth",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/auth/auth-guard.spec.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_fixtures_auth_ts",
+      "target": "test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/fixtures/auth.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_fixtures_auth_ts",
+      "target": "auth_mockauthsession",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/fixtures/auth.ts",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_fixtures_auth_ts",
+      "target": "auth_clearauthsession",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/fixtures/auth.ts",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_inquiries_inquiry_flow_spec_ts",
+      "target": "test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/inquiries/inquiry-flow.spec.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_inquiries_inquiry_flow_spec_ts",
+      "target": "apps_web_tests_e2e_inquiries_fixtures_auth",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/inquiries/inquiry-flow.spec.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_library_document_management_spec_ts",
+      "target": "test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/library/document-management.spec.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_library_document_management_spec_ts",
+      "target": "apps_web_tests_e2e_library_fixtures_auth",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/library/document-management.spec.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_cases_cases_spec_ts",
+      "target": "test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/cases/cases.spec.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_cases_cases_spec_ts",
+      "target": "apps_web_tests_e2e_cases_fixtures_auth",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/cases/cases.spec.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_pages_applayout_ts",
+      "target": "test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/pages/AppLayout.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_tests_e2e_pages_applayout_ts",
+      "target": "applayout_applayout",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/pages/AppLayout.ts",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "applayout_applayout",
+      "target": "applayout_applayout_constructor",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/pages/AppLayout.ts",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "applayout_applayout",
+      "target": "applayout_applayout_navigateto",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/tests/e2e/pages/AppLayout.ts",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_block_navigation_js",
+      "target": "block_navigation_toggleclass",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_block_navigation_js",
+      "target": "block_navigation_makecurrent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_block_navigation_js",
+      "target": "block_navigation_gotoprevious",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_block_navigation_js",
+      "target": "block_navigation_gotonext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_makecurrent",
+      "target": "block_navigation_toggleclass",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_gotoprevious",
+      "target": "block_navigation_makecurrent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_gotonext",
+      "target": "block_navigation_makecurrent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/block-navigation.js",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_k",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_a",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_o",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_g",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_i",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_q",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_d",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_c",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_q",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_d",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_y",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_prettify_js",
+      "target": "prettify_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_k",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_b",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_i",
+      "target": "prettify_g",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_d",
+      "target": "prettify_a",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_d",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_y",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_y",
+      "target": "prettify_d",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_b",
+      "target": "prettify_y",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_gettable",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_gettableheader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_gettablebody",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_getnthcolumn",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_onfilterinput",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_addsearchbox",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_loadcolumns",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_loadrowdata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_loaddata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_sortbyindex",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_removesortindicators",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_addsortindicators",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L159",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_coverage_sorter_js",
+      "target": "sorter_enableui",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_gettableheader",
+      "target": "sorter_gettable",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_gettablebody",
+      "target": "sorter_gettable",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_getnthcolumn",
+      "target": "sorter_gettableheader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loadcolumns",
+      "target": "sorter_gettableheader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loaddata",
+      "target": "sorter_gettablebody",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loaddata",
+      "target": "sorter_loadrowdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_removesortindicators",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L152",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_addsortindicators",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_sortbyindex",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L177",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_removesortindicators",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_addsortindicators",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L181",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/coverage/sorter.js",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_auth_callback_server_ts",
+      "target": "kit",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/auth/callback/+server.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_auth_callback_server_ts",
+      "target": "apps_web_src_routes_auth_callback_types",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/auth/callback/+server.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_auth_callback_server_ts",
+      "target": "public",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/auth/callback/+server.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_auth_callback_server_ts",
+      "target": "server_get",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/auth/callback/+server.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_auth_login_server_ts",
+      "target": "kit",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/auth/login/+server.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_auth_login_server_ts",
+      "target": "apps_web_src_routes_auth_login_types",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/auth/login/+server.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_auth_login_server_ts",
+      "target": "public",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/auth/login/+server.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_auth_login_server_ts",
+      "target": "server_get",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/auth/login/+server.ts",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_app_layout_server_ts",
+      "target": "kit",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/(app)/+layout.server.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_app_layout_server_ts",
+      "target": "apps_web_src_routes_app_types",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/(app)/+layout.server.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_routes_app_layout_server_ts",
+      "target": "layout_server_load",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/routes/(app)/+layout.server.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_vitest_config_ts",
+      "target": "config",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/vitest.config.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_eslint_config_js",
+      "target": "eslint_config",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/eslint.config.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_block_navigation_js",
+      "target": "block_navigation_toggleclass",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_block_navigation_js",
+      "target": "block_navigation_makecurrent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_block_navigation_js",
+      "target": "block_navigation_gotoprevious",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_block_navigation_js",
+      "target": "block_navigation_gotonext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_makecurrent",
+      "target": "block_navigation_toggleclass",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_gotoprevious",
+      "target": "block_navigation_makecurrent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_gotonext",
+      "target": "block_navigation_makecurrent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/block-navigation.js",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_k",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_a",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_o",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_g",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_i",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_q",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_d",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_c",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_q",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_d",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_y",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_prettify_js",
+      "target": "prettify_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_k",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_b",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_i",
+      "target": "prettify_g",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_d",
+      "target": "prettify_a",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_d",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_y",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_y",
+      "target": "prettify_d",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_b",
+      "target": "prettify_y",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_gettable",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_gettableheader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_gettablebody",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_getnthcolumn",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_onfilterinput",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_addsearchbox",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_loadcolumns",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_loadrowdata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_loaddata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_sortbyindex",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_removesortindicators",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_addsortindicators",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L159",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_coverage_sorter_js",
+      "target": "sorter_enableui",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_gettableheader",
+      "target": "sorter_gettable",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_gettablebody",
+      "target": "sorter_gettable",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_getnthcolumn",
+      "target": "sorter_gettableheader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loadcolumns",
+      "target": "sorter_gettableheader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loaddata",
+      "target": "sorter_gettablebody",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loaddata",
+      "target": "sorter_loadrowdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_removesortindicators",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L152",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_addsortindicators",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_sortbyindex",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L177",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_removesortindicators",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_addsortindicators",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L181",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/coverage/sorter.js",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_index_ts",
+      "target": "hono",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/index.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_index_ts",
+      "target": "cors",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/index.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_index_ts",
+      "target": "logger",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/index.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_index_ts",
+      "target": "apps_api_src_routes_auth",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/index.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_index_ts",
+      "target": "apps_api_src_routes_documents",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/index.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_index_ts",
+      "target": "apps_api_src_routes_inquiries",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/index.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_index_ts",
+      "target": "apps_api_src_routes_cases",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/index.ts",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_index_ts",
+      "target": "apps_api_src_routes_health",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/index.ts",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_index_ts",
+      "target": "apps_api_src_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/index.ts",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_utils_errors_ts",
+      "target": "errors_apperror",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "errors_apperror",
+      "target": "errors_apperror_constructor",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_utils_errors_ts",
+      "target": "errors_badrequest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "errors_badrequest",
+      "target": "errors_badrequest_constructor",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_utils_errors_ts",
+      "target": "errors_unauthorized",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "errors_unauthorized",
+      "target": "errors_unauthorized_constructor",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_utils_errors_ts",
+      "target": "errors_forbidden",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "errors_forbidden",
+      "target": "errors_forbidden_constructor",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_utils_errors_ts",
+      "target": "errors_notfound",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "errors_notfound",
+      "target": "errors_notfound_constructor",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/errors.ts",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_utils_validation_ts",
+      "target": "zod",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/utils/validation.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_llm_models_ts",
+      "target": "models_selectmodel",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/llm/models.ts",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_llm_stream_ts",
+      "target": "apps_api_src_services_llm_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/llm/stream.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_llm_stream_ts",
+      "target": "apps_api_src_services_llm_client",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/llm/stream.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_llm_stream_ts",
+      "target": "apps_api_src_services_llm_prompts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/llm/stream.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_llm_stream_ts",
+      "target": "stream_streaminquiry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/llm/stream.ts",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_llm_client_ts",
+      "target": "apps_api_src_services_llm_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/llm/client.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_llm_client_ts",
+      "target": "client_callopenrouter",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/llm/client.ts",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_citations_extractor_ts",
+      "target": "shared",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/citations/extractor.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_citations_extractor_ts",
+      "target": "extractor_extractcitations",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/citations/extractor.ts",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_parser_ts",
+      "target": "unpdf",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/parser.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_parser_ts",
+      "target": "parser_extracttext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/parser.ts",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_storage_ts",
+      "target": "apps_api_src_services_documents_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/storage.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_storage_ts",
+      "target": "storage_uploaddocument",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/storage.ts",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_storage_ts",
+      "target": "storage_downloaddocument",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/storage.ts",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_storage_ts",
+      "target": "storage_deletedocument",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/storage.ts",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_metadata_ts",
+      "target": "apps_api_src_services_documents_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_metadata_ts",
+      "target": "shared",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_metadata_ts",
+      "target": "metadata_createdocument",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_metadata_ts",
+      "target": "metadata_getdocument",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_metadata_ts",
+      "target": "metadata_listdocuments",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_documents_metadata_ts",
+      "target": "metadata_maprowtodocument",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "metadata_getdocument",
+      "target": "metadata_maprowtodocument",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/documents/metadata.ts",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_chunker_ts",
+      "target": "shared",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/chunker.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_chunker_ts",
+      "target": "chunker_estimatetokens",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/chunker.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_chunker_ts",
+      "target": "chunker_chunkdocument",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/chunker.ts",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "chunker_chunkdocument",
+      "target": "chunker_estimatetokens",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/chunker.ts",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_retriever_ts",
+      "target": "apps_api_src_services_rag_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/retriever.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_retriever_ts",
+      "target": "apps_api_src_services_rag_embedder",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/retriever.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_retriever_ts",
+      "target": "retriever_retrievechunks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/retriever.ts",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_pipeline_ts",
+      "target": "apps_api_src_services_rag_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/pipeline.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_pipeline_ts",
+      "target": "apps_api_src_services_rag_chunker",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/pipeline.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_pipeline_ts",
+      "target": "apps_api_src_services_rag_embedder",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/pipeline.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_pipeline_ts",
+      "target": "apps_api_src_services_rag_retriever",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/pipeline.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_pipeline_ts",
+      "target": "pipeline_ingestdocument",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/pipeline.ts",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_pipeline_ts",
+      "target": "pipeline_buildcontext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/pipeline.ts",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_embedder_ts",
+      "target": "apps_api_src_services_rag_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/embedder.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_embedder_ts",
+      "target": "embedder_embedtexts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/embedder.ts",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_services_rag_embedder_ts",
+      "target": "embedder_embedquery",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/embedder.ts",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "embedder_embedquery",
+      "target": "embedder_embedtexts",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/services/rag/embedder.ts",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_health_ts",
+      "target": "hono",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/health.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_health_ts",
+      "target": "apps_api_src_routes_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/health.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_documents_ts",
+      "target": "hono",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/documents.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_documents_ts",
+      "target": "apps_api_src_routes_middleware_auth",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/documents.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_documents_ts",
+      "target": "apps_api_src_routes_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/documents.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_cases_ts",
+      "target": "hono",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/cases.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_cases_ts",
+      "target": "apps_api_src_routes_middleware_auth",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/cases.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_cases_ts",
+      "target": "apps_api_src_routes_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/cases.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_auth_ts",
+      "target": "hono",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/auth.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_auth_ts",
+      "target": "jwt",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/auth.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_auth_ts",
+      "target": "cookie",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/auth.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_auth_ts",
+      "target": "apps_api_src_routes_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/auth.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_inquiries_ts",
+      "target": "hono",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/inquiries.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_inquiries_ts",
+      "target": "apps_api_src_routes_middleware_auth",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/inquiries.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_routes_inquiries_ts",
+      "target": "apps_api_src_routes_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/routes/inquiries.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_middleware_logger_ts",
+      "target": "factory",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/middleware/logger.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_middleware_logger_ts",
+      "target": "apps_api_src_middleware_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/middleware/logger.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_middleware_ratelimit_ts",
+      "target": "factory",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/middleware/ratelimit.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_middleware_ratelimit_ts",
+      "target": "apps_api_src_middleware_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/middleware/ratelimit.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_middleware_auth_ts",
+      "target": "factory",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/middleware/auth.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_middleware_auth_ts",
+      "target": "jwt",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/middleware/auth.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_middleware_auth_ts",
+      "target": "cookie",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/middleware/auth.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_src_middleware_auth_ts",
+      "target": "apps_api_src_middleware_types_bindings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/middleware/auth.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "os",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "sys",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "glob",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "json",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "asyncio",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "aiohttp",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "re",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "langchain_community_document_loaders",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "langchain_text_splitters",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "ingest_legal_corpus_get_embeddings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "ingest_legal_corpus_insert_vectors",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "ingest_legal_corpus_process_batch",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "ingest_legal_corpus_process_file",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "ingest_legal_corpus_async_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_scripts_ingest_legal_corpus_py",
+      "target": "ingest_legal_corpus_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "ingest_legal_corpus_process_batch",
+      "target": "ingest_legal_corpus_get_embeddings",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "ingest_legal_corpus_process_batch",
+      "target": "ingest_legal_corpus_insert_vectors",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "ingest_legal_corpus_process_file",
+      "target": "ingest_legal_corpus_process_batch",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "ingest_legal_corpus_async_main",
+      "target": "ingest_legal_corpus_process_file",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "ingest_legal_corpus_main",
+      "target": "ingest_legal_corpus_async_main",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/scripts/ingest_legal_corpus.py",
+      "source_location": "L166",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_test_services_chunker_test_ts",
+      "target": "vitest",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/test/services/chunker.test.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_test_services_chunker_test_ts",
+      "target": "apps_api_test_services_src_services_rag_chunker",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/test/services/chunker.test.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_test_routes_auth_test_ts",
+      "target": "vitest",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/test/routes/auth.test.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_test_routes_auth_test_ts",
+      "target": "hono",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/test/routes/auth.test.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_test_routes_auth_test_ts",
+      "target": "apps_api_test_routes_src_routes_auth",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/test/routes/auth.test.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_test_routes_auth_test_ts",
+      "target": "auth_test_makeapp",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/test/routes/auth.test.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_test_routes_health_test_ts",
+      "target": "vitest",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/test/routes/health.test.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_test_routes_health_test_ts",
+      "target": "hono",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/test/routes/health.test.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_api_test_routes_health_test_ts",
+      "target": "apps_api_test_routes_src_routes_health",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/test/routes/health.test.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_block_navigation_js",
+      "target": "block_navigation_toggleclass",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_block_navigation_js",
+      "target": "block_navigation_makecurrent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_block_navigation_js",
+      "target": "block_navigation_gotoprevious",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_block_navigation_js",
+      "target": "block_navigation_gotonext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_makecurrent",
+      "target": "block_navigation_toggleclass",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_gotoprevious",
+      "target": "block_navigation_makecurrent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_gotonext",
+      "target": "block_navigation_makecurrent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/block-navigation.js",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_k",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_a",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_o",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_g",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_i",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_q",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_d",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_c",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_q",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_d",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_y",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_prettify_js",
+      "target": "prettify_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_k",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_b",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_i",
+      "target": "prettify_g",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_d",
+      "target": "prettify_a",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_d",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_y",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_y",
+      "target": "prettify_d",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_b",
+      "target": "prettify_y",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_gettable",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_gettableheader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_gettablebody",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_getnthcolumn",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_onfilterinput",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_addsearchbox",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_loadcolumns",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_loadrowdata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_loaddata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_sortbyindex",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_removesortindicators",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_addsortindicators",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L159",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_shared_coverage_sorter_js",
+      "target": "sorter_enableui",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_gettableheader",
+      "target": "sorter_gettable",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_gettablebody",
+      "target": "sorter_gettable",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_getnthcolumn",
+      "target": "sorter_gettableheader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loadcolumns",
+      "target": "sorter_gettableheader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loaddata",
+      "target": "sorter_gettablebody",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loaddata",
+      "target": "sorter_loadrowdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_removesortindicators",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L152",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_addsortindicators",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_sortbyindex",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L177",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_removesortindicators",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_addsortindicators",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L181",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/shared/coverage/sorter.js",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_block_navigation_js",
+      "target": "block_navigation_toggleclass",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_block_navigation_js",
+      "target": "block_navigation_makecurrent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_block_navigation_js",
+      "target": "block_navigation_gotoprevious",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_block_navigation_js",
+      "target": "block_navigation_gotonext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_makecurrent",
+      "target": "block_navigation_toggleclass",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_gotoprevious",
+      "target": "block_navigation_makecurrent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "block_navigation_gotonext",
+      "target": "block_navigation_makecurrent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/block-navigation.js",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_k",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_a",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_o",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_g",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_i",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_q",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_d",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_c",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_q",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_d",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_y",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_prettify_js",
+      "target": "prettify_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_k",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_b",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_g",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_i",
+      "target": "prettify_g",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_d",
+      "target": "prettify_a",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_d",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_y",
+      "target": "prettify_q",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_y",
+      "target": "prettify_d",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "prettify_b",
+      "target": "prettify_y",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/prettify.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_gettable",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_gettableheader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_gettablebody",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_getnthcolumn",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_onfilterinput",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_addsearchbox",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_loadcolumns",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_loadrowdata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_loaddata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_sortbyindex",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_removesortindicators",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_addsortindicators",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L159",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_ingest_coverage_sorter_js",
+      "target": "sorter_enableui",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_gettableheader",
+      "target": "sorter_gettable",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_gettablebody",
+      "target": "sorter_gettable",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_getnthcolumn",
+      "target": "sorter_gettableheader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loadcolumns",
+      "target": "sorter_gettableheader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loaddata",
+      "target": "sorter_gettablebody",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_loaddata",
+      "target": "sorter_loadrowdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_removesortindicators",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L152",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_addsortindicators",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_sortbyindex",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L177",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_removesortindicators",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_addsortindicators",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L181",
+      "weight": 1.0
+    },
+    {
+      "source": "sorter_enableui",
+      "target": "sorter_getnthcolumn",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ingest/coverage/sorter.js",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_eslint_config_index_js",
+      "target": "eslint_plugin",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/eslint-config/index.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_eslint_config_index_js",
+      "target": "parser",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/eslint-config/index.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_eslint_config_index_js",
+      "target": "eslint_config_prettier",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/eslint-config/index.js",
+      "source_location": "L3",
+      "weight": 1.0
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
