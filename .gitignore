@@ -7,6 +7,9 @@ dist/
 .svelte-kit/
 .vercel/
 .wrangler/
+.next/
+.turbo/
+*.tsbuildinfo
 
 # Environment files
 .env
@@ -29,6 +32,13 @@ Thumbs.db
 coverage/
 playwright-report/
 test-results/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
 
 # Misc
 *.tgz

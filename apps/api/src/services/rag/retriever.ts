@@ -25,15 +25,24 @@ export async function retrieveChunks(
 ): Promise<RetrievedChunk[]> {
   const queryVector = await embedQuery(question, env)
 
-  const [userResults, legalResults] = await Promise.all([
-    env.CHUNKS_INDEX.query(queryVector, {
-      topK: 5,
-      filter: { documentId: { $in: documentIds }, userId },
-    }),
+  const promises = [
     env.LEGAL_INDEX.query(queryVector, {
       topK: 3,
     }),
-  ])
+  ]
+
+  if (documentIds.length > 0) {
+    promises.push(
+      env.CHUNKS_INDEX.query(queryVector, {
+        topK: 5,
+        filter: { documentId: { $in: documentIds }, userId },
+      }),
+    )
+  }
+
+  const results = await Promise.all(promises)
+  const legalResults = results[0]
+  const userResults = documentIds.length > 0 ? results[1] : { matches: [] }
 
   const merged: RetrievedChunk[] = [
     ...userResults.matches.map((m) => ({

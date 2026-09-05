@@ -5,3 +5,4 @@
 *.cjs linguist-detectable=false
 Makefile linguist-detectable=false
 makefile linguist-detectable=false
+*.rsc linguist-detectable=false
