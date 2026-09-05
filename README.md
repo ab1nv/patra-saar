@@ -322,13 +322,12 @@ master              →  PR to prod    →  CI runs  →  merge  →  production
 
 ## LLM Model Strategy
 
-PatraSaar uses three models from OpenRouter, all currently free:
+PatraSaar strictly leverages robust, high-parameter open-source models via OpenRouter:
 
-| Role     | Model                                   | Used For                              |
-| -------- | --------------------------------------- | ------------------------------------- |
-| Primary  | `qwen/qwen3-next-80b-a3b-instruct:free` | Standard Q&A, summaries, most queries |
-| Fallback | `google/gemma-4-26b-a4b:free`           | When primary hits rate limits         |
-| Heavy    | `openai/gpt-oss-120b:free`              | Complex contract analysis, multi-doc  |
+| Role    | Model                                   | Used For                                   |
+| ------- | --------------------------------------- | ------------------------------------------ |
+| Primary | `openrouter/free`                       | Intelligent, fastest node dynamic sniffing |
+| Heavy   | `openrouter/free` (wait for 120B alloc) | Complex contract analysis, multi-doc       |
 
 When upgrading to paid models, change the strings in `apps/api/src/services/llm/models.ts`. Nothing else needs to change.
 

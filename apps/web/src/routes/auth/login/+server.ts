@@ -1,28 +1,34 @@
-import { redirect } from '@sveltejs/kit'
+import { redirect, error } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { env } from '$env/dynamic/public'
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
   const next = url.searchParams.get('next') ?? '/dashboard'
 
-  // CSRF protection — random state ties the callback back to this request
-  const state = crypto.randomUUID()
-  cookies.set('oauth_state', state, {
-    path: '/',
-    httpOnly: true,
-    secure: url.protocol === 'https:',
-    sameSite: 'lax',
-    maxAge: 60 * 10, // 10 minutes
-  })
-  cookies.set('oauth_next', next, {
-    path: '/',
-    httpOnly: true,
-    secure: url.protocol === 'https:',
-    sameSite: 'lax',
-    maxAge: 60 * 10,
+  // Exchange code for JWT via the API directly
+  const apiUrl = env.PUBLIC_API_URL ?? 'http://127.0.0.1:8787'
+  const callbackUrl = `${url.origin}/auth/callback`
+
+  const response = await fetch(`${apiUrl}/auth/google`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: 'dummy_code', redirect_uri: callbackUrl }),
   })
 
-  // Dummy login: redirect to callback directly with a dummy code
-  const callbackUrl = `${url.origin}/auth/callback?code=dummy_code&state=${state}`
-  throw redirect(302, callbackUrl)
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}))
+    throw error(502, (body as { error?: string }).error ?? 'Authentication failed')
+  }
+
+  const { token } = await response.json<{ token: string }>()
+
+  cookies.set('patrasaar_token', token, {
+    path: '/',
+    httpOnly: true,
+    secure: url.protocol === 'https:',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+  })
+
+  throw redirect(302, next)
 }

@@ -1,6 +1,6 @@
 # PatraSaar — Sovereign Intelligence for Indian Law
 
-> _The Local LLM of Bharat_
+> _Real Citations. Real Laws. Zero Hallucinations._
 
 ---
 
