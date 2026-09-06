@@ -11,16 +11,23 @@ export const authMiddleware = createMiddleware<{
   Bindings: Env
   Variables: { userId: string }
 }>(async (c, next) => {
-  const token = getCookie(c, 'patrasaar_token')
-  if (!token) {
-    return c.json({ error: 'Unauthorized' }, 401)
+  const globalUserId = 'dummy-global-user'
+
+  // Ensure the dummy user exists in the database to satisfy foreign key constraints.
+  // We use INSERT OR IGNORE so it only writes on the first request.
+  try {
+    await c.env.DB.prepare(
+      `
+      INSERT OR IGNORE INTO users (id, google_id, email, name, plan)
+      VALUES (?, ?, ?, ?, ?)
+    `,
+    )
+      .bind(globalUserId, 'dummy-google-global', 'global@patrasaar.test', 'Global User', 'pro')
+      .run()
+  } catch (err) {
+    console.error('Failed to ensure global user exists:', err)
   }
 
-  try {
-    const payload = await verify(token, c.env.JWT_SECRET, 'HS256')
-    c.set('userId', payload.sub as string)
-    await next()
-  } catch {
-    return c.json({ error: 'Invalid token' }, 401)
-  }
+  c.set('userId', globalUserId)
+  await next()
 })

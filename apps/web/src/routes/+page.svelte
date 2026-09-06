@@ -201,7 +201,8 @@
       Ready for Sovereign Intelligence?
     </h2>
     <a
-      href="/auth/login"
+      href="/dashboard"
+      data-sveltekit-preload-data="hover"
       class="inline-block px-10 py-4 bg-[var(--color-accent)] text-white font-bold rounded-xl hover:bg-[#d56213] transition-all shadow-[0_0_30px_rgba(249,115,22,0.2)]"
       >Open Workspace Now</a
     >
