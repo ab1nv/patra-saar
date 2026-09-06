@@ -37,3 +37,28 @@ ENVIRONMENT = "development"
 
 [env.production]
 vars = { ENVIRONMENT = "production" }
+
+[[env.production.kv_namespaces]]
+binding = "DOCUMENTS"
+id = "0c9a43eb98ca40aea4b882161fcb041f"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "2d54ceb7ecb946b68953dc6f39ab5dc1"
+preview_id = "742fac586a3c47ebafcca1a25b5a7ab1"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "patrasaar-db"
+database_id = "7f445d8e-a005-466d-ae39-ddbc0a50bee9"
+
+[[env.production.vectorize]]
+binding = "CHUNKS_INDEX"
+index_name = "patrasaar-chunks"
+
+[[env.production.vectorize]]
+binding = "LEGAL_INDEX"
+index_name = "patrasaar-legal-corpus"
+
+[env.production.ai]
+binding = "AI"

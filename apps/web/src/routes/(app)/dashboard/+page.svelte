@@ -1,52 +1,252 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
+  import { page } from '$app/state'
   import { Paperclip, Send, Scale, BookOpen, Clock, MessageSquarePlus, Square } from 'lucide-svelte'
-  import { onMount } from 'svelte'
   import ChatBubble from '$lib/components/inquiry/ChatBubble.svelte'
-  import { timelineEvents, referencedLaws, crossQuestionContext } from '$lib/stores/workspace'
+  import {
+    activeCaseId,
+    clearWorkspacePanels,
+    crossQuestionContext,
+    referencedLaws,
+    sidebarCases,
+    timelineEvents,
+  } from '$lib/stores/workspace'
   import { env } from '$env/dynamic/public'
+
+  type ChatMessage = { role: 'user' | 'assistant'; content: string }
+  type TimelineEvent = { date: string; event: string }
+  type LawRef = { display: string; act: string; section: string; description?: string }
 
   let mode = $state<'lawyer' | 'client'>('lawyer')
   let inputText = $state('')
 
-  let messages = $state<{ role: 'user' | 'assistant'; content: string }[]>([])
+  let messages = $state<ChatMessage[]>([])
   let isStreaming = $state(false)
   let activeTab = $state<'laws' | 'timeline'>('laws')
 
-  onMount(async () => {
-    const apiUrl = env.PUBLIC_API_URL ?? 'http://localhost:8787'
-    try {
-      const res = await fetch(`${apiUrl}/inquiries`, { credentials: 'omit' })
-      if (res.ok) {
-        const data = await res.json()
-        if (data.inquiries && data.inquiries.length > 0) {
-          const loadedMessages: { role: 'user' | 'assistant'; content: string }[] = []
-          for (const inq of data.inquiries) {
-            loadedMessages.push({ role: 'user', content: inq.question })
-            if (inq.answer) {
-              loadedMessages.push({ role: 'assistant', content: inq.answer })
-              // Optimistically parse timelines from historical messages
-              const dataMatch = inq.answer.match(/<data>([\s\S]*?)<\/data>/)
-              if (dataMatch) {
-                try {
-                  const json = JSON.parse(dataMatch[1])
-                  if (json.timeline) {
-                    $timelineEvents = json.timeline
-                  }
-                } catch {}
-              }
-            }
-          }
-          messages = loadedMessages
-        }
-      }
-    } catch {}
-  })
-
   let abortController: AbortController | null = null
+  let caseLoadRequestId = 0
+  let skipHydrationForCaseId: string | null = null
+
+  function getApiBaseUrl() {
+    const raw = env.PUBLIC_API_URL ?? 'http://localhost:8787'
+    return raw.replace(/\/+$/, '')
+  }
 
   // Cross-question selection state
   let selectionRect = $state<{ top: number; left: number } | null>(null)
   let selectionText = $state('')
+
+  function deriveCaseTitleFromQuestion(question: string): string {
+    const words = question
+      .trim()
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .map((word) => word.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''))
+      .filter(Boolean)
+
+    const titleWords = words.slice(0, 6)
+    while (titleWords.length < 3) {
+      titleWords.push('inquiry')
+    }
+
+    return titleWords.join(' ').slice(0, 80)
+  }
+
+  function parseTimeline(answer: string): TimelineEvent[] {
+    const dataMatch = answer.match(/<data>([\s\S]*?)<\/data>/)
+    if (!dataMatch) return []
+
+    try {
+      const parsed = JSON.parse(dataMatch[1])
+      if (Array.isArray(parsed.timeline)) {
+        return parsed.timeline.filter(
+          (event: unknown): event is TimelineEvent =>
+            typeof event === 'object' &&
+            event !== null &&
+            typeof (event as TimelineEvent).date === 'string' &&
+            typeof (event as TimelineEvent).event === 'string',
+        )
+      }
+    } catch {
+      // Ignore malformed timeline blocks while streaming.
+    }
+
+    return []
+  }
+
+  function parseLawReferences(answer: string): LawRef[] {
+    const laws: LawRef[] = []
+    const pattern = /\[([^\]]+)\]\(law:([^)]+)\)/g
+    let match: RegExpExecArray | null = null
+
+    while (true) {
+      match = pattern.exec(answer)
+      if (!match) break
+
+      const display = match[1]?.trim() || ''
+      const raw = match[2] || ''
+      const parts = raw.split(':')
+      const act = (parts[0] || '').trim()
+      const section = (parts[1] || '').trim()
+      const descriptionRaw = parts.slice(2).join(':').trim()
+
+      if (!display || !act || !section) continue
+
+      let description = ''
+      if (descriptionRaw) {
+        try {
+          description = decodeURIComponent(descriptionRaw)
+        } catch {
+          description = descriptionRaw
+        }
+      }
+
+      laws.push({ display, act, section, description: description || undefined })
+    }
+
+    return laws
+  }
+
+  function uniqueLaws(laws: LawRef[]): LawRef[] {
+    const deduped = new Map<string, LawRef>()
+    for (const law of laws) {
+      const key = `${law.act}:${law.section}`
+      if (!deduped.has(key)) {
+        deduped.set(key, law)
+      }
+    }
+    return [...deduped.values()]
+  }
+
+  function normalizeCases(cases: unknown[]) {
+    const seen = new Set<string>()
+    const normalized: { id: string; name: string; created_at: number }[] = []
+
+    for (const item of cases) {
+      if (
+        !item ||
+        typeof item !== 'object' ||
+        typeof (item as { id?: unknown }).id !== 'string' ||
+        typeof (item as { name?: unknown }).name !== 'string'
+      ) {
+        continue
+      }
+
+      const typed = item as { id: string; name: string; created_at?: number }
+      if (seen.has(typed.id)) continue
+      seen.add(typed.id)
+
+      normalized.push({
+        id: typed.id,
+        name: typed.name.trim() || 'Untitled Inquiry',
+        created_at: typeof typed.created_at === 'number' ? typed.created_at : 0,
+      })
+    }
+
+    normalized.sort((a, b) => b.created_at - a.created_at)
+    return normalized
+  }
+
+  function resetForBlankCase() {
+    messages = []
+    selectionRect = null
+    selectionText = ''
+    activeTab = 'laws'
+    clearWorkspacePanels()
+  }
+
+  async function refreshSidebarCases() {
+    const apiUrl = getApiBaseUrl()
+    try {
+      const res = await fetch(`${apiUrl}/cases`, { credentials: 'include' })
+      if (!res.ok) return
+
+      const data = await res.json()
+      if (Array.isArray(data.cases)) {
+        $sidebarCases = normalizeCases(data.cases)
+      }
+    } catch {
+      // Preserve local sidebar state if refresh fails.
+    }
+  }
+
+  async function loadCaseHistory(caseId: string) {
+    const requestId = ++caseLoadRequestId
+    const apiUrl = getApiBaseUrl()
+
+    clearWorkspacePanels()
+    selectionRect = null
+    selectionText = ''
+
+    try {
+      const res = await fetch(`${apiUrl}/cases/${caseId}/inquiries`, { credentials: 'include' })
+
+      if (!res.ok) {
+        messages = []
+        return
+      }
+
+      const data = await res.json()
+      if (requestId !== caseLoadRequestId) return
+
+      const loadedMessages: ChatMessage[] = []
+      let latestTimeline: TimelineEvent[] = []
+      const allLaws: LawRef[] = []
+
+      if (Array.isArray(data.inquiries)) {
+        for (const inquiry of data.inquiries) {
+          if (typeof inquiry.question === 'string') {
+            loadedMessages.push({ role: 'user', content: inquiry.question })
+          }
+
+          if (typeof inquiry.answer === 'string' && inquiry.answer.length > 0) {
+            loadedMessages.push({ role: 'assistant', content: inquiry.answer })
+            const parsedTimeline = parseTimeline(inquiry.answer)
+            if (parsedTimeline.length > 0) {
+              latestTimeline = parsedTimeline
+            }
+            allLaws.push(...parseLawReferences(inquiry.answer))
+          }
+        }
+      }
+
+      messages = loadedMessages
+      $timelineEvents = latestTimeline
+      $referencedLaws = uniqueLaws(allLaws)
+    } catch {
+      if (requestId !== caseLoadRequestId) return
+      messages = []
+      $referencedLaws = []
+      $timelineEvents = []
+    }
+  }
+
+  $effect(() => {
+    if (page.url.pathname !== '/dashboard') return
+
+    const caseFromUrl = page.url.searchParams.get('case')
+    if (caseFromUrl && caseFromUrl !== $activeCaseId) {
+      $activeCaseId = caseFromUrl
+    }
+
+    const currentCaseId = caseFromUrl ?? $activeCaseId
+    const streaming = isStreaming
+
+    if (streaming) return
+
+    if (!currentCaseId) {
+      resetForBlankCase()
+      return
+    }
+
+    if (skipHydrationForCaseId && skipHydrationForCaseId === currentCaseId) {
+      skipHydrationForCaseId = null
+      return
+    }
+
+    void loadCaseHistory(currentCaseId)
+  })
 
   function handleSelection() {
     const selection = window.getSelection()
@@ -85,6 +285,13 @@
 
     const query = inputText.trim()
     const crossContextText = $crossQuestionContext
+    const caseIdAtSend = $activeCaseId
+    const creatingNewCase = !caseIdAtSend
+    const requestedCaseId = caseIdAtSend ?? crypto.randomUUID().replace(/-/g, '')
+
+    let streamedCaseId: string | null = requestedCaseId
+    let streamedCaseName: string | null = null
+    let didReceiveFirstChunk = false
 
     messages.push({ role: 'user', content: query })
     messages.push({ role: 'assistant', content: '' })
@@ -94,7 +301,7 @@
     window.getSelection()?.removeAllRanges()
 
     isStreaming = true
-    const apiUrl = env.PUBLIC_API_URL ?? 'http://localhost:8787'
+    const apiUrl = getApiBaseUrl()
 
     abortController = new AbortController()
 
@@ -109,12 +316,23 @@
           documentIds: [],
           mode,
           crossQuestionContext: crossContextText || undefined,
+          caseId: requestedCaseId,
         }),
       })
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         throw new Error(body.details || body.error || 'API Error')
+      }
+
+      streamedCaseId = res.headers.get('X-Case-Id')
+      const encodedCaseName = res.headers.get('X-Case-Name')
+      if (encodedCaseName) {
+        try {
+          streamedCaseName = decodeURIComponent(encodedCaseName)
+        } catch {
+          streamedCaseName = encodedCaseName
+        }
       }
 
       const reader = res.body?.getReader()
@@ -126,18 +344,41 @@
           if (done) break
 
           const chunk = decoder.decode(value, { stream: true })
+          if (!chunk) continue
+
           messages[messages.length - 1].content += chunk
+
+          if (!didReceiveFirstChunk) {
+            didReceiveFirstChunk = true
+
+            if (creatingNewCase && streamedCaseId) {
+              const fallbackTitle = deriveCaseTitleFromQuestion(query)
+              const displayName = (streamedCaseName || fallbackTitle).trim()
+
+              sidebarCases.update((items) => {
+                if (items.some((item) => item.id === requestedCaseId)) return items
+                return [
+                  {
+                    id: requestedCaseId,
+                    name: displayName,
+                    created_at: Math.floor(Date.now() / 1000),
+                  },
+                  ...items,
+                ]
+              })
+            }
+          }
 
           // Optimistically check for timeline events in the running string
           const fullText = messages[messages.length - 1].content
-          const dataMatch = fullText.match(/<data>([\s\S]*?)<\/data>/)
-          if (dataMatch) {
-            try {
-              const json = JSON.parse(dataMatch[1])
-              if (json.timeline) {
-                $timelineEvents = json.timeline
-              }
-            } catch {}
+          const timeline = parseTimeline(fullText)
+          if (timeline.length > 0) {
+            $timelineEvents = timeline
+          }
+
+          const laws = parseLawReferences(fullText)
+          if (laws.length > 0) {
+            $referencedLaws = uniqueLaws(laws)
           }
         }
       }
@@ -151,6 +392,17 @@
     } finally {
       isStreaming = false
       abortController = null
+
+      if (creatingNewCase && streamedCaseId) {
+        skipHydrationForCaseId = streamedCaseId
+        $activeCaseId = streamedCaseId
+        await goto(`/dashboard?case=${encodeURIComponent(streamedCaseId)}`, {
+          replaceState: true,
+          keepFocus: true,
+          noScroll: true,
+        })
+        await refreshSidebarCases()
+      }
     }
   }
 
@@ -326,7 +578,8 @@
           </div>
         </div>
         <div class="text-center mt-3 text-xs text-[var(--color-text-muted)]">
-          PatraSaar Intelligence does not replace legal representation. All data resets per session.
+          PatraSaar Intelligence does not replace legal representation. Conversations are saved per
+          case.
         </div>
       </div>
     </div>

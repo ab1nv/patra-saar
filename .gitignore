@@ -43,3 +43,5 @@ venv/
 # Misc
 *.tgz
 *.log
+.vercel
+.env*.local
