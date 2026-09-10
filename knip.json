@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/app/**/{page,layout,route,template,loading,error,not-found}.{ts,tsx}",
+    "scripts/{build-corpus,seed}.ts",
+    "tests/**/*.test.ts",
+    "*.config.{ts,mjs,js}"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "tests/**/*.ts"],
+  "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": ["@commitlint/cli", "husky", "lint-staged", "tailwindcss"]
+}

@@ -1,0 +1,178 @@
+@import 'tailwindcss';
+
+/*
+ * PatraSaar design tokens — Tailwind v4 CSS-first @theme.
+ * Dark-first, single restrained amber accent, serif display face for headings.
+ */
+@theme {
+  --color-background: #0a0a0b;
+  --color-surface: #121214;
+  --color-surface-2: #17171a;
+  --color-border: #26262b;
+  --color-border-strong: #34343b;
+
+  --color-foreground: #f4f4f5;
+  --color-muted: #a1a1aa;
+  --color-faint: #71717a;
+
+  --color-accent: #d99a4e;
+  --color-accent-strong: #e8b06a;
+  --color-accent-soft: rgba(217, 154, 78, 0.12);
+
+  --color-verified: #4ade80;
+  --color-verified-soft: rgba(74, 222, 128, 0.12);
+  --color-warning: #fbbf24;
+  --color-warning-soft: rgba(251, 191, 36, 0.12);
+  --color-danger: #f87171;
+  --color-danger-soft: rgba(248, 113, 113, 0.12);
+
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --radius-card: 0.75rem;
+}
+
+html {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Clickability feedback */
+button:not(:disabled),
+a,
+[role='button'],
+summary {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Statutory text needs generous line height and a readable measure. */
+.statute {
+  font-family: var(--font-serif);
+  line-height: 1.8;
+  font-size: 1.0125rem;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-faint);
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.45;
+  }
+}
+.animate-shimmer {
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Minimal prose styling for markdown answers (no typography plugin needed). */
+.prose-patrasaar {
+  color: var(--color-foreground);
+  font-size: 0.925rem;
+  line-height: 1.7;
+}
+.prose-patrasaar p {
+  margin: 0 0 0.85rem;
+}
+.prose-patrasaar p:last-child {
+  margin-bottom: 0;
+}
+.prose-patrasaar h1,
+.prose-patrasaar h2,
+.prose-patrasaar h3 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+  line-height: 1.3;
+}
+.prose-patrasaar h1 {
+  font-size: 1.3rem;
+}
+.prose-patrasaar h2 {
+  font-size: 1.15rem;
+}
+.prose-patrasaar h3 {
+  font-size: 1rem;
+}
+.prose-patrasaar ul,
+.prose-patrasaar ol {
+  margin: 0.5rem 0 0.9rem;
+  padding-left: 1.25rem;
+}
+.prose-patrasaar ul {
+  list-style: disc;
+}
+.prose-patrasaar ol {
+  list-style: decimal;
+}
+.prose-patrasaar li {
+  margin: 0.25rem 0;
+}
+.prose-patrasaar strong {
+  color: var(--color-foreground);
+  font-weight: 600;
+}
+.prose-patrasaar a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose-patrasaar code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+}
+.prose-patrasaar blockquote {
+  border-left: 2px solid var(--color-border-strong);
+  padding-left: 0.9rem;
+  margin: 0.75rem 0;
+  color: var(--color-muted);
+}
+.prose-patrasaar table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+.prose-patrasaar th,
+.prose-patrasaar td {
+  border: 1px solid var(--color-border);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
