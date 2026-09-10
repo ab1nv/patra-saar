@@ -34,4 +34,11 @@ describe('retrieve', () => {
     expect(result.abstain).toBe(false)
     expect(result.sections.length).toBeGreaterThan(0)
   })
+
+  it('does not abstain when the question names an act and adds filler words', () => {
+    const result = retrieve('What is the punishment for cheating under the BNS?')
+    expect(result.abstain).toBe(false)
+    const ids = result.sections.map((s) => s.id)
+    expect(ids).toContain('bns:318')
+  })
 })

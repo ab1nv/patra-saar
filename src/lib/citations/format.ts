@@ -13,7 +13,8 @@ export type ParsedCitation = {
 }
 
 const CITATION_RE = /\[\[\s*([^|\]]+?)\s*\|\s*["“]([\s\S]*?)["”]\s*\]\]/g
-const LEFT_RE = /^(.*?)[\s,]*(?:section|sec\.?|s\.?)?\s*(\d{1,3}[A-Z]{0,2})\s*$/i
+// Accepts an optional sub-section, e.g. "IPC s.302", "BNS 318(2)", "IPC Section 304B".
+const LEFT_RE = /^(.*?)[\s,]*(?:section|sec\.?|s\.?)?\s*(\d{1,3}[A-Z]{0,2})(?:\s*\([^)]*\))?\s*$/i
 
 export function parseCitations(answer: string): {
   citations: ParsedCitation[]

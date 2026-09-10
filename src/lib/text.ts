@@ -60,6 +60,22 @@ const STOPWORDS = new Set([
   'all',
   'no',
   'not',
+  // Query filler and act names: these never appear in section text, so counting them
+  // against retrieval coverage causes false abstentions.
+  'under',
+  'now',
+  'new',
+  'old',
+  'equivalent',
+  'corresponding',
+  'act',
+  'acts',
+  'code',
+  'section',
+  'sec',
+  'ipc',
+  'bns',
+  'bsa',
 ])
 
 function tokenize(input: string): string[] {

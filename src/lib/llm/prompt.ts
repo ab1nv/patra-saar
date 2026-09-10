@@ -15,7 +15,8 @@ RULES:
    [[ACT_CODE s.NUMBER | "verbatim quote from that section"]]
    ACT_CODE is the short code shown at the start of each section header below
    (IPC, BNS, Contract Act, IT Act, Companies Act or BSA). Do NOT use the full
-   act name or the year in the citation.
+   act name or the year in the citation. Cite the SECTION number only — never a
+   sub-section, so write "BNS s.318", not "BNS s.318(2)".
    The quote MUST be copied character-for-character from the section text below.
    Do not paraphrase inside the quotes. Do not change punctuation or wording.
 3. Cite ONLY sections that appear below. Never cite a section that is not provided.
