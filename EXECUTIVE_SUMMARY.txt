@@ -57,12 +57,57 @@ HALLUCINATION AUDIT (public, /audit)
   - Deterministic scoring: exists / verbatim / correct / fabricated, per-question
     accuracy, fabricated-question rate.
   - Published methodology and explicit limitations.
-  - HEADLINE RESULT (n=30, qwen/qwen3.8-27b): the ungrounded baseline resolved
-    100% of its citations to REAL sections, but only 5.1% of its quotes were
-    verbatim; PatraSaar verified 97.6% of its citations and fabricated 0%.
-    Baseline question accuracy 87.5% vs PatraSaar 95.8%. The baseline's failure
-    mode is not invented section numbers - it is quoted wording that is not the
-    statute.
+
+  BENCHMARK DATA
+  Model: qwen/qwen3.8-27b (Groq).  Sample: 30 questions (24 in-corpus).
+  Run: 2026-09-15.  Raw data: data/audit-results.json.  Reproduce: pnpm audit:run.
+
+  TABLE 1 - OVERALL
+  --------------------------------------------------------------------------
+  Metric                              Baseline        PatraSaar
+  --------------------------------------------------------------------------
+  Citations produced                      59               85
+  Resolve to a real section (exists)   59 (100%)        85 (100%)
+  Quote is verbatim                     3 (5.1%)        83 (97.6%)
+  Matches the right section            43 (81.1%)       70 (82.4%)
+  Verified (exists+retrieved+verbatim)    0 (0%)        83 (97.6%)
+  Fabricated section numbers              0 (0%)          0 (0%)
+  Question accuracy (24 in-corpus)    21/24 (87.5%)   23/24 (95.8%)
+  Questions that abstained             6/30 (20.0%)    6/30 (20.0%)
+  --------------------------------------------------------------------------
+
+  TABLE 2 - BY QUESTION TYPE
+  --------------------------------------------------------------------------
+  Type / n            Baseline citations / abstained   PatraSaar citations / verified / abstained
+  --------------------------------------------------------------------------------------------
+  In-corpus / 24                 53 / 3                        85 / 83 / 0
+  Non-existent section / 3        2 / 2                         0 / 0 / 3
+  Out-of-corpus / 3               4 / 1                         0 / 0 / 3
+  --------------------------------------------------------------------------
+
+  FINDINGS
+  1. The ungrounded model names REAL sections (100% resolve) but almost never
+     reproduces the actual wording: only 5.1% of its quotes appear verbatim in
+     the source text (3 of 59). This is the failure a reader cannot spot without
+     the bare act in front of them.
+  2. PatraSaar verified 97.6% of the citations it showed (83 of 85); 2 quotes
+     were caught and flagged as not verbatim. It fabricated no section numbers.
+  3. On the 3 questions naming a section that does not exist, the baseline
+     answered one with two real but irrelevant sections; PatraSaar abstained on
+     all three.
+  4. Abstention rates tie at 20%, but the composition matters: PatraSaar
+     abstained on all 6 unanswerable questions and never on an answerable one,
+     whereas the baseline abstained on 3 answerable questions and answered 3
+     unanswerable ones.
+  5. Per-citation "matches the right section" is a harsher metric for PatraSaar
+     because it cites supporting sections alongside the primary one; the
+     question-level accuracy (95.8% vs 87.5%) is the fairer comparison.
+
+  LIMITATIONS (stated on /audit)
+  Small (30 questions), self-run, single-model, non-adversarial and not
+  peer-reviewed. It measures citation provenance, not legal reasoning. It
+  mirrors, at much smaller scale, the design of the Stanford RegLab audits of
+  commercial legal-AI tools.
 
 ABSTENTION
   - Coverage gate on retrieval: weak matches produce a refusal, not a guess.
