@@ -58,11 +58,109 @@ HALLUCINATION AUDIT (public, /audit)
     accuracy, fabricated-question rate.
   - Published methodology and explicit limitations.
 
-  BENCHMARK DATA
+  BENCHMARK DETAIL
   Model: qwen/qwen3.8-27b (Groq).  Sample: 30 questions (24 in-corpus).
   Run: 2026-09-15.  Raw data: data/audit-results.json.  Reproduce: pnpm audit:run.
 
-  TABLE 1 - OVERALL
+  --------------------------------------------------------------------------
+  A. WHAT IS COMPARED (MODELS AND ARMS)
+  --------------------------------------------------------------------------
+  Both arms use the SAME generator: qwen/qwen3.8-27b, served by Groq over the
+  OpenAI-compatible chat-completions endpoint (model id from GROQ_MODEL),
+  temperature 0.1, no fine-tuning and no retrieval-specific training.
+
+  ARM 1 "Baseline" (ungrounded): the same model, given the same citation
+    grammar but NO retrieved sections, answering from parametric memory.
+    This stands in for "just ask a chatbot". It is NOT ChatGPT, Claude,
+    Gemini or any commercial assistant - it is one open-weight model on a
+    free tier, used as an apples-to-apples control for the effect of
+    retrieval + verification. The /audit page states this explicitly.
+  ARM 2 "PatraSaar" (grounded + verified): the same model constrained to the
+    retrieved sections, with the output checked server-side by a
+    deterministic verifier.
+
+  Because both arms share the identical model and temperature, the measured
+  difference is attributable to retrieval + verification, not to model choice.
+
+  --------------------------------------------------------------------------
+  B. METHODOLOGY (END TO END)
+  --------------------------------------------------------------------------
+  B1. QUESTION SET - data/audit-questions.json, 30 questions:
+        * 24 in-corpus (q01-q24): each names a ground-truth section that was
+          verified to exist in data/corpus.json before the run.
+        * 3 non-existent section (q25-q27): IPC 991, BNS 700, CrPC 812.
+        * 3 out-of-corpus (q28-q30): GST on textiles, Maharashtra Rent
+          Control Act, SEBI insider-trading rules.
+      Non-adversarial, drawn from the most commonly consulted provisions
+      across all ten indexed sources.
+
+  B2. RETRIEVAL (PatraSaar arm only):
+        * In-process BM25 over the parsed corpus (k1 = 1.5, b = 0.75), with
+          the section TITLE repeated x3 in the token stream, so titles weigh
+          ~3x over body text.
+        * Hybrid exact lookup: a section/article named in the question is
+          pinned first with matchType "exact".
+        * Named-act boost x1.8 when the question names an act.
+        * Top-K = 8 candidates (exact pins merged with BM25 hits).
+        * Abstention gate: no exact pin AND (best lexical score = 0 OR
+          coverage < 0.34), where coverage is the share of the question's
+          content terms present in the best section.
+        * Content-term extraction removes stopwords, act-name vocabulary
+          ("indian", "penal", "constitution", "crpc", ...) and query filler
+          ("defined", "explain", ...) so they cannot dilute coverage.
+
+  B3. PROMPTING:
+        * Grounded system prompt contains ONLY the retrieved sections plus a
+          fixed rule set: no outside knowledge, every assertion emitted as
+          [[ACT_CODE s.NUMBER | "verbatim quote"]].
+        * Context budget per request: <= 1,300 chars per section and
+          <= 4,500 chars total (free-tier token safeguard). Quotes are still
+          verified against the FULL section text server-side.
+        * Baseline prompt uses the same citation grammar but instructs the
+          model to answer from its own knowledge.
+
+  B4. GENERATION PARAMETERS (identical both arms): temperature 0.1;
+      max_tokens 300 (baseline) / 650 (PatraSaar); SDK retries disabled and a
+      30s timeout so the harness owns retrying.
+
+  B5. VERIFICATION (PatraSaar arm only) - three deterministic checks, in
+      order, on the assembled answer:
+        1. sectionExists - the cited act + number resolves in the corpus.
+        2. wasRetrieved  - that section was in the retrieved set for THIS
+                           question (the model cannot cite a real section it
+                           was never shown).
+        3. quoteVerbatim - the quoted string appears in the section text
+                           after normalization (lowercase, unify quotes and
+                           dashes, collapse whitespace, strip punctuation).
+      The verifier is plain string-matching, NOT a second language model, so
+      it cannot hallucinate about whether something was hallucinated.
+      Failure reasons recorded: section_not_found / not_retrieved /
+      quote_not_verbatim.
+
+  B6. SCORING (src/lib/audit/score.ts), applied to BOTH arms, per citation:
+        exists     = resolves to a real section in the corpus
+        verbatim   = quote found in that section's text
+        correct    = resolved id == the question's ground-truth section
+        fabricated = does NOT resolve to any real section
+        verified   = exists AND retrieved AND verbatim (grounded only)
+      Per question:
+        questionAccuracy       = share of in-corpus questions where at least
+                                 one citation matched the ground-truth section
+        fabricatedQuestionRate = share of questions containing >=1 citation
+                                 that resolves to no real section
+      The baseline is scored on exists/verbatim/correct only; "verified" and
+      "retrieved" are undefined for it by construction (nothing was retrieved).
+
+  B7. RUN MECHANICS: both arms run per question (in parallel), scored, and
+      saved incrementally to data/audit-results.json with 1.5s pacing and
+      retry-after-aware backoff (up to 8 tries). The run resumes from the last
+      completed question after an interruption. Full run: ~20-30 min on the
+      Groq free tier (token-per-minute bound).
+
+  --------------------------------------------------------------------------
+  C. RESULTS
+  --------------------------------------------------------------------------
+  TABLE 1 - OVERALL (n=30; 24 in-corpus)
   --------------------------------------------------------------------------
   Metric                              Baseline        PatraSaar
   --------------------------------------------------------------------------
@@ -75,33 +173,171 @@ HALLUCINATION AUDIT (public, /audit)
   Question accuracy (24 in-corpus)    21/24 (87.5%)   23/24 (95.8%)
   Questions that abstained             6/30 (20.0%)    6/30 (20.0%)
   --------------------------------------------------------------------------
+  Reading note: "Matches the right section" and "Quote is verbatim" are
+  per-CITATION rates; "Question accuracy" is per-QUESTION and is the fairer
+  headline, because PatraSaar often cites supporting sections alongside the
+  primary one, which lowers its per-citation rates without hurting correctness.
+  "Fabricated section numbers" is 0% in both arms here (this model rarely
+  invents numbers); the baseline's failure is in the QUOTED WORDING, not the
+  numbering - see Table 3.
 
   TABLE 2 - BY QUESTION TYPE
   --------------------------------------------------------------------------
-  Type / n            Baseline citations / abstained   PatraSaar citations / verified / abstained
+  Type / n            Baseline citations / abstained   PatraSaar cit / verified / abstained
   --------------------------------------------------------------------------------------------
   In-corpus / 24                 53 / 3                        85 / 83 / 0
   Non-existent section / 3        2 / 2                         0 / 0 / 3
   Out-of-corpus / 3               4 / 1                         0 / 0 / 3
   --------------------------------------------------------------------------
 
-  FINDINGS
-  1. The ungrounded model names REAL sections (100% resolve) but almost never
-     reproduces the actual wording: only 5.1% of its quotes appear verbatim in
-     the source text (3 of 59). This is the failure a reader cannot spot without
-     the bare act in front of them.
-  2. PatraSaar verified 97.6% of the citations it showed (83 of 85); 2 quotes
-     were caught and flagged as not verbatim. It fabricated no section numbers.
-  3. On the 3 questions naming a section that does not exist, the baseline
-     answered one with two real but irrelevant sections; PatraSaar abstained on
-     all three.
-  4. Abstention rates tie at 20%, but the composition matters: PatraSaar
-     abstained on all 6 unanswerable questions and never on an answerable one,
-     whereas the baseline abstained on 3 answerable questions and answered 3
-     unanswerable ones.
-  5. Per-citation "matches the right section" is a harsher metric for PatraSaar
-     because it cites supporting sections alongside the primary one; the
-     question-level accuracy (95.8% vs 87.5%) is the fairer comparison.
+  TABLE 3 - ERROR TAXONOMY OF THE BASELINE (59 citations over 30 questions)
+    * 59/59 citations name a REAL section: 0 fabricated section numbers.
+    * Only 3/59 quotes (5.1%) are verbatim; 56/59 (94.9%) are paraphrases a
+      reader cannot distinguish from the statute without checking the source.
+    * 18 of the 24 in-corpus questions gave the right section number but no
+      verbatim quote; 3 were refused outright (q08, q09, q14); only 3
+      (q01, q20, q21) were fully correct.
+    * On 3 questions it should have refused, it answered anyway:
+        q25 (asks IPC 991, which does not exist) -> cited ipc:500 + bns:354;
+        q29 (Maharashtra Rent Control Act)       -> cited bns:13 x3;
+        q30 (SEBI insider-trading rules)         -> cited it:3.
+      q29 and q30 are plausible-sounding but wrong-domain matches - the
+      classic "confidently cites a real but irrelevant provision" failure.
+
+  TABLE 4 - THE PATRASAAR SURFACE
+    * 85 citations; 83 verified (97.6%); 2 caught as quote_not_verbatim;
+      0 fabricated numbers; 0 citations to a section that was not retrieved.
+    * The verifier flagged 2 of PatraSaar's OWN quotes (q10, q23) - it polices
+      the grounded model too; it is not a rubber stamp.
+    * 23/24 in-corpus questions produced a verified, correct citation.
+    * Abstained on all 6 unanswerable questions and on 0 answerable ones.
+    * The single miss (q10, BNS theft) surfaced bns:305/306/112 instead of
+      bns:303 - a retrieval-ranking miss, not a hallucination.
+
+  --------------------------------------------------------------------------
+  D. WHERE PATRASAAR PERFORMED BETTER (EXPLICIT)
+  --------------------------------------------------------------------------
+  Better on 23 of 30 questions; tie on 3; mixed on 1; it never once produced a
+  fabricated citation.
+
+  D1. 20 in-corpus questions where PatraSaar returned verified, verbatim
+      citations while the baseline either paraphrased or refused:
+        q02 IPC 420 cheating            q03 IPC 406 criminal breach of trust
+        q04 IPC 300 murder definition   q05 IPC 376 rape
+        q06 IPC 499 defamation          q07 BNS 103 murder
+        q08 BNS 318 cheating (baseline refused)
+        q09 BNS 316 CBT (baseline refused)
+        q11 BSA 3 facts in issue        q12 BSA 63 electronic records
+        q13 BNSS 35 arrest w/o warrant  q14 BNSS 173 FIR (baseline refused)
+        q15 BNSS 187 custody            q16 CrPC 154 FIR
+        q17 CrPC 41 arrest              q18 CPC 9 jurisdiction
+        q19 CPC 10 stay of suit         q22 Constitution Art 32
+        q23 Contract Act s.10           q24 IT Act s.65
+  D2. 3 questions where the baseline confidently cited real-but-irrelevant
+      sections and PatraSaar correctly abstained: q25, q29, q30 (see Table 3).
+  D3. 3 questions the baseline refused although it could answer (q08, q09,
+      q14); PatraSaar answered them with verified citations - the grounded arm
+      fixed false refusal as well as false confidence.
+
+  --------------------------------------------------------------------------
+  E. WHERE THE BASELINE MATCHED, AND WHERE PATRASAAR UNDERPERFORMED
+  --------------------------------------------------------------------------
+  E1. Ties (3): q01 (IPC 302), q20 (Art 14), q21 (Art 21). These are the three
+      most-quoted provisions in the set and the ONLY three where the baseline
+      reproduced wording verbatim - famous text is exactly where memorization
+      is strongest. This is an honest cap on how dramatic the headline can be,
+      and it is the fairest criticism of the benchmark.
+  E2. Mixed (1): q10 (BNS theft). The baseline named bns:303 (right section,
+      paraphrased quote); PatraSaar ranked bns:305/306 above it and cited
+      bns:112 in one place. BM25 preferred the "stolen property" neighbours
+      over the definitional section. A retrieval-ranking weakness, tracked as
+      a roadmap item (hybrid dense retrieval + re-ranking).
+
+  --------------------------------------------------------------------------
+  F. WHAT THE NUMBERS DO AND DO NOT PROVE
+  --------------------------------------------------------------------------
+  Prove: for THIS model, on THIS set, a deterministic verifier converts
+  "citations we hope are right" into "citations checked against source text",
+  and an ungrounded model's quotations are overwhelmingly NOT the statute even
+  when its section numbers are correct.
+  Do NOT prove: general legal correctness; behaviour of other models; that a
+  correctly quoted section is legally applicable (verification is provenance,
+  not reasoning); statistical significance (n=30, single model,
+  non-adversarial, not peer-reviewed).
+
+  --------------------------------------------------------------------------
+  G. HOW IT IS ACHIEVED (MECHANISM)
+  --------------------------------------------------------------------------
+  1. Section-level corpus parsing preserves number/title/body, enabling both
+     O(1) exact lookup and a faithful BM25 index. (Blind chunking could not
+     support either.)
+  2. Hybrid retrieval (exact pin + BM25 + act boost) puts the operative
+     section in front of the model.
+  3. A constrained prompt with a machine-checkable citation grammar converts
+     prose assertions into verifiable records.
+  4. A deterministic three-check verifier, independent of any LLM, gates what
+     the user sees and records the failure reason when it blocks a citation.
+  5. A coverage-gated abstention path replaces low-confidence answering.
+  6. The audit reuses the SHIPPED verifier functions (checkSectionExists /
+     checkQuoteVerbatim), so the benchmark measures the production system, not
+     a side harness.
+
+  --------------------------------------------------------------------------
+  H. HOW IT IMPROVES ON STRONGER / FUTURE MODELS
+  --------------------------------------------------------------------------
+  The verifier is model-agnostic: only the generator call is swappable (one
+  env var for the model id, plus a provider adapter for a non-Groq endpoint).
+  A stronger generator - a frontier assistant such as the ones referred to as
+  "Claude Fable" or "GPT Astra", or any future model - changes three things,
+  none of which requires touching the verifier:
+
+  H1. Fewer authoring errors. PatraSaar's 2/85 (2.4%) non-verbatim quotes are
+      instruction-following failures. Stronger models copy "character-for-
+      character" more reliably, pushing the verified rate from 97.6% toward
+      100%. The baseline's verbatim rate would also rise, so the headline GAP
+      may NARROW - which is the honest point: the value of the verifier is not
+      a bigger gap, it is a GUARANTEE that holds regardless of model strength.
+  H2. Better section selection. Stronger reasoning and longer context let the
+      model use more retrieved candidates and pick the operative one, fixing
+      the q10-style ranking miss. Top-K and the context budget can then be
+      raised without truncation.
+  H3. Fewer false refusals. q08/q09/q14 show the baseline refusing answerable
+      questions; stronger models refuse less, and the grounded arm's
+      abstention gate remains the safety net.
+
+  What does NOT change with model strength:
+    * Fabricated citations shown to the user stay at 0%, because the verifier
+      blocks anything that does not resolve, was not retrieved, or is not a
+      verbatim quote - whatever model wrote it.
+    * Abstention correctness is governed by the retrieval gate, not the model.
+  Architectural claim: verification quality is INDEPENDENT of generator
+  capability; only the verified-YIELD improves with the model.
+
+  NOTE ON NAMED MODELS: no figures are claimed here for "Claude Fable",
+  "GPT Astra" or any model that was not actually run. Project convention - and
+  the entire point of this product - is that a number must be measured before
+  it is stated. To obtain such figures, add the model as a third arm and re-run.
+  The harness already supports arbitrary arms; a multi-model run is a small
+  adapter plus an API key.
+
+  H4. PLANNED UPGRADES TO THE BENCHMARK ITSELF
+      * Larger n and a per-act breakdown to expose retrieval weak spots (q10).
+      * Multi-model matrix (add frontier baselines via OpenRouter).
+      * Adversarial set: near-miss section numbers, repealed provisions,
+        deliberate cross-act confusion.
+      * Human rubric for legal applicability, with inter-rater agreement, to
+        cover what provenance checks cannot.
+      * Hybrid dense + BM25 retrieval with a cross-encoder re-ranker.
+      * Report latency and cost per verified answer, not just accuracy.
+
+  --------------------------------------------------------------------------
+  I. REPRODUCTION
+  --------------------------------------------------------------------------
+    pnpm audit:run            # full 30-question run (resumes if interrupted)
+    pnpm audit:run --limit 5  # quick sample
+    pnpm audit:run --fresh    # ignore previous results
+    pnpm test:unit            # includes audit scoring tests
+    Live view: /audit         Raw data: data/audit-results.json
 
   LIMITATIONS (stated on /audit)
   Small (30 questions), self-run, single-model, non-adversarial and not
