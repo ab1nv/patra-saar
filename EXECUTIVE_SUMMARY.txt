@@ -1,0 +1,190 @@
+================================================================================
+PATRASAAR - EXECUTIVE AND FEATURE SUMMARY
+Version 3.1.0  ·  Generated 2026-09-16
+Live: https://patra-saar-lyart.vercel.app
+Repository: https://github.com/ab1nv/patra-saar  (branch: master)
+================================================================================
+
+
+--------------------------------------------------------------------------------
+1. EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+
+PatraSaar is a retrieval-augmented question-answering tool for Indian statutory
+law. It answers questions about ten indexed sources - the Indian Penal Code,
+Bharatiya Nyaya Sanhita, Bharatiya Sakshya Adhiniyam, Bharatiya Nagarik Suraksha
+Sanhita, Code of Criminal Procedure, Code of Civil Procedure, the Constitution of
+India, the Indian Contract Act, the IT Act, and the Companies Act - using ONLY an
+indexed corpus of about 3,270 parsed sections. A language model is constrained to
+answer from the retrieved sections and must express every legal assertion as a
+machine-checkable citation containing a verbatim quote. A deterministic, NON-LLM
+verifier then checks every citation before it is shown: does the section exist,
+was it retrieved for this question, and does the quote appear character-for-
+character in the source text. Verified citations are shown as such and can be
+expanded to reveal the real statutory text; failed citations are struck through
+and labelled with the exact reason. If retrieval finds nothing above threshold,
+the system refuses to answer rather than guessing.
+
+The thesis is not that hallucination can be prevented, but that it can be caught
+deterministically and measured. To prove it, the project ships a HALLUCINATION
+AUDIT: the same model, on the same 30-question ground-truth set, with and without
+retrieval-plus-verification, scored automatically against the corpus.
+
+Tagline: "It cites the law, or it says it doesn't know."
+
+Why now: on 2 July 2026 the Supreme Court of India, in Pooja Ramesh Singh v.
+Jammu & Kashmir Bank Ltd. (2026 INSC 668), set aside tribunal orders that relied
+on AI-hallucinated precedents. That is precisely the failure mode this project
+targets.
+
+
+--------------------------------------------------------------------------------
+2. FEATURE SUMMARY
+--------------------------------------------------------------------------------
+
+VERIFIED CITATIONS (core)
+  - Grammar: [[ACT_CODE s.NUMBER | "verbatim quote"]].
+  - Three server-side checks: sectionExists, wasRetrieved, quoteVerbatim.
+  - Verified chips open a drawer with the real statutory text; failures show the
+    exact reason (section_not_found / not_retrieved / quote_not_verbatim).
+  - Sub-section syntax (e.g. BNS s.318(2)) normalised to the base section.
+
+HALLUCINATION AUDIT (public, /audit)
+  - 30 ground-truth questions: 24 in-corpus, 3 non-existent sections, 3 outside
+    the indexed acts.
+  - Two arms on the same model: Baseline (no retrieval) vs PatraSaar
+    (retrieve -> constrain -> verify).
+  - Deterministic scoring: exists / verbatim / correct / fabricated, per-question
+    accuracy, fabricated-question rate.
+  - Published methodology and explicit limitations.
+  - HEADLINE RESULT (n=30, qwen/qwen3.8-27b): the ungrounded baseline resolved
+    100% of its citations to REAL sections, but only 5.1% of its quotes were
+    verbatim; PatraSaar verified 97.6% of its citations and fabricated 0%.
+    Baseline question accuracy 87.5% vs PatraSaar 95.8%. The baseline's failure
+    mode is not invented section numbers - it is quoted wording that is not the
+    statute.
+
+ABSTENTION
+  - Coverage gate on retrieval: weak matches produce a refusal, not a guess.
+
+CHAT WORKSPACE
+  - Streaming markdown answers; inline citation chips; citation drawer with the
+    verbatim section text.
+  - Collapsible, drag-resizable sidebar (a drawer on mobile).
+  - Pin, rename and delete chats; model-generated chat titles.
+  - Incognito mode (nothing persisted).
+  - File attachments (PDF/text) whose text is extracted and sent to the model.
+  - Select any phrase in an answer to cross-question it with chat context.
+  - Fully responsive with scroll-reveal and entrance animations.
+
+CORPUS
+  - Ten sources parsed at section/article level from the official PDFs.
+  - Repealed/omitted sections excluded; per-act counts published.
+
+AUTH AND PERSISTENCE
+  - Single seeded user, scrypt-hashed password, HS256 JWT in an httpOnly cookie,
+    actually verified in middleware.
+  - Neon Postgres via Drizzle; in-memory fallback if the database is unreachable.
+
+OFFLINE DEMO MODE
+  - With no GROQ_API_KEY, deterministic extractive answers with real verbatim
+    citations keep the app and tests working.
+
+
+--------------------------------------------------------------------------------
+3. TECHNICAL SUMMARY
+--------------------------------------------------------------------------------
+
+STACK
+  Next.js 16 (App Router, Node runtime) · TypeScript (strict) · Tailwind CSS v4 ·
+  Groq API (qwen/qwen3.8-27b) · Neon Postgres + Drizzle ORM · in-process BM25 ·
+  unpdf · jose + scrypt · Vitest · Playwright. Deployed on Vercel.
+
+REQUEST LIFECYCLE (POST /api/chat)
+  1. Validate session cookie and Zod body.
+  2. Resolve or create the case (skipped in incognito mode).
+  3. retrieve(): exact-section lookup + BM25 over title/body, with a coverage
+     gate for abstention.
+  4. Build a prompt containing only the retrieved sections and the citation
+     rules.
+  5. Stream tokens to the browser as typed SSE events (meta, token).
+  6. Run verifyCitations() server-side on the assembled answer.
+  7. Persist (unless incognito), generate a short title, emit citations, title,
+     done.
+
+KEY DESIGN DECISIONS
+  - BM25, not a vector database. ~3,270 sections; brute-force BM25 is
+    milliseconds, deterministic and unit-testable; legal queries are lexically
+    precise.
+  - Section-level parsing, not blind chunking. Preserving number/title/body is
+    what makes exact lookup and citation verification possible.
+  - A deterministic verifier, not a second LLM. The fact-checking literature
+    shows LLM verifiers can themselves hallucinate.
+  - Bounded prompt context to respect the free-tier token limit; quotes are still
+    verified against the full section text.
+  - One application, one language, one deploy target.
+
+THE VERIFIER'S HONEST LIMIT
+  It proves provenance, not legal reasoning: a section can be quoted correctly
+  and still be applied to the wrong situation.
+
+TESTS
+  33 Vitest unit tests and Playwright E2E on desktop AND mobile viewports. CI
+  runs typecheck, lint, knip, unit tests, a Postgres service container, seed,
+  build and E2E - with no repository secrets required.
+
+LIMITATIONS
+  No case law, state amendments, rules or notifications; English only; single
+  user; BM25 weak on purely conceptual paraphrase; the audit is small, self-run,
+  single-model and non-adversarial.
+
+
+--------------------------------------------------------------------------------
+4. HOW TO TEST THE LIVE APP
+--------------------------------------------------------------------------------
+
+URL   https://patra-saar-lyart.vercel.app
+Login abhinav@test.com / abhinav
+
+  1. Open /chat while signed out -> redirected to /login. Sign in -> you land on
+     /chat immediately (no manual refresh).
+  2. Ask "What is the punishment for murder under the BNS?" -> streamed answer,
+     a "verified" badge, and numbered citation chips; click one for the verbatim
+     section text.
+  3. Ask "What are the current GST rates on textiles?" -> a refusal, no citations.
+  4. Ask "What does Article 21 of the Constitution protect?" or "When may a police
+     officer arrest without a warrant under the BNSS?" -> new acts answer with
+     verified citations.
+  5. Open /audit (public) -> headline statistics, comparison bars, side-by-side
+     examples, full table, methodology.
+  6. Sidebar: create, pin, rename and delete chats (no confirmation dialog).
+  7. Incognito toggle -> the chat answers but is never saved.
+  8. Paperclip -> attach a PDF/text file; its text is used as context.
+  9. Select a phrase in an answer -> a "Cross-question" button appears.
+ 10. Open on a phone -> the sidebar becomes a hamburger drawer; the layout
+     reflows and the citation drawer is full-screen.
+ 11. The PatraSaar logo appears as the browser favicon.
+
+
+--------------------------------------------------------------------------------
+5. CHANGING THE DOMAIN
+--------------------------------------------------------------------------------
+
+  1. Buy or point a domain (Cloudflare Registrar, Namecheap, GoDaddy, ...).
+  2. Vercel -> project patra-saar -> Settings -> Domains -> Add.
+  3. DNS: use Vercel nameservers, or an A record to 76.76.21.21 (apex) plus a
+     CNAME to cname.vercel-dns.com (www).
+  4. SSL is automatic; set the new domain as primary.
+  5. Optional: add NEXT_PUBLIC_SITE_URL and metadataBase for canonical URLs. No
+     backend change is needed (same-origin API).
+
+
+--------------------------------------------------------------------------------
+6. DISCLAIMER
+--------------------------------------------------------------------------------
+
+PatraSaar provides information about statutory text. It is not legal advice and
+does not create a lawyer-client relationship. Verify all provisions against the
+official bare act before relying on them.
+
+================================================================================

@@ -8,5 +8,5 @@
   ],
   "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "tests/**/*.ts"],
   "ignoreExportsUsedInFile": true,
-  "ignoreDependencies": ["@commitlint/cli", "husky", "lint-staged", "tailwindcss"]
+  "ignoreDependencies": ["tailwindcss"]
 }

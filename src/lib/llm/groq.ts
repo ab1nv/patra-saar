@@ -35,6 +35,24 @@ export async function* streamGroq(
   }
 }
 
+/** Non-streaming completion, used by the audit harness. */
+export async function completeGroq(
+  messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
+  maxTokens = 900,
+): Promise<string> {
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) throw new Error('GROQ_API_KEY is not set')
+  // Keep SDK retries off and use a short timeout so the audit's own backoff owns retrying.
+  const groq = new Groq({ apiKey, maxRetries: 0, timeout: 30_000 })
+  const res = await groq.chat.completions.create({
+    model: groqModel(),
+    messages,
+    temperature: 0.1,
+    max_tokens: maxTokens,
+  })
+  return res.choices[0]?.message?.content?.trim() ?? ''
+}
+
 /** Generates a short chat title from the question + answer. Falls back to a heuristic. */
 export async function generateTitle(question: string, answer: string): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY

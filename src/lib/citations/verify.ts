@@ -1,7 +1,7 @@
-import { getSectionByActNumber, getSectionsByNumber } from '../corpus/index'
+import { resolveSection } from '../corpus/index'
 import type { Section } from '../corpus/types'
 import { normalizeForMatch } from '../text'
-import { parseCitations } from './format'
+import { parseCitations, type ParsedCitation } from './format'
 
 export type CitationFailure = 'section_not_found' | 'not_retrieved' | 'quote_not_verbatim'
 
@@ -27,6 +27,19 @@ export type VerificationResult = {
 
 const MIN_QUOTE_CHARS = 8
 
+/** Check 1 + 3, exposed so the audit can score an ungrounded baseline answer. */
+export function checkSectionExists(c: ParsedCitation): Section | undefined {
+  return resolveSection(c.actName, c.number)
+}
+
+export function checkQuoteVerbatim(section: Section, quote: string): boolean {
+  const normalizedQuote = normalizeForMatch(quote)
+  return (
+    normalizedQuote.length >= MIN_QUOTE_CHARS &&
+    normalizeForMatch(section.text).includes(normalizedQuote)
+  )
+}
+
 /**
  * Server-side citation verifier. Runs on the assembled answer, after generation.
  * Three checks, in order:
@@ -39,7 +52,7 @@ export function verifyCitations(answer: string, retrieved: Section[]): Verificat
   const retrievedIds = new Set(retrieved.map((s) => s.id))
 
   const verified: VerifiedCitation[] = citations.map((c, i) => {
-    const section = resolve(c.actName, c.number)
+    const section = checkSectionExists(c)
     const base: VerifiedCitation = {
       index: i + 1,
       actName: c.actName,
@@ -58,11 +71,7 @@ export function verifyCitations(answer: string, retrieved: Section[]): Verificat
     if (!retrievedIds.has(section.id)) {
       return { ...base, failureReason: 'not_retrieved' }
     }
-    const normalizedQuote = normalizeForMatch(c.quote)
-    if (
-      normalizedQuote.length < MIN_QUOTE_CHARS ||
-      !normalizeForMatch(section.text).includes(normalizedQuote)
-    ) {
+    if (!checkQuoteVerbatim(section, c.quote)) {
       return { ...base, failureReason: 'quote_not_verbatim' }
     }
     return { ...base, verified: true }
@@ -74,11 +83,4 @@ export function verifyCitations(answer: string, retrieved: Section[]): Verificat
     verifiedCount: verified.filter((c) => c.verified).length,
     unverifiedCount: verified.filter((c) => !c.verified).length,
   }
-}
-
-function resolve(actName: string, number: string): Section | undefined {
-  const direct = getSectionByActNumber(actName, number)
-  if (direct) return direct
-  const byNumber = getSectionsByNumber(number)
-  return byNumber[0]
 }

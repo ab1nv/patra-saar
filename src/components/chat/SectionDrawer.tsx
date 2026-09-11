@@ -63,10 +63,10 @@ export function SectionDrawer({
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 animate-fade-in bg-black/50 backdrop-blur-sm"
       />
-      <aside className="relative flex h-full w-full max-w-xl flex-col border-l border-border bg-surface shadow-2xl">
-        <header className="flex items-start justify-between gap-4 border-b border-border p-5">
+      <aside className="relative flex h-full w-full max-w-xl animate-slide-in-right flex-col border-l border-border bg-surface shadow-2xl">
+        <header className="flex items-start justify-between gap-4 border-b border-border p-4 sm:p-5">
           <div>
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <Badge tone={citation.verified ? 'verified' : 'warning'}>
@@ -92,7 +92,7 @@ export function SectionDrawer({
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5">
           {error && <p className="text-sm text-danger">{error}</p>}
           {!error && !section && (
             <p className="text-sm text-faint animate-shimmer">Loading section text…</p>

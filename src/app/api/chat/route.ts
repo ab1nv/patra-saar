@@ -2,15 +2,13 @@ import { z } from 'zod'
 import { getSession } from '@/lib/auth/session'
 import { retrieve } from '@/lib/corpus/retrieve'
 import { streamAnswer, llmProvider, titleFor, type ChatMode } from '@/lib/llm'
+import { ABSTAIN_MESSAGE } from '@/lib/llm/prompt'
 import { verifyCitations } from '@/lib/citations/verify'
 import { addMessage, createCase, getCase, newId, updateCase } from '@/lib/db/store'
 import { BadRequest, Unauthorized, handleError } from '@/lib/api/respond'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-
-const ABSTAIN_MESSAGE =
-  "I don't have the relevant provision in my indexed corpus. I can only answer from the central acts I have indexed — the Indian Penal Code, Bharatiya Nyaya Sanhita, the Indian Contract Act, the IT Act, the Companies Act, and the Bharatiya Sakshya Adhiniyam. Try rephrasing using terms that appear in those acts, or name the section directly."
 
 const schema = z.object({
   question: z.string().min(1).max(2000),

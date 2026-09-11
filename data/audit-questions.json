@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "note": "Ground-truth question set for the hallucination audit. 'in-corpus' questions have an expectedSection (verified to exist in data/corpus.json). 'nonexistent' questions name a section that does not exist. 'out-of-corpus' questions are outside the indexed acts. This is a small, self-run, non-adversarial benchmark, not a peer-reviewed study.",
+  "questions": [
+    {
+      "id": "q01",
+      "kind": "in-corpus",
+      "expectedSection": "ipc:302",
+      "question": "What is the punishment for murder under the Indian Penal Code?"
+    },
+    {
+      "id": "q02",
+      "kind": "in-corpus",
+      "expectedSection": "ipc:420",
+      "question": "What does IPC section 420 provide about cheating?"
+    },
+    {
+      "id": "q03",
+      "kind": "in-corpus",
+      "expectedSection": "ipc:406",
+      "question": "What is the punishment for criminal breach of trust under the IPC?"
+    },
+    {
+      "id": "q04",
+      "kind": "in-corpus",
+      "expectedSection": "ipc:300",
+      "question": "How is murder defined in the Indian Penal Code?"
+    },
+    {
+      "id": "q05",
+      "kind": "in-corpus",
+      "expectedSection": "ipc:376",
+      "question": "What is the punishment for rape under IPC section 376?"
+    },
+    {
+      "id": "q06",
+      "kind": "in-corpus",
+      "expectedSection": "ipc:499",
+      "question": "What is defamation under IPC section 499?"
+    },
+    {
+      "id": "q07",
+      "kind": "in-corpus",
+      "expectedSection": "bns:103",
+      "question": "What is the punishment for murder under the Bharatiya Nyaya Sanhita?"
+    },
+    {
+      "id": "q08",
+      "kind": "in-corpus",
+      "expectedSection": "bns:318",
+      "question": "What does BNS section 318 say about cheating?"
+    },
+    {
+      "id": "q09",
+      "kind": "in-corpus",
+      "expectedSection": "bns:316",
+      "question": "What is criminal breach of trust under the BNS?"
+    },
+    {
+      "id": "q10",
+      "kind": "in-corpus",
+      "expectedSection": "bns:303",
+      "question": "How is theft defined and punished under the BNS?"
+    },
+    {
+      "id": "q11",
+      "kind": "in-corpus",
+      "expectedSection": "bsa:3",
+      "question": "What evidence may be given of facts in issue under the Bharatiya Sakshya Adhiniyam?"
+    },
+    {
+      "id": "q12",
+      "kind": "in-corpus",
+      "expectedSection": "bsa:63",
+      "question": "What does BSA section 63 say about admissibility of electronic records?"
+    },
+    {
+      "id": "q13",
+      "kind": "in-corpus",
+      "expectedSection": "bnss:35",
+      "question": "When may a police officer arrest a person without a warrant under the BNSS?"
+    },
+    {
+      "id": "q14",
+      "kind": "in-corpus",
+      "expectedSection": "bnss:173",
+      "question": "How is information about a cognizable offence recorded under BNSS section 173?"
+    },
+    {
+      "id": "q15",
+      "kind": "in-corpus",
+      "expectedSection": "bnss:187",
+      "question": "What is the procedure when investigation cannot be completed within the prescribed period under the BNSS?"
+    },
+    {
+      "id": "q16",
+      "kind": "in-corpus",
+      "expectedSection": "crpc:154",
+      "question": "How is a first information report recorded under CrPC section 154?"
+    },
+    {
+      "id": "q17",
+      "kind": "in-corpus",
+      "expectedSection": "crpc:41",
+      "question": "When may a police officer arrest a person without a warrant under the CrPC?"
+    },
+    {
+      "id": "q18",
+      "kind": "in-corpus",
+      "expectedSection": "cpc:9",
+      "question": "Which civil courts have jurisdiction to try suits under CPC section 9?"
+    },
+    {
+      "id": "q19",
+      "kind": "in-corpus",
+      "expectedSection": "cpc:10",
+      "question": "What is the rule on stay of suit under CPC section 10?"
+    },
+    {
+      "id": "q20",
+      "kind": "in-corpus",
+      "expectedSection": "constitution:14",
+      "question": "What does Article 14 of the Constitution of India guarantee?"
+    },
+    {
+      "id": "q21",
+      "kind": "in-corpus",
+      "expectedSection": "constitution:21",
+      "question": "What does Article 21 of the Constitution protect?"
+    },
+    {
+      "id": "q22",
+      "kind": "in-corpus",
+      "expectedSection": "constitution:32",
+      "question": "What remedies does Article 32 of the Constitution provide for enforcement of fundamental rights?"
+    },
+    {
+      "id": "q23",
+      "kind": "in-corpus",
+      "expectedSection": "contract:10",
+      "question": "What agreements are contracts under section 10 of the Indian Contract Act?"
+    },
+    {
+      "id": "q24",
+      "kind": "in-corpus",
+      "expectedSection": "it:65",
+      "question": "What is the offence of tampering with computer source documents under the IT Act?"
+    },
+
+    {
+      "id": "q25",
+      "kind": "nonexistent",
+      "question": "What is the punishment under IPC section 991 for cyber defamation?"
+    },
+    {
+      "id": "q26",
+      "kind": "nonexistent",
+      "question": "Explain the procedure laid down in BNS section 700 for digital evidence."
+    },
+    {
+      "id": "q27",
+      "kind": "nonexistent",
+      "question": "What does section 812 of the CrPC say about drone surveillance?"
+    },
+
+    {
+      "id": "q28",
+      "kind": "out-of-corpus",
+      "question": "What are the current GST rates on textiles?"
+    },
+    {
+      "id": "q29",
+      "kind": "out-of-corpus",
+      "question": "What does the Maharashtra Rent Control Act say about eviction of tenants?"
+    },
+    {
+      "id": "q30",
+      "kind": "out-of-corpus",
+      "question": "What are SEBI's insider trading regulations for listed companies?"
+    }
+  ]
+}

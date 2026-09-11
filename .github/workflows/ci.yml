@@ -2,31 +2,53 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      # Self-contained: no repository secrets required.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/patrasaar
+      JWT_SECRET: ci-only-secret-do-not-use-in-production
+      # Empty key runs the app in deterministic offline mode; E2E stubs the LLM stream.
       GROQ_API_KEY: ''
       GROQ_MODEL: qwen/qwen3.8-27b
+      NEXT_TELEMETRY_DISABLED: '1'
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: patrasaar
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v6
-        with:
-          version: 10
 
       - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm typecheck
@@ -40,11 +62,11 @@ jobs:
       - name: Unit tests
         run: pnpm test:unit
 
+      - name: Seed database
+        run: pnpm seed
+
       - name: Build
         run: pnpm build
-
-      - name: Seed demo user
-        run: pnpm seed
 
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium

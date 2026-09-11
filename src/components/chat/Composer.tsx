@@ -50,7 +50,7 @@ export function Composer({
   }
 
   return (
-    <div className="bg-background px-6 pb-5 pt-2">
+    <div className="bg-background px-4 pb-4 pt-2 sm:px-6 sm:pb-5">
       <div className="mx-auto max-w-3xl">
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">

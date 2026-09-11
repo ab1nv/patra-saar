@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Ghost, Quote } from 'lucide-react'
+import { Ghost, Menu, Quote } from 'lucide-react'
 import { Composer, type Attachment } from './Composer'
 import { MessageBubble } from './MessageBubble'
 import { SectionDrawer } from './SectionDrawer'
@@ -43,6 +43,7 @@ export function ChatWorkspace({
 
   const [sidebarWidth, setSidebarWidth] = useState(264)
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const caseIdRef = useRef<string | null>(initialCaseId)
   const abortRef = useRef<AbortController | null>(null)
@@ -263,7 +264,6 @@ export function ChatWorkspace({
 
   const deleteCase = useCallback(
     async (id: string) => {
-      if (!window.confirm('Delete this inquiry? This cannot be undone.')) return
       await fetch(`/api/cases/${id}`, { method: 'DELETE', credentials: 'include' })
       if (caseIdRef.current === id) newChat()
       void refreshCases()
@@ -375,7 +375,7 @@ export function ChatWorkspace({
   }, [router])
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-[100dvh] overflow-hidden">
       <CaseSidebar
         cases={cases}
         activeCaseId={caseId}
@@ -383,6 +383,8 @@ export function ChatWorkspace({
         width={sidebarWidth}
         collapsed={collapsed}
         incognito={incognito}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
         onWidth={changeWidth}
         onToggleCollapse={toggleCollapse}
         onToggleIncognito={toggleIncognito}
@@ -395,33 +397,42 @@ export function ChatWorkspace({
       />
 
       <main className="flex min-w-0 flex-1 flex-col bg-background">
-        <header className="flex items-center justify-between border-b border-border px-6 py-3">
+        <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-2">
-            <h1 className="truncate font-serif text-lg">{title ?? 'New inquiry'}</h1>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open menu"
+              className="-ml-1 rounded-md p-2 text-muted transition-colors hover:bg-surface-2 hover:text-foreground lg:hidden"
+            >
+              <Menu size={18} />
+            </button>
+            <h1 className="truncate font-serif text-base sm:text-lg">{title ?? 'New inquiry'}</h1>
             {incognito && (
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-accent/30 bg-accent-soft px-2 py-0.5 text-[10px] text-accent">
-                <Ghost size={10} /> Incognito — not saved
+                <Ghost size={10} /> <span className="hidden sm:inline">Incognito — not saved</span>
+                <span className="sm:hidden">Incognito</span>
               </span>
             )}
           </div>
-          <span className="shrink-0 text-[11px] text-faint">
+          <span className="hidden shrink-0 text-[11px] text-faint sm:block">
             {provider === 'offline' ? 'Offline demo mode' : provider ? `Model: ${provider}` : ''}
           </span>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-8">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
           <div
             ref={messagesRef}
             onMouseUp={onMouseUp}
-            className="mx-auto flex max-w-3xl flex-col gap-7"
+            className="mx-auto flex max-w-3xl flex-col gap-6 sm:gap-7"
           >
             {messages.length === 0 && (
               <div className="mx-auto mt-20 max-w-lg text-center">
                 <h2 className="font-serif text-3xl">How can I help with Indian law?</h2>
                 <p className="mt-3 text-sm text-muted">
-                  Ask about any section of the six indexed central acts. Every citation is checked
-                  against the bare act, and if nothing relevant is found, I&apos;ll say so instead
-                  of guessing.
+                  Ask about any section of the ten indexed acts and the Constitution. Every citation
+                  is checked against the bare act, and if nothing relevant is found, I&apos;ll say
+                  so instead of guessing.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
                   {[
@@ -453,7 +464,7 @@ export function ChatWorkspace({
           </div>
         </div>
 
-        {notice && <p className="px-6 pb-1 text-center text-xs text-warning">{notice}</p>}
+        {notice && <p className="px-4 pb-1 text-center text-xs text-warning sm:px-6">{notice}</p>}
 
         <Composer
           streaming={streaming}

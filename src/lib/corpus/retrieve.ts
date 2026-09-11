@@ -23,16 +23,30 @@ const ACT_PATTERNS: { re: RegExp; slug: string }[] = [
   { re: /\bcompanies act\b/i, slug: 'companies' },
   { re: /\bbharatiya sakshya adhiniyam\b/i, slug: 'bsa' },
   { re: /\bsakshya adhiniyam\b/i, slug: 'bsa' },
+  { re: /\bevidence act\b/i, slug: 'bsa' },
+  { re: /\bbharatiya nagarik suraksha sanhita\b/i, slug: 'bnss' },
+  { re: /\bnagarik suraksha sanhita\b/i, slug: 'bnss' },
+  { re: /\bcode of criminal procedure\b/i, slug: 'crpc' },
+  { re: /\bcriminal procedure code\b/i, slug: 'crpc' },
+  { re: /\bcode of civil procedure\b/i, slug: 'cpc' },
+  { re: /\bcivil procedure code\b/i, slug: 'cpc' },
+  { re: /\bconstitution of india\b/i, slug: 'constitution' },
+  { re: /\bconstitution\b/i, slug: 'constitution' },
+  { re: /\barticle\b/i, slug: 'constitution' },
   { re: /\bipc\b/i, slug: 'ipc' },
   { re: /\bbns\b/i, slug: 'bns' },
+  { re: /\bbnss\b/i, slug: 'bnss' },
+  { re: /\bcrpc\b/i, slug: 'crpc' },
+  { re: /\bcpc\b/i, slug: 'cpc' },
   { re: /\bit act\b/i, slug: 'it' },
   { re: /\bbsa\b/i, slug: 'bsa' },
 ]
 
 const SECTION_NUM_RES = [
   /\b(?:section|sec|s)\.?\s*(\d{1,3}[A-Z]{0,2})\b/gi,
-  /\b(\d{1,3}[A-Z]{0,2})\s+(?:of\s+the\s+)?(?:ipc|bns|indian penal code|bharatiya nyaya sanhita|contract act|it act|companies act|bsa)\b/gi,
-  /\b(?:ipc|bns|it act|companies act|bsa)\s+(\d{1,3}[A-Z]{0,2})\b/gi,
+  /\barticle\s*(\d{1,3}[A-Z]{0,2})\b/gi,
+  /\b(\d{1,3}[A-Z]{0,2})\s+(?:of\s+the\s+)?(?:ipc|bns|bnss|crpc|cpc|indian penal code|bharatiya nyaya sanhita|bharatiya nagarik suraksha sanhita|contract act|it act|companies act|bsa|constitution)\b/gi,
+  /\b(?:ipc|bns|bnss|crpc|cpc|it act|companies act|bsa)\s+(\d{1,3}[A-Z]{0,2})\b/gi,
 ]
 
 let bm25: BM25 | null = null

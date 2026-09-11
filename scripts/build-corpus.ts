@@ -21,6 +21,8 @@ type ActConfig = {
   actFull: string
   file: string
   expected: number
+  /** Accept "(N) Title.—" headings too, with a monotonic guard (some editions mix styles). */
+  allowParen?: boolean
 }
 
 const ACTS: ActConfig[] = [
@@ -66,9 +68,45 @@ const ACTS: ActConfig[] = [
     file: 'he Bharatiya Sakshya Adhiniyam, 2023.pdf',
     expected: 170,
   },
+  {
+    act: 'BNSS',
+    slug: 'bnss',
+    actFull: 'Bharatiya Nagarik Suraksha Sanhita, 2023',
+    file: 'The Bharatiya Nagarik Suraksha Sanhita, 2023.pdf',
+    expected: 531,
+    allowParen: true,
+  },
+  {
+    act: 'CrPC',
+    slug: 'crpc',
+    actFull: 'Code of Criminal Procedure, 1973',
+    file: 'THE CODE OF CRIMINAL PROCEDURE, 1973.pdf',
+    expected: 484,
+  },
+  {
+    act: 'CPC',
+    slug: 'cpc',
+    actFull: 'Code of Civil Procedure, 1908',
+    file: 'THE CODE OF CIVIL PROCEDURE, 1908.pdf',
+    expected: 158,
+  },
+  {
+    act: 'Constitution',
+    slug: 'constitution',
+    actFull: 'Constitution of India',
+    file: 'The Constitution of India.pdf',
+    expected: 395,
+  },
 ]
 
 const SECTION_RE = /^[ \t]*(\d{1,3}[A-Z]{0,2})\.\s+([\s\S]{3,140}?)\s*[—–]{1,2}\s*/gm
+// Some editions render the section number in parentheses, e.g. "(3) Construction of references.—"
+const PAREN_SECTION_RE = /^[ \t]*\((\d{1,3}[A-Z]{0,2})\)[ \t]*([\s\S]{3,140}?)\s*[—–]{1,2}\s*/gm
+
+function numVal(n: string): [number, string] {
+  const m = n.match(/^(\d+)([A-Z]*)$/)
+  return [parseInt(m?.[1] ?? '0', 10), m?.[2] ?? '']
+}
 
 /** Remove page furniture and chapter/all-caps headings that corrupt section text. */
 function cleanText(raw: string): string {
@@ -126,21 +164,45 @@ async function extractTextFor(file: string): Promise<string> {
 
 async function parseAct(cfg: ActConfig): Promise<Section[]> {
   const text = await extractTextFor(cfg.file)
-  const candidates = [...text.matchAll(SECTION_RE)].map((m) => ({
-    num: m[1]!,
-    titleRaw: m[2]!.replace(/\s+/g, ' ').trim(),
-    start: m.index!,
-    end: m.index! + m[0].length,
-  }))
 
-  // keep real sections, de-duplicating on number (first wins)
+  const raw: { num: string; titleRaw: string; start: number; end: number }[] = []
+  for (const m of text.matchAll(SECTION_RE)) {
+    raw.push({
+      num: m[1]!,
+      titleRaw: m[2]!.replace(/\s+/g, ' ').trim(),
+      start: m.index!,
+      end: m.index! + m[0].length,
+    })
+  }
+  if (cfg.allowParen) {
+    for (const m of text.matchAll(PAREN_SECTION_RE)) {
+      raw.push({
+        num: m[1]!,
+        titleRaw: m[2]!.replace(/\s+/g, ' ').trim(),
+        start: m.index!,
+        end: m.index! + m[0].length,
+      })
+    }
+  }
+  raw.sort((a, b) => a.start - b.start)
+
+  // keep real sections, de-duplicating on number
   const seen = new Set<string>()
-  const kept: typeof candidates = []
-  for (const c of candidates) {
+  const kept: typeof raw = []
+  let lastVal = 0
+  let lastSuffix = ''
+  for (const c of raw) {
     const title = c.titleRaw.replace(/[.\s]+$/, '').trim()
     if (title.length < 3) continue
     if (isFootnoteTitle(c.titleRaw)) continue
     if (seen.has(c.num)) continue
+    if (cfg.allowParen) {
+      // Guard against sub-section markers like "(1) Unless ...": must advance the sequence.
+      const [val, suffix] = numVal(c.num)
+      if (!(val > lastVal || (val === lastVal && suffix > lastSuffix))) continue
+      lastVal = val
+      lastSuffix = suffix
+    }
     seen.add(c.num)
     kept.push({ ...c, titleRaw: title })
   }
@@ -205,12 +267,12 @@ async function main() {
   const spots = [
     'ipc:302',
     'ipc:420',
-    'ipc:406',
     'bns:103',
-    'contract:10',
-    'it:66',
-    'companies:2',
-    'bsa:3',
+    'bnss:35',
+    'crpc:154',
+    'cpc:9',
+    'constitution:21',
+    'constitution:14',
   ]
   console.log('\nSpot checks:')
   for (const id of spots) {

@@ -1,14 +1,15 @@
 import { test, expect } from '@playwright/test'
 import { sse, CHAT_ANSWER, ABSTAIN_ANSWER } from './fixtures'
+import { gotoHydrated, sendMessage } from './helpers'
 
 test.describe('Chat', () => {
   test.beforeEach(async ({ page }) => {
-    // Real login (needs the seeded demo user), then stub the LLM stream.
-    await page.goto('/login')
+    await gotoHydrated(page, '/login')
     await page.fill('#email', 'abhinav@test.com')
     await page.fill('#password', 'abhinav')
     await page.click('button[type="submit"]')
-    await expect(page).toHaveURL(/\/chat/)
+    await expect(page).toHaveURL(/\/chat/, { timeout: 30_000 })
+    await page.waitForSelector('html[data-hydrated="1"]')
   })
 
   test('streams an answer and renders a verified citation for an in-corpus question', async ({
@@ -29,8 +30,7 @@ test.describe('Chat', () => {
       }),
     )
 
-    await page.fill('textarea', 'What is the punishment for murder under the BNS?')
-    await page.keyboard.press('Enter')
+    await sendMessage(page, 'What is the punishment for murder under the BNS?')
 
     await expect(page.getByText('Murder is punishable under the BNS.')).toBeVisible()
     await expect(page.getByText('✓ 1 verified')).toBeVisible()
@@ -52,8 +52,7 @@ test.describe('Chat', () => {
       }),
     )
 
-    await page.fill('textarea', 'What are the current GST rates on textiles?')
-    await page.keyboard.press('Enter')
+    await sendMessage(page, 'What are the current GST rates on textiles?')
 
     await expect(page.getByText(/don't have the relevant provision/i)).toBeVisible()
     await expect(page.getByText('✓ 1 verified')).toHaveCount(0)

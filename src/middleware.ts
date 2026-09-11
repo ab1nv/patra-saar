@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { SESSION_COOKIE, verifySessionToken } from '@/lib/auth/jwt'
 
-const PROTECTED_PREFIXES = ['/chat', '/migrate']
+const PROTECTED_PREFIXES = ['/chat']
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -19,5 +19,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/chat/:path*', '/migrate/:path*'],
+  matcher: ['/chat/:path*'],
 }

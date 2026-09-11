@@ -1,7 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import Image from 'next/image'
+import { Check, Copy } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { ChatCitation, ChatMessage } from '@/lib/chat-types'
@@ -26,28 +29,54 @@ export function MessageBubble({
   streaming?: boolean
   onOpenCitation: (citation: ChatCitation) => void
 }) {
+  const [copied, setCopied] = useState(false)
   const isUser = message.role === 'user'
   const citations = message.citations ?? []
   const verified = citations.filter((c) => c.verified)
   const unverified = citations.filter((c) => !c.verified)
 
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(message.content.replace(CITATION_TOKEN, '').trim())
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1600)
+    } catch {
+      /* clipboard unavailable */
+    }
+  }
+
   return (
-    <div className={cn('flex gap-4', isUser && 'justify-end')}>
+    <div className={cn('flex animate-fade-up gap-3 sm:gap-4', isUser && 'justify-end')}>
+      {!isUser && (
+        <div className="mt-0.5 hidden h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-surface sm:flex">
+          <Image src="/logo.png" alt="" width={16} height={16} />
+        </div>
+      )}
+
       <div className={cn('w-full max-w-3xl', isUser && 'flex justify-end')}>
         {isUser ? (
-          <div className="rounded-2xl rounded-tr-sm border border-border bg-surface-2 px-4 py-3 text-sm">
+          <div className="max-w-[92%] rounded-2xl rounded-tr-sm border border-border bg-surface-2 px-4 py-3 text-sm">
             {message.content}
           </div>
         ) : (
-          <div className="rounded-2xl rounded-tl-sm border border-border bg-surface px-6 py-5">
-            {citations.length > 0 && (
-              <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="group rounded-2xl rounded-tl-sm border border-border bg-surface px-4 py-4 shadow-soft transition-colors duration-300 hover:border-border-strong sm:px-6 sm:py-5">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 {verified.length > 0 && <Badge tone="verified">✓ {verified.length} verified</Badge>}
                 {unverified.length > 0 && (
                   <Badge tone="warning">⚠ {unverified.length} unverified</Badge>
                 )}
+                {message.abstained && <Badge tone="neutral">abstained</Badge>}
               </div>
-            )}
+              <button
+                type="button"
+                onClick={copy}
+                aria-label="Copy answer"
+                className="shrink-0 rounded-md p-1.5 text-faint opacity-0 transition-all hover:bg-surface-2 hover:text-foreground group-hover:opacity-100"
+              >
+                {copied ? <Check size={13} className="text-verified" /> : <Copy size={13} />}
+              </button>
+            </div>
 
             <div className="prose-patrasaar">
               <ReactMarkdown
@@ -62,7 +91,7 @@ export function MessageBubble({
                           type="button"
                           onClick={() => citation && onOpenCitation(citation)}
                           className={cn(
-                            'mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded border px-1 align-super text-[10px] font-semibold',
+                            'mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded border px-1 align-super text-[10px] font-semibold transition-transform hover:scale-110',
                             citation?.verified
                               ? 'border-verified/40 bg-verified-soft text-verified'
                               : 'border-warning/40 bg-warning-soft text-warning',
@@ -83,6 +112,7 @@ export function MessageBubble({
               >
                 {prepareContent(message.content)}
               </ReactMarkdown>
+              {streaming && <span className="caret" />}
             </div>
 
             {citations.length > 0 && (
@@ -93,7 +123,7 @@ export function MessageBubble({
                     type="button"
                     onClick={() => onOpenCitation(c)}
                     className={cn(
-                      'block w-full rounded-lg border px-3 py-2 text-left text-xs transition-colors',
+                      'block w-full rounded-control border px-3 py-2 text-left text-xs transition-all duration-200 hover:-translate-y-0.5',
                       c.verified
                         ? 'border-verified/25 bg-verified-soft/40 hover:border-verified/50'
                         : 'border-warning/25 bg-warning-soft/40 hover:border-warning/50',
@@ -125,10 +155,6 @@ export function MessageBubble({
                   </button>
                 ))}
               </div>
-            )}
-
-            {streaming && (
-              <span className="mt-2 inline-block h-4 w-1.5 animate-pulse bg-accent align-middle" />
             )}
           </div>
         )}

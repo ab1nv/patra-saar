@@ -31,6 +31,20 @@ const ACT_ALIASES: Record<string, string> = {
   'bharatiya sakshya adhiniyam': 'bsa',
   'sakshya adhiniyam': 'bsa',
   'evidence act': 'bsa',
+  bnss: 'bnss',
+  'nagarik suraksha sanhita': 'bnss',
+  'bharatiya nagarik suraksha sanhita': 'bnss',
+  crpc: 'crpc',
+  'criminal procedure': 'crpc',
+  'criminal procedure code': 'crpc',
+  'code of criminal procedure': 'crpc',
+  cpc: 'cpc',
+  'civil procedure': 'cpc',
+  'civil procedure code': 'cpc',
+  'code of civil procedure': 'cpc',
+  constitution: 'constitution',
+  'constitution of india': 'constitution',
+  'the constitution': 'constitution',
 }
 
 export function actSlugFromName(name: string): string | undefined {
@@ -78,6 +92,14 @@ export function normalizeSectionNumber(number: string): string {
 
 export function allSections(): Section[] {
   return corpus.sections
+}
+
+/**
+ * Resolves a cited act name + number to a section. Falls back to a corpus-wide
+ * number lookup when the act name is unknown.
+ */
+export function resolveSection(actName: string, number: string): Section | undefined {
+  return getSectionByActNumber(actName, number) ?? getSectionsByNumber(number)[0]
 }
 
 export function corpusMeta(): { builtAt: string; acts: Corpus['acts']; sectionCount: number } {

@@ -1,12 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 export function LoginForm({ next }: { next: string }) {
-  const router = useRouter()
   const [email, setEmail] = useState('abhinav@test.com')
   const [password, setPassword] = useState('abhinav')
   const [error, setError] = useState<string | null>(null)
@@ -27,11 +25,12 @@ export function LoginForm({ next }: { next: string }) {
         const data = (await res.json().catch(() => ({}))) as { message?: string }
         throw new Error(data.message ?? 'Login failed')
       }
-      router.push(next)
-      router.refresh()
+      // Full navigation so the freshly set session cookie is sent on the next
+      // request and middleware sees it. A soft router.push() here can be
+      // dropped by the subsequent router.refresh(), which left users stuck.
+      window.location.assign(next)
     } catch (err) {
       setError((err as Error).message)
-    } finally {
       setLoading(false)
     }
   }

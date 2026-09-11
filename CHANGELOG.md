@@ -3,37 +3,64 @@
 All notable changes to this project are documented here. Format follows
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [3.1.0] — 2026-09-16
+
+### Added
+
+- **Hallucination audit.** A two-arm benchmark (ungrounded baseline vs. retrieve-and-verify) over a
+  30-question ground-truth set, scored deterministically against the corpus, with a public `/audit`
+  page, methodology and limitations. New `pnpm audit:run`.
+- **Corpus expanded** from 6 to 10 sources: added the Bharatiya Nagarik Suraksha Sanhita, the Code
+  of Criminal Procedure, the Code of Civil Procedure and the Constitution of India (~3,270 sections
+  total). Added "Article" reference parsing, new act aliases, and a tolerant heading mode for mixed
+  BNSS editions.
+- Real logo mark restored from git history and generated into an app icon set (`favicon.ico`,
+  `icon.png`, `apple-icon.png`, PWA icons, web manifest).
+- Responsive layout with a mobile sidebar drawer, scroll-reveal and entrance animations, and reduced
+  motion support.
+- `pnpm db:reset` to clear all conversations.
+- Mobile Playwright project and an audit unit-test suite.
+
+### Changed
+
+- **Removed the IPC↔BNS mapper and the coverage ledger** (and their APIs, tests and navigation), as
+  the mapper is a crowded space and the audit is the differentiator.
+- Rebuilt the landing page and chat interface with an editorial design pass.
+- Context budget for prompts, so expanded sections stay within the free-tier token limit.
+- CI now runs on `master` with a self-contained Postgres service container (no repository secrets).
+
+### Fixed
+
+- **Login now redirects reliably** after sign-in (a full navigation replaces a racing soft push).
+- Deleting a chat no longer shows a confirmation dialog.
+- False abstentions caused by act-name words ("Indian", "Penal", "Constitution") and query filler in
+  the retrieval coverage calculation.
+- Constitution and `article` references now resolve to the correct act instead of falling back to an
+  unrelated section with the same number.
+- Sub-section citation syntax (e.g. `BNS s.318(2)`) is normalised to the base section.
+- Removed stale `.next` type artifacts that broke `tsc` after route deletions.
+
 ## [3.0.0] — 2026-09-15
 
 ### Rewritten
 
 - Replaced the SvelteKit + Hono + Cloudflare Workers monorepo with a single Next.js 16 (App Router)
-  application deployed on Vercel. Removed Cloudflare Workers, Wrangler, D1, KV, Vectorize, Workers AI,
-  OpenRouter, Svelte, and the Turborepo/workspace setup.
-- Replaced vector retrieval with an in-process BM25 index over a parsed section corpus
-  (`data/corpus.json`, 1,654 sections across six central acts) and a deterministic exact-section
-  lookup. Corpus is built from the source PDFs by `scripts/build-corpus.ts`.
-- Replaced the Cloudflare Python ingestion script with the TypeScript corpus builder.
+  application deployed on Vercel.
+- Replaced vector retrieval with an in-process BM25 index over a parsed section corpus.
+- Replaced the Python ingestion script with the TypeScript corpus builder.
 
 ### Added
 
-- **Verified citations.** A strict `[[ACT s.NUMBER | "verbatim quote"]]` grammar plus a server-side
-  verifier that checks section existence, retrieval membership, and verbatim quotation, with a
-  specific failure reason per citation.
-- **Abstention gate.** Retrieval coverage below threshold produces a refusal instead of an answer.
-- **Coverage ledger** (`/coverage`) publishing indexed acts, section counts, parse quality and what is
-  not covered.
-- **IPC ↔ BNS migration mapper** (`/migrate`) with a hand-curated table and evidence-based
-  similarity suggestions.
-- Chat workspace: streaming answers, inline citation chips, collapsible/resizable sidebar, pin, rename
-  and delete, incognito mode, PDF/text attachments, and select-to-cross-question.
+- **Verified citations** with a strict grammar and a server-side three-check verifier.
+- **Abstention gate** when retrieval coverage is low.
+- Chat workspace: streaming, citation chips, collapsible sidebar, pin/rename/delete, incognito,
+  attachments, cross-questioning.
 - Model-generated chat titles and dynamic window titles.
-- Neon Postgres + Drizzle persistence with an automatic in-memory fallback.
-- Rebuilt landing page, README, DOCS.md, CI workflow, Dependabot config, and Husky hooks.
+- Neon Postgres + Drizzle persistence with an in-memory fallback.
+- Landing page, DOCS.md, CI workflow, Dependabot config and Husky hooks.
 
 ### Fixed
 
-- Authentication now actually verifies the JWT instead of hard-coding a dummy user.
-- Streaming uses the documented typed SSE event format rather than raw text.
-- Citation correctness: act names containing a year (e.g. "Bharatiya Nyaya Sanhita, 2023") resolve to
-  the correct act, avoiding cross-act section confusion.
+- Authentication now verifies the JWT instead of hard-coding a dummy user.
+- Streaming uses typed SSE events rather than raw text.
+- Act names containing a year resolve to the correct act.

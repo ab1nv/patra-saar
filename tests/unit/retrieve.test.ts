@@ -41,4 +41,17 @@ describe('retrieve', () => {
     const ids = result.sections.map((s) => s.id)
     expect(ids).toContain('bns:318')
   })
+
+  it('does not abstain on a definition question naming the full act', () => {
+    const result = retrieve('How is murder defined in the Indian Penal Code?')
+    expect(result.abstain).toBe(false)
+    expect(result.sections.map((s) => s.id)).toContain('ipc:300')
+  })
+
+  it('does not abstain on a Constitution article question', () => {
+    const result = retrieve('What does Article 21 of the Constitution protect?')
+    expect(result.abstain).toBe(false)
+    expect(result.sections[0]?.id).toBe('constitution:21')
+    expect(result.sections[0]?.matchType).toBe('exact')
+  })
 })

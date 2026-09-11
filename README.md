@@ -2,9 +2,10 @@
 
 **It cites the law, or it says it doesn't know.**
 
-PatraSaar answers questions about Indian central acts using only an indexed corpus of statutory text,
-and verifies every citation verbatim against the source section before showing it. If nothing
-relevant is found, it refuses instead of guessing.
+PatraSaar answers questions about Indian central acts and the Constitution using only an indexed
+corpus of statutory text, and verifies every citation verbatim against the source section before
+showing it. If nothing relevant is found, it refuses instead of guessing. It also publishes a
+measured **hallucination audit** comparing the same model with and without verification.
 
 [![CI](https://github.com/ab1nv/patra-saar/actions/workflows/ci.yml/badge.svg)](https://github.com/ab1nv/patra-saar/actions/workflows/ci.yml)
 
@@ -12,13 +13,18 @@ relevant is found, it refuses instead of guessing.
 
 - **Verified citations** — every `[[ACT s.N | "quote"]]` is checked for existence, retrieval, and a
   verbatim quote. Passes render as ✓; failures are struck through with the exact reason.
+- **Hallucination audit** (`/audit`) — the same model, same 30 questions, with and without
+  retrieval-plus-verification, scored deterministically against the corpus.
 - **Abstains when unsure** — a retrieval threshold gate means no answer rather than a guess.
-- **Section-level corpus** — six central acts parsed into 1,650+ sections, not blind chunks.
-- **IPC ↔ BNS mapper** — side-by-side texts for the 2023 transition, with a hand-checked table and
-  similarity suggestions.
-- **Published coverage ledger** — exactly what is indexed, and what is not.
-- **Chat workspace** — streaming, attachments, incognito mode, pin/rename/delete, cross-questioning.
+- **Section-level corpus** — 10 acts, 3,200+ sections, parsed from the source PDFs, not blind chunks.
+- **Chat workspace** — streaming, attachments, incognito mode, pin/rename/delete, cross-questioning,
+  fully responsive with a mobile drawer.
 - **Offline demo mode** — runs without an LLM key using deterministic extractive answers.
+
+## Indexed acts
+
+IPC 1860 · BNS 2023 · BSA 2023 · BNSS 2023 · CrPC 1973 · CPC 1908 · Constitution of India ·
+Indian Contract Act 1872 · IT Act 2000 · Companies Act 2013
 
 ## Tech stack
 
@@ -39,17 +45,15 @@ pnpm dev                      # http://localhost:3000
 
 ## Scripts
 
-| Script                      | Purpose                                           |
-| --------------------------- | ------------------------------------------------- |
-| `pnpm dev`                  | Start the app                                     |
-| `pnpm build` / `pnpm start` | Production build / serve                          |
-| `pnpm typecheck`            | TypeScript                                        |
-| `pnpm lint`                 | ESLint                                            |
-| `pnpm knip`                 | Dead-code and unused-dependency check             |
-| `pnpm test:unit`            | Vitest unit tests                                 |
-| `pnpm test:e2e`             | Playwright end-to-end tests                       |
-| `pnpm corpus:build`         | Rebuild the section corpus from `data/acts/*.pdf` |
-| `pnpm seed`                 | Create schema + demo user                         |
+| Script                                       | Purpose                                           |
+| -------------------------------------------- | ------------------------------------------------- |
+| `pnpm dev` / `pnpm build` / `pnpm start`     | Run / build / serve                               |
+| `pnpm typecheck` · `pnpm lint` · `pnpm knip` | TypeScript · ESLint · dead-code check             |
+| `pnpm test:unit` · `pnpm test:e2e`           | Vitest · Playwright                               |
+| `pnpm corpus:build`                          | Rebuild the section corpus from `data/acts/*.pdf` |
+| `pnpm seed`                                  | Create schema + demo user                         |
+| `pnpm db:reset`                              | Clear all conversations (keeps the demo user)     |
+| `pnpm audit:run`                             | Re-run the hallucination audit                    |
 
 ## Project structure
 
@@ -57,26 +61,27 @@ pnpm dev                      # http://localhost:3000
 data/
   acts/                 # source bare-act PDFs
   corpus.json           # generated section corpus (committed)
-  ipc-bns-map.json      # hand-curated IPC ↔ BNS mapping
+  audit-questions.json  # ground-truth question set
+  audit-results.json    # generated audit results (committed)
 scripts/
-  build-corpus.ts       # PDF → sections → corpus.json
-  seed.ts               # schema + demo user
+  build-corpus.ts       # PDF -> sections -> corpus.json
+  run-audit.ts          # hallucination audit harness
+  seed.ts / reset-db.ts
 src/
-  app/                  # landing, login, chat, coverage, migrate, API routes
-  components/           # chat, migrate, layout, ui
+  app/                  # landing, login, chat, audit, API routes
+  components/           # chat, layout, ui
   lib/
     corpus/             # loading, BM25, retrieval
     citations/          # citation grammar + verifier
+    audit/              # audit scoring + aggregation
     llm/                # Groq streaming, prompt, offline fallback
-    db/                 # Drizzle + Neon
-    auth/               # scrypt, JWT session
+    db/ auth/           # Drizzle + Neon, scrypt + JWT
   middleware.ts         # route protection (JWT verified)
-tests/
-  unit/                 # Vitest
-  e2e/                  # Playwright
+tests/                  # unit (Vitest) + e2e (Playwright, desktop + mobile)
 ```
 
-See [DOCS.md](./DOCS.md) for the full architecture, API reference, testing and design tradeoffs.
+See [DOCS.md](./DOCS.md) for architecture, API reference and design tradeoffs, and
+[HANDOFF.md](./HANDOFF.md) for the presentation package.
 
 ## Disclaimer
 
