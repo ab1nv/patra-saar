@@ -72,7 +72,9 @@ export async function POST(req: Request) {
         let caseId: string | null = null
         if (!incognito) {
           if (requestedCaseId) {
-            const existing = await getCase(session.sub, requestedCaseId).catch(() => undefined)
+            // Do not swallow errors here: a transient database failure would look
+            // like "case not found" and silently create a duplicate chat.
+            const existing = await getCase(session.sub, requestedCaseId)
             caseId = existing?.id ?? (await createCase(session.sub, 'New inquiry')).id
           } else {
             caseId = (await createCase(session.sub, 'New inquiry')).id

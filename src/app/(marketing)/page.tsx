@@ -225,50 +225,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Verification demo */}
-      <section className="border-y border-border bg-surface/40">
-        <div className="mx-auto max-w-4xl px-5 py-16 sm:px-6">
-          <Reveal>
-            <h2 className="font-serif text-3xl">What verification looks like</h2>
-            <div className="mt-6 rounded-card border border-border bg-surface p-6 shadow-soft">
-              <div className="mb-4 flex gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full border border-verified/30 bg-verified-soft px-2.5 py-0.5 text-[11px] text-verified">
-                  ✓ 1 verified
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning-soft px-2.5 py-0.5 text-[11px] text-warning">
-                  ⚠ 1 unverified
-                </span>
-              </div>
-              <p className="text-sm text-muted">
-                Murder is punishable under the Bharatiya Nyaya Sanhita. The provision reads:
-                “Whoever commits murder shall be punished with death or imprisonment for life…”{' '}
-                <span className="rounded border border-verified/40 bg-verified-soft px-1 text-[10px] text-verified">
-                  1
-                </span>
-              </p>
-              <div className="mt-4 space-y-2">
-                <div className="rounded-lg border border-verified/25 bg-verified-soft/40 px-3 py-2 text-xs">
-                  <span className="text-verified">✓ BNS · Section 103 - Punishment for murder</span>
-                  <p className="mt-1 font-serif text-muted">
-                    “Whoever commits murder shall be punished with death or imprisonment for life…”
-                  </p>
-                </div>
-                <div className="rounded-lg border border-warning/25 bg-warning-soft/40 px-3 py-2 text-xs">
-                  <span className="text-warning">⚠ IPC · Section 302 - quote_not_verbatim</span>
-                  <p className="mt-1 font-serif text-muted line-through decoration-warning/50">
-                    “Murder carries the death penalty in all cases.”
-                  </p>
-                </div>
-              </div>
-              <p className="mt-4 text-xs text-faint">
-                The second citation is real law, but the quote was paraphrased - so it is struck
-                through and flagged rather than presented as verified.
-              </p>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
       {/* Audit (moved in from its own page) */}
       <AuditSection />
 
