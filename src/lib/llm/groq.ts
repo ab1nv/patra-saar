@@ -1,12 +1,21 @@
 import Groq from 'groq-sdk'
 
 const DEFAULT_MODEL = 'qwen/qwen3.8-27b'
-// The Groq free tier enforces a hard output-tokens-per-minute cap (1000). Keep the
-// requested max_tokens comfortably under it; override with GROQ_MAX_TOKENS.
-const DEFAULT_MAX_TOKENS = 700
+// The Groq free tier has a daily token budget (200k/day for qwen), and a hard
+// output-tokens-per-minute cap. Keep responses short; override with GROQ_MAX_TOKENS.
+const DEFAULT_MAX_TOKENS = 500
 
 function groqModel(): string {
   return process.env.GROQ_MODEL ?? DEFAULT_MODEL
+}
+
+/** Ordered candidate models: the primary followed by any configured fallbacks. */
+export function groqModels(): string[] {
+  const fallbacks = (process.env.GROQ_MODEL_FALLBACK ?? '')
+    .split(',')
+    .map((m) => m.trim())
+    .filter(Boolean)
+  return [groqModel(), ...fallbacks.filter((m) => m !== groqModel())]
 }
 
 /** Public model id for display in the UI. */
@@ -22,7 +31,8 @@ function groqMaxTokens(): number {
 /**
  * Streams token deltas from Groq's OpenAI-compatible chat completions endpoint.
  * temperature is deliberately low: we want obedience to the citation format,
- * not creativity.
+ * not creativity. SDK retries are disabled and a short timeout is used so a
+ * rate-limited request fails fast and the caller can try another model.
  */
 export async function* streamGroq(
   messages: {
@@ -30,13 +40,14 @@ export async function* streamGroq(
     content: string
   }[],
   maxTokens: number = groqMaxTokens(),
+  model: string = groqModel(),
 ): AsyncGenerator<string> {
   const apiKey = process.env.GROQ_API_KEY
   if (!apiKey) throw new Error('GROQ_API_KEY is not set')
 
-  const groq = new Groq({ apiKey })
+  const groq = new Groq({ apiKey, maxRetries: 0, timeout: 30_000 })
   const stream = await groq.chat.completions.create({
-    model: groqModel(),
+    model,
     messages,
     stream: true,
     temperature: 0.1,
@@ -67,12 +78,13 @@ export async function completeGroq(
   return res.choices[0]?.message?.content?.trim() ?? ''
 }
 
-/** Generates a short chat title from the question + answer. Falls back to a heuristic. */
-export async function generateTitle(question: string, answer: string): Promise<string> {
+/** Generates a short chat title from the question. Falls back to a heuristic. */
+export async function generateTitle(question: string, _answer: string): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY
   if (!apiKey) return heuristicTitle(question)
   try {
-    const groq = new Groq({ apiKey })
+    // Question-only keeps this cheap: the daily token budget is small.
+    const groq = new Groq({ apiKey, maxRetries: 0, timeout: 15_000 })
     const res = await groq.chat.completions.create({
       model: groqModel(),
       messages: [
@@ -81,12 +93,9 @@ export async function generateTitle(question: string, answer: string): Promise<s
           content:
             'You name chat threads about Indian law. Reply with ONLY a 3 to 5 word title. No quotes, no trailing punctuation, no prefix like "Title:". Title Case.',
         },
-        {
-          role: 'user',
-          content: `Question: ${question}\n\nAnswer excerpt: ${answer.slice(0, 1200)}`,
-        },
+        { role: 'user', content: `Question: ${question}` },
       ],
-      max_tokens: 24,
+      max_tokens: 20,
       temperature: 0.2,
     })
     const raw = res.choices[0]?.message?.content?.trim() ?? ''

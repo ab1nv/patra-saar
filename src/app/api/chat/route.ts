@@ -96,7 +96,6 @@ export async function POST(req: Request) {
             matchType: s.matchType,
           })),
         })
-
         let full = ''
         const generate = async (maxTokens?: number) => {
           for await (const delta of streamAnswer(
@@ -115,21 +114,13 @@ export async function POST(req: Request) {
             full = ABSTAIN_MESSAGE
             send({ type: 'token', value: ABSTAIN_MESSAGE })
           } else {
-            try {
-              await generate()
-            } catch (err) {
-              // The free tier can reject a request on its output-token budget
-              // before any token streams. Retry once with a smaller budget.
-              const retryable =
-                full.length === 0 && /429|too large|rate_limit|tokens per minute/i.test(String(err))
-              if (!retryable) throw err
-              console.warn('[chat] retrying generation with a smaller token budget')
-              await generate(300)
-            }
+            // streamAnswer already walks the model chain and falls back to a
+            // deterministic extractive answer, so a single call is enough.
+            await generate()
           }
         } catch (err) {
           console.error('[chat] generation failed:', err)
-          const msg = '\n\n_[generation error - try again]_'
+          const msg = '\n\n_[The model is temporarily unavailable. Please try again in a moment.]_'
           full += msg
           send({ type: 'token', value: msg })
         }

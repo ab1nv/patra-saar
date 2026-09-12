@@ -1,9 +1,9 @@
 import type { Section } from '../corpus/types'
+import { contentTokens } from '../text'
 
 export type ChatMode = 'lawyer' | 'client'
 
 export type PromptExtras = {
-  attachmentText?: string
   selectionContext?: string
 }
 
@@ -55,19 +55,39 @@ export function buildBaselinePrompt(question: string): { system: string; user: s
   return { system: BASELINE_RULES, user: `Question: ${question}` }
 }
 
-// The free Groq tier enforces an input-tokens-per-minute cap, so bound the
-// context we send. Quotes the model produces are substrings of this truncated
-// text and are still verified against the full section text server-side.
-// The per-section cap must be generous enough to reach the operative words:
-// some sections (for example BNS 318) put the punishment after long
-// illustrations, thousands of characters in.
-const MAX_SECTION_CHARS = 4200
-const MAX_CONTEXT_CHARS = 14000
+// The Groq free tier has a daily token budget (200k tokens/day), so the context
+// is kept tight. Instead of blindly truncating from the start, we keep the
+// window that actually contains the question's words: some sections (for
+// example BNS 318) put the punishment thousands of characters in, after long
+// illustrations. Quotes are still verified against the full section text.
+const MAX_SECTION_CHARS = 2600
+const MAX_CONTEXT_CHARS = 8000
 
 function clip(text: string, max: number): string {
   if (text.length <= max) return text
   const cut = text.lastIndexOf(' ', max)
   return (cut > max * 0.6 ? text.slice(0, cut) : text.slice(0, max)).trim()
+}
+
+/** Keep a window of `max` characters centred on the first query word found late in the text. */
+function clipRelevant(text: string, max: number, terms: string[]): string {
+  if (text.length <= max) return text
+
+  const lower = text.toLowerCase()
+  let hit = -1
+  for (const term of terms) {
+    if (term.length < 4) continue
+    const at = lower.indexOf(term)
+    if (at > hit) hit = at
+  }
+
+  // Nothing relevant far in, or it is already inside the head: take the head.
+  if (hit < max - 400) return clip(text, max)
+
+  const start = Math.max(0, Math.min(hit - 400, text.length - max))
+  const window = text.slice(start, start + max)
+  const firstSpace = window.indexOf(' ')
+  return `…${(firstSpace > 0 && firstSpace < 40 ? window.slice(firstSpace + 1) : window).trim()}`
 }
 
 export function buildPrompt(
@@ -76,10 +96,11 @@ export function buildPrompt(
   mode: ChatMode,
   extras: PromptExtras = {},
 ): { system: string; user: string } {
+  const terms = contentTokens(question)
   const blocks: string[] = []
   let used = 0
   for (const s of sections) {
-    const block = `[LEGAL SECTION - ACT_CODE: ${s.act} | ${s.actFull}, Section ${s.number}: ${s.title}]\n${clip(s.text, MAX_SECTION_CHARS)}`
+    const block = `[LEGAL SECTION - ACT_CODE: ${s.act} | ${s.actFull}, Section ${s.number}: ${s.title}]\n${clipRelevant(s.text, MAX_SECTION_CHARS, terms)}`
     if (used + block.length > MAX_CONTEXT_CHARS && blocks.length > 0) break
     blocks.push(block)
     used += block.length
@@ -92,9 +113,6 @@ export function buildPrompt(
     parts.push(
       `The user selected this passage from your previous answer and is cross-questioning it:\n"${extras.selectionContext}"`,
     )
-  }
-  if (extras.attachmentText) {
-    parts.push(`[USER ATTACHMENT - not a legal source]\n${extras.attachmentText.slice(0, 20_000)}`)
   }
   parts.push(`Question: ${question}`)
 

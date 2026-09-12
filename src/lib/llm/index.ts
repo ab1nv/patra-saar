@@ -1,5 +1,5 @@
 import { buildPrompt, type ChatMode, type PromptExtras } from './prompt'
-import { streamGroq, generateTitle, heuristicTitle, activeModel } from './groq'
+import { streamGroq, groqModels, generateTitle, heuristicTitle, activeModel } from './groq'
 import { offlineAnswer } from './offline'
 import type { Section } from '../corpus/types'
 
@@ -16,7 +16,15 @@ export function currentModel(): string {
   return llmProvider() === 'offline' ? 'offline' : activeModel()
 }
 
-/** Streams an answer. Uses Groq when configured, otherwise a deterministic offline fallback. */
+/**
+ * Streams an answer.
+ *
+ * Resilience chain: try each configured model in turn, and if every model is
+ * unavailable (for example the Groq daily token budget is exhausted), fall back
+ * to the deterministic extractive answer built from the retrieved sections.
+ * The fallback quotes the acts verbatim, so citations are still verified; the
+ * demo never shows a bare "generation error".
+ */
 export async function* streamAnswer(
   question: string,
   sections: Section[],
@@ -28,14 +36,30 @@ export async function* streamAnswer(
     yield offlineAnswer(question, sections, mode)
     return
   }
+
   const { system, user } = buildPrompt(question, sections, mode, extras)
-  yield* streamGroq(
-    [
-      { role: 'system', content: system },
-      { role: 'user', content: user },
-    ],
-    maxTokens,
-  )
+  const messages = [
+    { role: 'system' as const, content: system },
+    { role: 'user' as const, content: user },
+  ]
+
+  for (const model of groqModels()) {
+    let started = false
+    try {
+      for await (const delta of streamGroq(messages, maxTokens, model)) {
+        started = true
+        yield delta
+      }
+      return
+    } catch (err) {
+      // Once tokens have been sent we cannot switch model without duplicating text.
+      if (started) throw err
+      console.warn(`[llm] ${model} unavailable: ${(err as Error).message.slice(0, 160)}`)
+    }
+  }
+
+  console.warn('[llm] all models unavailable, using deterministic extractive fallback')
+  yield offlineAnswer(question, sections, mode)
 }
 
 export async function titleFor(question: string, answer: string): Promise<string> {
