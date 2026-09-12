@@ -16,16 +16,15 @@ import {
   MapPin,
   PenLine,
   Scale,
-  Search,
   ShieldCheck,
   Sparkles,
   Users,
-  Wand2,
 } from 'lucide-react'
 import { corpusMeta } from '@/lib/corpus'
 import { SiteFooter, SiteHeader } from '@/components/layout/SiteChrome'
 import { Reveal } from '@/components/layout/Reveal'
 import { AuditSection } from '@/components/marketing/AuditSection'
+import { SectionLink } from '@/components/marketing/SectionLink'
 import auditData from '../../../data/audit-results.json'
 
 export const metadata = {
@@ -170,12 +169,12 @@ export default function LandingPage() {
               >
                 Try the demo
               </Link>
-              <Link
-                href="#audit"
+              <SectionLink
+                targetId="audit"
                 className="rounded-control border border-border bg-surface px-6 py-3 font-semibold transition-all hover:border-border-strong active:scale-[.98]"
               >
                 See Benchmarks
-              </Link>
+              </SectionLink>
             </div>
             <p className="mt-8 text-sm text-faint">
               <span className="text-muted">{sections}</span> sections across{' '}
@@ -223,90 +222,6 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section className="border-y border-border bg-surface/40">
-        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-20">
-          <Reveal>
-            <h2 className="max-w-2xl font-serif text-3xl sm:text-4xl">
-              Asking an AI about the law fails in three predictable ways
-            </h2>
-          </Reveal>
-          <div className="mt-10 grid gap-8 md:grid-cols-3">
-            {[
-              {
-                n: '01',
-                title: 'It invents section numbers',
-                body: 'General assistants confidently produce provisions that do not exist, because nothing checks them against the actual act.',
-              },
-              {
-                n: '02',
-                title: 'It cites repealed law',
-                body: 'India replaced the IPC with the Bharatiya Nyaya Sanhita in 2023. Pre-2024 knowledge is now partly stale.',
-              },
-              {
-                n: '03',
-                title: 'It never shows the text',
-                body: 'Even when the answer is right, you cannot see where it came from or confirm the wording.',
-              },
-            ].map((c, i) => (
-              <Reveal key={c.n} delay={i * 90}>
-                <div className="border-t-2 border-accent/40 pt-5">
-                  <span className="font-mono text-xs text-accent">{c.n}</span>
-                  <h3 className="mt-3 font-serif text-xl">{c.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted">{c.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-20">
-        <Reveal>
-          <h2 className="max-w-2xl font-serif text-3xl sm:text-4xl">How it works</h2>
-          <p className="mt-3 max-w-2xl text-sm text-muted">
-            The point is not to stop the model from hallucinating - it is to catch it when it does.
-          </p>
-        </Reveal>
-        <div className="mt-10 grid gap-3 md:grid-cols-4">
-          {[
-            {
-              icon: Search,
-              step: 'Retrieve',
-              body: 'BM25 over section title + body, plus deterministic exact-section lookup.',
-            },
-            {
-              icon: Wand2,
-              step: 'Constrain',
-              body: 'The model only ever sees the retrieved sections and must quote them verbatim.',
-            },
-            {
-              icon: Sparkles,
-              step: 'Generate',
-              body: 'The answer streams, each assertion formatted as a machine-checkable citation token.',
-            },
-            {
-              icon: FileCheck2,
-              step: 'Verify',
-              body: 'Server-side: does the section exist, was it retrieved, is the quote verbatim?',
-            },
-          ].map(({ icon: Icon, step, body }, i) => (
-            <Reveal key={step} delay={i * 80}>
-              <div className="group h-full rounded-card border border-border bg-surface p-5 transition-all duration-300 hover:-translate-y-1 hover:border-border-strong">
-                <span className="text-[11px] font-medium text-faint">Step {i + 1}</span>
-                <Icon
-                  size={18}
-                  className="mt-2 text-accent transition-transform duration-300 group-hover:scale-110"
-                />
-                <h3 className="mt-2 font-serif text-base">{step}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-muted">{body}</p>
-              </div>
-            </Reveal>
-          ))}
         </div>
       </section>
 

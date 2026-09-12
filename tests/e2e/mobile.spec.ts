@@ -16,7 +16,8 @@ test.describe('Mobile experience', () => {
   test('audit section renders on the landing page', async ({ page }) => {
     await gotoHydrated(page, '/')
     await expect(page.getByRole('heading', { name: /same model/i })).toBeVisible()
-    await expect(page.getByText('97.6%').first()).toBeVisible()
+    await expect(page.getByText('Baseline - model from memory').first()).toBeVisible()
+    await expect(page.getByText('correct / verified')).toBeVisible()
   })
 
   test('sidebar is a drawer and chat still works', async ({ page }) => {

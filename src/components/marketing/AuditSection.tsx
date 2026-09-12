@@ -338,7 +338,7 @@ export function AuditSection() {
         {/* Methodology */}
         <Reveal delay={240}>
           <div className="mt-14 rounded-card border border-border bg-surface p-6 sm:p-8">
-            <h3 className="font-serif text-2xl">Methodology, stated honestly</h3>
+            <h3 className="font-serif text-2xl">Methodology</h3>
             <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted">
               <p>
                 <strong className="text-foreground">Sample.</strong> {data.sampleSize} questions:{' '}
