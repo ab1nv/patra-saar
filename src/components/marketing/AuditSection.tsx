@@ -1,14 +1,6 @@
-import type { Metadata } from 'next'
 import audit from '../../../data/audit-results.json'
-import { SiteFooter, SiteHeader } from '@/components/layout/SiteChrome'
-import { Reveal } from '@/components/layout/Reveal'
 import { Badge } from '@/components/ui/badge'
-
-export const metadata: Metadata = {
-  title: 'PatraSaar - Hallucination audit',
-  description:
-    'A self-run comparison of the same model answering Indian statute questions with and without retrieval-plus-verification.',
-}
+import { Reveal } from '@/components/layout/Reveal'
 
 type Citation = {
   actName: string
@@ -72,79 +64,105 @@ function pct(n: number): string {
   return `${Math.round(n * 1000) / 10}%`
 }
 
-export default function AuditPage() {
-  const fabricatedBaseline = data.results.filter((r) => r.baseline.fabricatedCount > 0)
-  const examples = (
-    fabricatedBaseline.length > 0
-      ? fabricatedBaseline
-      : data.results.filter((r) => r.kind !== 'in-corpus')
-  ).slice(0, 3)
+export function AuditSection() {
+  const wrongSection = data.results.filter(
+    (r) =>
+      r.expectedSection && !r.baseline.abstained && !r.baseline.citations.some((c) => c.correct),
+  )
+  const mismatch = data.results.filter((r) =>
+    r.baseline.citations.some((c) => c.exists && !c.verbatim),
+  )
+  const examples = [...wrongSection, ...mismatch]
+    .filter((r, i, arr) => arr.findIndex((x) => x.id === r.id) === i)
+    .slice(0, 3)
+
+  const baselineAnsweredUnanswerable = data.results.filter(
+    (r) => r.kind !== 'in-corpus' && !r.baseline.abstained,
+  ).length
+  const patrasaarAbstainedUnanswerable = data.results.filter(
+    (r) => r.kind !== 'in-corpus' && r.grounded.abstained,
+  ).length
+  const unanswerable = data.results.filter((r) => r.kind !== 'in-corpus').length
 
   return (
-    <div className="relative z-10">
-      <SiteHeader />
-
-      <main className="mx-auto max-w-6xl px-5 pb-20 sm:px-6">
-        <section className="pt-14 sm:pt-20">
-          <Reveal>
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-accent">
-              Hallucination audit
-            </p>
-            <h1 className="mt-4 max-w-3xl font-serif text-4xl leading-tight sm:text-5xl">
-              We pointed the same model at the same questions, with and without verification.
-            </h1>
-            <p className="mt-5 max-w-3xl text-base text-muted sm:text-lg">
-              Every Indian legal-AI product claims to cite the law. Rather than assert it, we
-              measured it: {data.sampleSize} questions, two arms - a language model answering from
-              memory (the “just ask a chatbot” baseline) and PatraSaar&apos;s retrieve → constrain →
-              verify pipeline - scored deterministically against the indexed bare acts.
-            </p>
-            <p className="mt-4 max-w-3xl rounded-card border border-accent/25 bg-accent-soft p-4 text-sm text-muted">
-              <strong className="text-foreground">Headline.</strong> The ungrounded model usually
-              names a <em>real</em> section - but its quoted wording is almost always not the actual
-              statute: only <strong className="text-danger">{pct(s.baseline.verbatimRate)}</strong>{' '}
-              of its quotes appear verbatim in the source text, versus{' '}
-              <strong className="text-verified">{pct(s.grounded.verbatimRate)}</strong> for
-              PatraSaar. PatraSaar verifies {pct(s.grounded.verifiedRate)} of the citations it shows
-              and fabricates none.
-            </p>
-          </Reveal>
-        </section>
-
-        {/* Headline stats */}
-        <Reveal delay={80}>
-          <section className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Stat
-              label="Baseline quotes that are verbatim"
-              value={pct(s.baseline.verbatimRate)}
-              tone="danger"
-              detail={`${s.baseline.verbatimCount} of ${s.baseline.citations} citations`}
-            />
-            <Stat
-              label="Baseline correct section"
-              value={pct(s.baseline.questionAccuracy)}
-              tone="warning"
-              detail={`${s.baseline.correctQuestions} of ${s.baseline.inCorpusQuestions} questions`}
-            />
-            <Stat
-              label="PatraSaar verified citations"
-              value={pct(s.grounded.verifiedRate)}
-              tone="verified"
-              detail={`${s.grounded.verifiedCount} of ${s.grounded.citations} citations`}
-            />
-            <Stat
-              label="PatraSaar fabricated citations"
-              value={pct(s.grounded.fabricatedRate)}
-              tone="verified"
-              detail={`${s.grounded.fabricatedCount} of ${s.grounded.citations} citations`}
-            />
-          </section>
+    <section id="audit" className="relative scroll-mt-20 border-y border-border bg-surface/40">
+      <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-24">
+        <Reveal>
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-accent">
+            Hallucination audit
+          </p>
+          <h2 className="mt-4 max-w-3xl font-serif text-4xl leading-tight sm:text-5xl">
+            We pointed the same model at the same questions, with and without verification.
+          </h2>
+          <p className="mt-5 max-w-3xl text-base text-muted sm:text-lg">
+            Every Indian legal-AI product claims to cite the law. Instead of asserting it, we
+            measured it: {data.sampleSize} questions, two arms, scored deterministically against the
+            indexed bare acts. Both arms use the same model,{' '}
+            <span className="font-mono text-foreground">{data.model}</span>, so the difference is
+            retrieval and verification, not the model.
+          </p>
         </Reveal>
 
-        {/* Bar comparison */}
-        <Reveal delay={120}>
-          <section className="mt-12 rounded-card border border-border bg-surface p-6 shadow-soft sm:p-8">
-            <h2 className="font-serif text-2xl">Citation quality by arm</h2>
+        {/* Hero metrics */}
+        <Reveal delay={60}>
+          <div className="mt-10 grid gap-3 sm:grid-cols-2">
+            <div className="animate-fade-up rounded-card border border-danger/30 bg-danger-soft/40 p-6 sm:p-8">
+              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-danger">
+                Baseline - model from memory
+              </p>
+              <p className="mt-3 font-serif text-6xl font-semibold leading-none text-danger sm:text-7xl">
+                {pct(s.baseline.verbatimRate)}
+              </p>
+              <p className="mt-3 text-sm text-muted">
+                of quotes are actually the statute ({s.baseline.verbatimCount} of{' '}
+                {s.baseline.citations} citations). Its section numbers are usually{' '}
+                <span className="text-foreground">real</span>, but the wording is not.
+              </p>
+            </div>
+            <div className="animate-fade-up rounded-card border border-verified/40 bg-verified-soft/50 p-6 [animation-delay:90ms] sm:p-8">
+              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-verified">
+                PatraSaar - retrieve + verify
+              </p>
+              <p className="mt-3 font-serif text-6xl font-semibold leading-none text-verified sm:text-7xl">
+                {pct(s.grounded.verifiedRate)}
+              </p>
+              <p className="mt-3 text-sm text-muted">
+                of shown citations are verified verbatim against the source (
+                {s.grounded.verifiedCount} of {s.grounded.citations}), and{' '}
+                <span className="text-foreground">{pct(s.grounded.fabricatedRate)} fabricated</span>
+                .
+              </p>
+            </div>
+          </div>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <MiniStat
+              label="Baseline correct section"
+              value={pct(s.baseline.questionAccuracy)}
+              detail={`${s.baseline.correctQuestions} of ${s.baseline.inCorpusQuestions} questions`}
+              tone="warning"
+            />
+            <MiniStat
+              label="PatraSaar correct section"
+              value={pct(s.grounded.questionAccuracy)}
+              detail={`${s.grounded.correctQuestions} of ${s.grounded.inCorpusQuestions} questions`}
+              tone="verified"
+            />
+            <MiniStat
+              label="Unanswerable questions answered anyway"
+              value={`${baselineAnsweredUnanswerable} vs ${unanswerable - patrasaarAbstainedUnanswerable}`}
+              detail={`baseline vs PatraSaar (of ${unanswerable}); PatraSaar abstained on ${patrasaarAbstainedUnanswerable}`}
+              tone="danger"
+            />
+          </div>
+        </Reveal>
+
+        {/* Bars */}
+        <Reveal delay={140}>
+          <div className="mt-12 rounded-card border border-border bg-surface p-6 shadow-soft sm:p-8">
+            <h3 className="font-serif text-2xl">Citation quality by arm</h3>
             <p className="mt-1 text-sm text-muted">
               Share of citations in each arm. The verifier is deterministic string-matching against
               the indexed text - it is not a second language model.
@@ -154,7 +172,7 @@ export default function AuditPage() {
                 title="Baseline - model from memory"
                 rows={[
                   { label: 'Resolves to a real section', value: s.baseline.existsRate },
-                  { label: 'Quote is verbatim', value: s.baseline.verbatimRate },
+                  { label: 'Quote is verbatim', value: s.baseline.verbatimRate, danger: true },
                   { label: 'Matches the right section', value: s.baseline.correctRate },
                   {
                     label: 'Fabricated (section does not exist)',
@@ -167,7 +185,7 @@ export default function AuditPage() {
                 title="PatraSaar - retrieve + verify"
                 rows={[
                   { label: 'Resolves to a real section', value: s.grounded.existsRate },
-                  { label: 'Quote is verbatim', value: s.grounded.verbatimRate },
+                  { label: 'Quote is verbatim', value: s.grounded.verbatimRate, verified: true },
                   { label: 'Matches the right section', value: s.grounded.correctRate },
                   {
                     label: 'Verified (exists + retrieved + verbatim)',
@@ -182,14 +200,14 @@ export default function AuditPage() {
                 ]}
               />
             </div>
-          </section>
+          </div>
         </Reveal>
 
-        {/* Examples */}
+        {/* Side by side */}
         {examples.length > 0 && (
           <Reveal delay={160}>
-            <section className="mt-12">
-              <h2 className="font-serif text-2xl">Side by side</h2>
+            <div className="mt-12">
+              <h3 className="font-serif text-2xl">Side by side</h3>
               <p className="mt-1 text-sm text-muted">
                 The failure mode PatraSaar exists to catch: a confident citation that does not
                 survive a check against the source text.
@@ -205,22 +223,22 @@ export default function AuditPage() {
                   </div>
                 ))}
               </div>
-            </section>
+            </div>
           </Reveal>
         )}
 
         {/* Full table */}
         <Reveal delay={200}>
-          <section className="mt-12">
-            <h2 className="font-serif text-2xl">All questions</h2>
+          <div className="mt-12">
+            <h3 className="font-serif text-2xl">All questions</h3>
             <div className="mt-4 overflow-x-auto rounded-card border border-border">
               <table className="w-full min-w-[760px] text-sm">
                 <thead className="bg-surface text-left text-xs uppercase tracking-wider text-faint">
                   <tr>
                     <th className="px-4 py-3">Question</th>
                     <th className="px-4 py-3">Type</th>
-                    <th className="px-4 py-3">Baseline</th>
-                    <th className="px-4 py-3">PatraSaar</th>
+                    <th className="px-4 py-3">Baseline ({data.model})</th>
+                    <th className="px-4 py-3">PatraSaar (verified)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -239,13 +257,13 @@ export default function AuditPage() {
                 </tbody>
               </table>
             </div>
-          </section>
+          </div>
         </Reveal>
 
         {/* Methodology */}
         <Reveal delay={240}>
-          <section className="mt-14 rounded-card border border-border bg-surface p-6 sm:p-8">
-            <h2 className="font-serif text-2xl">Methodology, stated honestly</h2>
+          <div className="mt-14 rounded-card border border-border bg-surface p-6 sm:p-8">
+            <h3 className="font-serif text-2xl">Methodology, stated honestly</h3>
             <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted">
               <p>
                 <strong className="text-foreground">Sample.</strong> {data.sampleSize} questions:{' '}
@@ -253,15 +271,16 @@ export default function AuditPage() {
                 naming a section that does not exist, and 3 outside the indexed acts.
               </p>
               <p>
-                <strong className="text-foreground">Arms.</strong> The baseline is the same model
-                answering from parametric memory with no retrieved context. It is not ChatGPT
-                itself. PatraSaar is the same model constrained to the retrieved sections and then
-                checked server-side.
+                <strong className="text-foreground">Model.</strong> Both arms use{' '}
+                <span className="font-mono text-foreground">{data.model}</span> (temperature 0.1).
+                The baseline is the same model answering from memory with no retrieved context; it
+                is not ChatGPT or Claude. PatraSaar is the same model constrained to the retrieved
+                sections and then checked server-side.
               </p>
               <p>
                 <strong className="text-foreground">Scoring.</strong> Deterministic and
-                reproducible: a citation <em>exists</em> if it resolves in the corpus, is
-                <em> verbatim</em> if the quoted string appears in the section after normalization,
+                reproducible: a citation <em>exists</em> if it resolves in the corpus, is{' '}
+                <em>verbatim</em> if the quoted string appears in the section after normalization,
                 and is <em>correct</em> if it matches the ground-truth section. A citation that
                 resolves to no real section is counted as fabricated. The verifier is normalized
                 string-matching, not another model, so it cannot itself hallucinate about whether
@@ -275,21 +294,19 @@ export default function AuditPage() {
                 the Stanford RegLab audits of commercial legal-AI tools.
               </p>
               <p className="text-xs text-faint">
-                Model: {data.model}. Run at{' '}
-                {new Date(data.runAt).toISOString().slice(0, 16).replace('T', ' ')} UTC. Re-run with{' '}
-                <code className="text-muted">pnpm audit:run</code>.
+                Run at {new Date(data.runAt).toISOString().slice(0, 16).replace('T', ' ')} UTC.
+                Re-run with <code className="text-muted">pnpm audit:run</code>. Raw data:{' '}
+                <code className="text-muted">data/audit-results.json</code>.
               </p>
             </div>
-          </section>
+          </div>
         </Reveal>
-      </main>
-
-      <SiteFooter />
-    </div>
+      </div>
+    </section>
   )
 }
 
-function Stat({
+function MiniStat({
   label,
   value,
   detail,
@@ -303,7 +320,7 @@ function Stat({
   const color =
     tone === 'verified' ? 'text-verified' : tone === 'danger' ? 'text-danger' : 'text-warning'
   return (
-    <div className="rounded-card border border-border bg-surface p-5 shadow-soft transition-transform duration-300 hover:-translate-y-0.5">
+    <div className="rounded-card border border-border bg-surface p-5 transition-transform duration-300 hover:-translate-y-0.5">
       <p className={`font-serif text-3xl ${color}`}>{value}</p>
       <p className="mt-1 text-xs font-medium text-foreground">{label}</p>
       <p className="mt-0.5 text-[11px] text-faint">{detail}</p>

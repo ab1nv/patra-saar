@@ -7,7 +7,7 @@ import {
   normalizeSectionNumber,
 } from './index'
 import type { RetrievedSection, RetrievalResult, Section } from './types'
-import { contentTokens } from '../text'
+import { contentTokens, normalizeForMatch } from '../text'
 
 const TOP_K = 8
 const MIN_COVERAGE = 0.34
@@ -64,6 +64,34 @@ function findActInQuery(question: string): string | undefined {
   return undefined
 }
 
+/**
+ * Exact-phrase booster. BM25 splits a query into terms, so a short, precise
+ * question ("punishment for theft") can be out-ranked by a longer section that
+ * merely repeats a neighbouring word ("stolen property"). This restores a
+ * preference for sections whose TITLE contains a contiguous phrase from the
+ * question, and for single-word titles that the question names verbatim
+ * ("Theft", "Murder", "Cheating").
+ */
+function titlePhraseBoost(question: string, title: string): number {
+  const q = normalizeForMatch(question)
+  const t = normalizeForMatch(title)
+  if (!q || !t) return 1
+
+  const qWords = q.split(' ')
+  for (let n = Math.min(4, qWords.length); n >= 2; n--) {
+    for (let i = 0; i + n <= qWords.length; i++) {
+      const phrase = qWords.slice(i, i + n).join(' ')
+      if (phrase.length >= 10 && t.includes(phrase)) return 1.5
+    }
+  }
+
+  const titleWords = t.split(' ').filter(Boolean)
+  if (titleWords.length === 1 && titleWords[0]!.length >= 4 && qWords.includes(titleWords[0]!)) {
+    return 1.3
+  }
+  return 1
+}
+
 function extractExactSections(question: string): Section[] {
   const found: Section[] = []
   const seen = new Set<string>()
@@ -118,9 +146,11 @@ export function retrieve(question: string, opts: { topK?: number } = {}): Retrie
     .filter((h) => !exactIds.has(h.id))
     .map((h) => {
       const s = byId.get(h.id)!
-      // If the question names an act, prefer sections from that act.
-      const boost = namedAct && actSlugFromName(s.act) === namedAct ? NAMED_ACT_BOOST : 1
-      return { ...s, score: h.score * boost, matchType: 'lexical' as const }
+      // Prefer sections from a named act, and titles containing a phrase from
+      // the question (fixes BM25 splitting short, precise queries).
+      const actBoost = namedAct && actSlugFromName(s.act) === namedAct ? NAMED_ACT_BOOST : 1
+      const phraseBoost = titlePhraseBoost(question, s.title)
+      return { ...s, score: h.score * actBoost * phraseBoost, matchType: 'lexical' as const }
     })
     .sort((a, b) => b.score - a.score)
 

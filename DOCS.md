@@ -21,7 +21,7 @@ text. Citations that fail are struck through and labelled with the exact failure
 nothing above threshold, the system abstains.
 
 The design goal is not to prevent the model from hallucinating, but to **catch it deterministically
-and measure it**. The project ships a **hallucination audit** at `/audit`: the same model, on the same
+and measure it**. The project ships a **hallucination audit** as a section on the landing page (`/#audit`): the same model, on the same
 30-question ground-truth set, with and without retrieval-plus-verification, scored automatically
 against the corpus.
 
@@ -57,7 +57,6 @@ answer about the text of a central act - and who need to know when the tool does
 - Cover case law, state amendments, rules, notifications, or anything outside the ten sources.
 - Provide legal advice or create a lawyer–client relationship.
 - Support multiple users, teams, or roles.
-- Treat uploaded attachments as legal sources (they inform the question only).
 - Guarantee that a correctly quoted section is applied to the correct legal situation. Verification
   proves **provenance**, not legal reasoning.
 
@@ -70,8 +69,8 @@ answer about the text of a central act - and who need to know when the tool does
   performs a full navigation and lands directly on the workspace.
 - **Workspace (`/chat`)** - streaming markdown answers, inline verification badges, expandable
   citation chips, collapsible/resizable sidebar (a drawer on mobile), pinned and renameable chats,
-  incognito mode, PDF/text attachments, and select-to-cross-question.
-- **Hallucination audit (`/audit`, public)** - headline statistics, per-metric comparison bars,
+  incognito mode, and select-to-cross-question.
+- **Hallucination audit (public landing-page section)** - headline statistics, per-metric comparison bars,
   side-by-side failure examples, the full results table, and an explicit methodology.
 - **Abstention** - ask an out-of-corpus question and the system refuses, with no citations rendered.
 
@@ -87,7 +86,6 @@ answer about the text of a central act - and who need to know when the tool does
 │    /api/auth/*   → scrypt + jose JWT in httpOnly cookie       │
 │    /api/chat     → retrieve → prompt → stream → verify        │
 │    /api/cases/*  → chat persistence (Neon Postgres)           │
-│    /api/extract  → PDF/text extraction (unpdf)                │
 │    /api/sections → verbatim section text for the drawer       │
 │                                                              │
 │  lib/                                                        │
@@ -179,7 +177,7 @@ matches the ground-truth section. A citation that resolves to no real section is
 _fabricated_. The same `checkSectionExists` / `checkQuoteVerbatim` functions power the live verifier,
 so the audit measures the shipped system.
 
-Results are written to `data/audit-results.json` and rendered at `/audit`, together with the
+Results are written to `data/audit-results.json` and rendered as the audit section of the landing page, together with the
 methodology and its limitations (small, self-run, single-model, non-adversarial, not peer-reviewed;
 mirrors the Stanford RegLab design at much smaller scale).
 
@@ -220,25 +218,24 @@ in `data/acts/`, add an entry to `ACTS` in the script and re-run `pnpm corpus:bu
 All responses use one error shape: `{ "error": string, "message": string }`. Auth is a `ps_session`
 httpOnly cookie.
 
-| Method & path                 | Auth | Body / params                                                                  | Response                                        |
-| ----------------------------- | ---- | ------------------------------------------------------------------------------ | ----------------------------------------------- |
-| `GET /api/health`             | no   | -                                                                              | `{ status, corpusSections, builtAt, provider }` |
-| `POST /api/auth/login`        | no   | `{ email, password }`                                                          | `{ user }` + sets cookie                        |
-| `POST /api/auth/logout`       | no   | -                                                                              | `{ ok: true }` + clears cookie                  |
-| `GET /api/auth/me`            | yes  | -                                                                              | `{ user }` or 401                               |
-| `POST /api/chat`              | yes  | `{ question, caseId?, mode?, incognito?, attachmentText?, selectionContext? }` | SSE stream                                      |
-| `GET /api/cases`              | yes  | -                                                                              | `{ cases }`                                     |
-| `POST /api/cases`             | yes  | `{ title }`                                                                    | `{ case }` (201)                                |
-| `GET /api/cases/:id`          | yes  | -                                                                              | `{ case, messages }`                            |
-| `PATCH /api/cases/:id`        | yes  | `{ title?, pinned? }`                                                          | `{ case }`                                      |
-| `DELETE /api/cases/:id`       | yes  | -                                                                              | `{ ok: true }`                                  |
-| `GET /api/sections/:act/:num` | yes  | -                                                                              | `{ section }`                                   |
-| `POST /api/extract`           | yes  | `multipart/form-data` `file`                                                   | `{ name, chars, text }`                         |
+| Method & path                 | Auth | Body / params                                                 | Response                                        |
+| ----------------------------- | ---- | ------------------------------------------------------------- | ----------------------------------------------- |
+| `GET /api/health`             | no   | -                                                             | `{ status, corpusSections, builtAt, provider }` |
+| `POST /api/auth/login`        | no   | `{ email, password }`                                         | `{ user }` + sets cookie                        |
+| `POST /api/auth/logout`       | no   | -                                                             | `{ ok: true }` + clears cookie                  |
+| `GET /api/auth/me`            | yes  | -                                                             | `{ user }` or 401                               |
+| `POST /api/chat`              | yes  | `{ question, caseId?, mode?, incognito?, selectionContext? }` | SSE stream                                      |
+| `GET /api/cases`              | yes  | -                                                             | `{ cases }`                                     |
+| `POST /api/cases`             | yes  | `{ title }`                                                   | `{ case }` (201)                                |
+| `GET /api/cases/:id`          | yes  | -                                                             | `{ case, messages }`                            |
+| `PATCH /api/cases/:id`        | yes  | `{ title?, pinned? }`                                         | `{ case }`                                      |
+| `DELETE /api/cases/:id`       | yes  | -                                                             | `{ ok: true }`                                  |
+| `GET /api/sections/:act/:num` | yes  | -                                                             | `{ section }`                                   |
 
 **Chat SSE events** (`text/event-stream`, one JSON object per `data:` frame):
 
 ```
-data: {"type":"meta","provider":"groq","caseId":"…","abstained":false,"incognito":false,"retrieved":[…]}
+data: {"type":"meta","provider":"groq","model":"qwen/qwen3.8-27b","caseId":"…","abstained":false,"incognito":false,"retrieved":[…]}
 data: {"type":"token","value":"Under "}
 data: {"type":"citations","value":[…],"verifiedCount":1,"unverifiedCount":0}
 data: {"type":"title","caseId":"…","title":"Murder Under BNS"}

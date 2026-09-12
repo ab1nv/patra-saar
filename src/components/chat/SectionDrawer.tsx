@@ -75,6 +75,9 @@ export function SectionDrawer({
                   : `⚠ ${citation.failureReason ?? 'unverified'}`}
               </Badge>
               {section && <Badge tone="accent">{section.actFull}</Badge>}
+              {citation.subsection && (
+                <Badge tone="accent">sub-section ({citation.subsection})</Badge>
+              )}
             </div>
             <h2 className="font-serif text-xl font-semibold">
               {section
@@ -115,11 +118,44 @@ export function SectionDrawer({
               <p className="mb-2 text-[11px] uppercase tracking-wider text-faint">
                 Verbatim text from the indexed act
               </p>
-              <p className="statute whitespace-pre-wrap text-muted">{section.text}</p>
+              <p className="statute whitespace-pre-wrap text-muted">
+                {highlightSubsection(section.text, citation.subsection)}
+              </p>
             </>
           )}
         </div>
       </aside>
     </div>
+  )
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * When the model cited a sub-section (e.g. "BNS s.318(2)"), highlight that
+ * paragraph inside the full section text so the reader's eye lands on it.
+ */
+function highlightSubsection(text: string, subsection?: string) {
+  if (!subsection) return text
+
+  const marker = new RegExp(`\\(\\s*${escapeRegExp(subsection)}\\s*\\)`)
+  const match = marker.exec(text)
+  if (!match) return text
+
+  const start = match.index
+  const afterMarker = text.slice(start + match[0].length)
+  const nextMarker = afterMarker.search(/\(\s*(?:\d+|[a-zA-Z])\s*\)/)
+  const end = nextMarker >= 0 ? start + match[0].length + nextMarker : text.length
+
+  return (
+    <>
+      {text.slice(0, start)}
+      <mark className="rounded bg-accent-soft px-1 text-foreground ring-1 ring-accent/30">
+        {text.slice(start, end).trimEnd()}
+      </mark>
+      {text.slice(end)}
+    </>
   )
 }

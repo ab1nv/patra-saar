@@ -146,7 +146,7 @@ export function CaseSidebar({
             <button
               type="button"
               onClick={newChat}
-              title="New inquiry"
+              title="New Chat"
               className="rounded-md p-2 text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
             >
               <MessageSquarePlus size={16} />
@@ -164,7 +164,7 @@ export function CaseSidebar({
             </button>
             <div className="mt-auto flex flex-col items-center gap-2">
               <Link
-                href="/audit"
+                href="/#audit"
                 title="Hallucination audit"
                 className="rounded-md p-2 text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
               >
@@ -213,7 +213,7 @@ export function CaseSidebar({
                 onClick={newChat}
                 className="flex w-full items-center gap-2 rounded-control border border-border bg-surface-2 px-3 py-2.5 text-xs font-medium transition-colors hover:border-border-strong active:scale-[.99]"
               >
-                <MessageSquarePlus size={14} /> New inquiry
+                <MessageSquarePlus size={14} /> New Chat
               </button>
 
               <button
@@ -283,7 +283,7 @@ export function CaseSidebar({
             <div className="border-t border-border p-3">
               <div className="mb-2 flex gap-1">
                 <Link
-                  href="/audit"
+                  href="/#audit"
                   className="flex flex-1 items-center justify-center gap-1 rounded-control border border-border px-2 py-1.5 text-[11px] text-muted transition-colors hover:text-foreground"
                 >
                   <FlaskConical size={12} /> Hallucination audit

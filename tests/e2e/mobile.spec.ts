@@ -13,9 +13,10 @@ test.describe('Mobile experience', () => {
     await expect(page).toHaveURL(/\/login/)
   })
 
-  test('audit page renders on a phone viewport', async ({ page }) => {
-    await gotoHydrated(page, '/audit')
+  test('audit section renders on the landing page', async ({ page }) => {
+    await gotoHydrated(page, '/')
     await expect(page.getByRole('heading', { name: /same model/i })).toBeVisible()
+    await expect(page.getByText('97.6%').first()).toBeVisible()
   })
 
   test('sidebar is a drawer and chat still works', async ({ page }) => {
@@ -28,7 +29,7 @@ test.describe('Mobile experience', () => {
 
     // Sidebar is off-canvas until the hamburger opens it.
     await page.getByRole('button', { name: 'Open menu' }).click()
-    await expect(page.getByRole('button', { name: /New inquiry/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /New Chat/i })).toBeVisible()
     await page.getByRole('button', { name: 'Close sidebar' }).click()
 
     await page.route('**/api/chat', (route) =>

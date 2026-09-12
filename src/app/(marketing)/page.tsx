@@ -14,6 +14,8 @@ import {
 import { corpusMeta } from '@/lib/corpus'
 import { SiteFooter, SiteHeader } from '@/components/layout/SiteChrome'
 import { Reveal } from '@/components/layout/Reveal'
+import { AuditSection } from '@/components/marketing/AuditSection'
+import auditData from '../../../data/audit-results.json'
 
 export const metadata = {
   title: 'PatraSaar',
@@ -23,6 +25,7 @@ export default function LandingPage() {
   const meta = corpusMeta()
   const sections = meta.sectionCount.toLocaleString()
   const acts = meta.acts.length
+  const auditModel = (auditData as { model: string }).model
 
   return (
     <div className="relative z-10">
@@ -54,15 +57,16 @@ export default function LandingPage() {
                 Try the demo
               </Link>
               <Link
-                href="/audit"
+                href="#audit"
                 className="rounded-control border border-border bg-surface px-6 py-3 font-semibold transition-all hover:border-border-strong active:scale-[.98]"
               >
-                See the hallucination audit
+                See Audit
               </Link>
             </div>
             <p className="mt-8 text-sm text-faint">
               <span className="text-muted">{sections}</span> sections across{' '}
-              <span className="text-muted">{acts}</span> central acts and the Constitution
+              <span className="text-muted">{acts}</span> central acts and the Constitution.
+              Benchmarked on <span className="font-mono text-muted">{auditModel}</span>.
             </p>
           </div>
 
@@ -236,12 +240,20 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Audit (moved in from its own page) */}
+      <AuditSection />
+
       {/* Comparison */}
       <section className="mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-20">
         <Reveal>
           <h2 className="max-w-3xl font-serif text-3xl sm:text-4xl">
             Narrow on purpose. Here is the tradeoff.
           </h2>
+          <p className="mt-3 max-w-3xl text-sm text-muted">
+            PatraSaar&apos;s audit above was measured on{' '}
+            <span className="font-mono text-foreground">{auditModel}</span>. The comparison below is
+            about product design, not benchmarks against other tools.
+          </p>
         </Reveal>
         <Reveal delay={80}>
           <div className="mt-8 overflow-x-auto rounded-card border border-border">
@@ -268,6 +280,11 @@ export default function LandingPage() {
                   ['When it lacks the provision', 'Refuses and says so', 'Typically still answers'],
                   ['Source text inline', 'Yes, verbatim from the act', 'Varies'],
                   ['Scope', 'Deliberately narrow and published', 'General purpose'],
+                  [
+                    'Benchmark model',
+                    `${auditModel} (Groq)`,
+                    'Varies; no Indian-statute rate published',
+                  ],
                 ].map(([label, a, b]) => (
                   <tr key={label} className="border-t border-border">
                     <td className="px-5 py-3 text-faint">{label}</td>

@@ -1,6 +1,6 @@
 ================================================================================
 PATRASAAR - EXECUTIVE AND FEATURE SUMMARY
-Version 3.1.0  ·  Generated 2026-09-16
+Version 3.2.0  ·  Generated 2026-09-16
 Live: https://patra-saar-lyart.vercel.app
 Repository: https://github.com/ab1nv/patra-saar  (branch: master)
 ================================================================================
@@ -49,7 +49,7 @@ VERIFIED CITATIONS (core)
     exact reason (section_not_found / not_retrieved / quote_not_verbatim).
   - Sub-section syntax (e.g. BNS s.318(2)) normalised to the base section.
 
-HALLUCINATION AUDIT (public, /audit)
+HALLUCINATION AUDIT (public landing-page section)
   - 30 ground-truth questions: 24 in-corpus, 3 non-existent sections, 3 outside
     the indexed acts.
   - Two arms on the same model: Baseline (no retrieval) vs PatraSaar
@@ -74,7 +74,7 @@ HALLUCINATION AUDIT (public, /audit)
     This stands in for "just ask a chatbot". It is NOT ChatGPT, Claude,
     Gemini or any commercial assistant - it is one open-weight model on a
     free tier, used as an apples-to-apples control for the effect of
-    retrieval + verification. The /audit page states this explicitly.
+    retrieval + verification. The audit section states this explicitly.
   ARM 2 "PatraSaar" (grounded + verified): the same model constrained to the
     retrieved sections, with the output checked server-side by a
     deterministic verifier.
@@ -337,9 +337,9 @@ HALLUCINATION AUDIT (public, /audit)
     pnpm audit:run --limit 5  # quick sample
     pnpm audit:run --fresh    # ignore previous results
     pnpm test:unit            # includes audit scoring tests
-    Live view: /audit         Raw data: data/audit-results.json
+    Live view: /#audit        Raw data: data/audit-results.json
 
-  LIMITATIONS (stated on /audit)
+  LIMITATIONS (stated in the audit section)
   Small (30 questions), self-run, single-model, non-adversarial and not
   peer-reviewed. It measures citation provenance, not legal reasoning. It
   mirrors, at much smaller scale, the design of the Stanford RegLab audits of
@@ -354,9 +354,18 @@ CHAT WORKSPACE
   - Collapsible, drag-resizable sidebar (a drawer on mobile).
   - Pin, rename and delete chats; model-generated chat titles.
   - Incognito mode (nothing persisted).
-  - File attachments (PDF/text) whose text is extracted and sent to the model.
   - Select any phrase in an answer to cross-question it with chat context.
   - Fully responsive with scroll-reveal and entrance animations.
+  - Instant, optimistic UI: delete, rename, pin and create update the screen
+    immediately and persist in the background. The chat list is cached in
+    localStorage and per-chat messages in memory, so switching is instant.
+  - The active model id is shown beside the composer and under the chat title.
+  - No document attachments: answers come only from the indexed corpus.
+  - Retrieval boost: a section whose title contains a contiguous phrase from
+    the question scores 1.5x, and a single-word title named in the question
+    1.3x (fixes the BNS-theft ranking miss).
+  - Sub-section citations such as BNS s.318(2) keep the sub-section, and the
+    drawer highlights that paragraph inside the full section text.
 
 CORPUS
   - Ten sources parsed at section/article level from the official PDFs.
@@ -436,11 +445,11 @@ Login abhinav@test.com / abhinav
   4. Ask "What does Article 21 of the Constitution protect?" or "When may a police
      officer arrest without a warrant under the BNSS?" -> new acts answer with
      verified citations.
-  5. Open /audit (public) -> headline statistics, comparison bars, side-by-side
+  5. On the landing page press See Audit -> headline statistics, comparison bars, side-by-side
      examples, full table, methodology.
   6. Sidebar: create, pin, rename and delete chats (no confirmation dialog).
   7. Incognito toggle -> the chat answers but is never saved.
-  8. Paperclip -> attach a PDF/text file; its text is used as context.
+  8. Beside the composer, the active model (qwen/qwen3.8-27b) is shown.
   9. Select a phrase in an answer -> a "Cross-question" button appears.
  10. Open on a phone -> the sidebar becomes a hamburger drawer; the layout
      reflows and the citation drawer is full-screen.

@@ -3,6 +3,7 @@ export type ChatCitation = {
   actName: string
   actFull?: string
   number: string
+  subsection?: string
   quote: string
   sectionId?: string
   title?: string
@@ -31,6 +32,7 @@ export type StreamEvent =
   | {
       type: 'meta'
       provider: string
+      model: string
       caseId: string | null
       abstained: boolean
       incognito: boolean

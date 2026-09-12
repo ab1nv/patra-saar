@@ -1,34 +1,27 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { FileText, Paperclip, Quote, Send, Square, X } from 'lucide-react'
+import { Quote, Send, Square, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-export type Attachment = { name: string; chars: number; text: string }
 
 export function Composer({
   streaming,
-  attachments,
+  model,
   pendingQuote,
   focusNonce,
   onSend,
   onStop,
-  onAddFiles,
-  onRemoveAttachment,
   onClearQuote,
 }: {
   streaming: boolean
-  attachments: Attachment[]
+  model: string
   pendingQuote: string | null
   focusNonce: number
   onSend: (question: string) => void
   onStop: () => void
-  onAddFiles: (files: File[]) => void
-  onRemoveAttachment: (name: string) => void
   onClearQuote: () => void
 }) {
   const [value, setValue] = useState('')
-  const fileRef = useRef<HTMLInputElement>(null)
   const textRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -52,36 +45,14 @@ export function Composer({
   return (
     <div className="bg-background px-4 pb-4 pt-2 sm:px-6 sm:pb-5">
       <div className="mx-auto max-w-3xl">
-        {attachments.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
-            {attachments.map((a) => (
-              <span
-                key={a.name}
-                className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-xs"
-              >
-                <FileText size={12} className="text-accent" />
-                <span className="max-w-[180px] truncate">{a.name}</span>
-                <button
-                  type="button"
-                  onClick={() => onRemoveAttachment(a.name)}
-                  className="text-faint hover:text-danger"
-                  aria-label={`Remove ${a.name}`}
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-
         {pendingQuote && (
-          <div className="mb-2 flex items-start gap-2 rounded-lg border border-accent/30 bg-accent-soft px-3 py-2 text-xs">
+          <div className="mb-2 flex items-start gap-2 rounded-control border border-accent/30 bg-accent-soft px-3 py-2 text-xs">
             <Quote size={12} className="mt-0.5 shrink-0 text-accent" />
             <span className="line-clamp-2 flex-1 text-foreground">{pendingQuote}</span>
             <button
               type="button"
               onClick={onClearQuote}
-              className="text-faint hover:text-danger"
+              className="text-faint transition-colors hover:text-danger"
               aria-label="Clear quote"
             >
               <X size={12} />
@@ -89,7 +60,7 @@ export function Composer({
           </div>
         )}
 
-        <div className="rounded-2xl border border-border bg-surface p-2 shadow-sm transition-colors focus-within:border-border-strong">
+        <div className="rounded-2xl border border-border bg-surface p-2 shadow-soft transition-colors focus-within:border-border-strong">
           <textarea
             ref={textRef}
             value={value}
@@ -99,36 +70,17 @@ export function Composer({
             placeholder={
               pendingQuote ? 'Ask about the selected passage…' : 'Ask about an indexed section…'
             }
-            className="max-h-52 min-h-[52px] w-full resize-none bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-faint"
+            className="max-h-52 min-h-[52px] w-full resize-none bg-transparent px-3 pt-2.5 text-sm text-foreground outline-none placeholder:text-faint"
           />
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-1">
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".pdf,.txt,.md,text/plain,application/pdf"
-                className="sr-only"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files ?? [])
-                  if (files.length) onAddFiles(files)
-                  e.target.value = ''
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                title="Attach a document"
-                className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs text-muted hover:bg-surface-2 hover:text-foreground"
-              >
-                <Paperclip size={14} /> Attach
-              </button>
-            </div>
-
+          <div className="flex items-center justify-between gap-3 px-1 pt-1">
+            <span className="truncate font-mono text-[10px] text-faint" title={model}>
+              {model}
+            </span>
             {streaming ? (
               <button
                 type="button"
                 onClick={onStop}
-                className="inline-flex h-8 items-center gap-1.5 rounded-md bg-danger-soft px-3 text-xs font-medium text-danger"
+                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-control bg-danger-soft px-3 text-xs font-medium text-danger transition-colors hover:bg-danger/20"
               >
                 <Square size={13} fill="currentColor" /> Stop
               </button>
@@ -138,7 +90,7 @@ export function Composer({
                 onClick={submit}
                 disabled={!value.trim()}
                 className={cn(
-                  'inline-flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-xs font-semibold text-background',
+                  'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-control bg-accent px-3 text-xs font-semibold text-background transition-all hover:bg-accent-strong active:scale-[.98]',
                   !value.trim() && 'opacity-40',
                 )}
               >

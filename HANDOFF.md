@@ -6,7 +6,7 @@
 **Live app:** https://patra-saar-lyart.vercel.app
 **Repository:** https://github.com/ab1nv/patra-saar (branch `master`)
 **Demo login:** `abhinav@test.com` / `abhinav`
-**Key artefact for the panel:** the `/audit` page - a measured hallucination comparison.
+**Key artefact for the panel:** the audit section on the landing page, reachable from the **See Audit** button - a measured hallucination comparison.
 
 > **Read this first.** This project's entire credibility rests on not overclaiming. Never say "zero
 > hallucinations", "100% accurate", or "complete Indian legal corpus". The defensible claim is:
@@ -33,7 +33,7 @@ system **abstains** rather than guessing.
 The design thesis is not that the model can be prevented from hallucinating. It is that
 hallucinations can be **caught deterministically and measured**. To prove it, the project ships a
 **hallucination audit**: the same model, on the same 30-question ground-truth set, with and without
-retrieval-plus-verification, scored automatically against the corpus (see `/audit`).
+retrieval-plus-verification, scored automatically against the corpus (see the audit section on the landing page).
 
 The one-line pitch: **"It cites the law, or it says it doesn't know."**
 
@@ -50,7 +50,7 @@ The one-line pitch: **"It cites the law, or it says it doesn't know."**
   `quote_not_verbatim`).
 - Sub-section citations (e.g. `BNS s.318(2)`) are normalised to the base section.
 
-**Hallucination audit (`/audit`, public).**
+**Hallucination audit (public landing-page section).**
 
 - 30 ground-truth questions: 24 in-corpus (each with a verified expected section), 3 naming a
   section that does not exist, 3 outside the indexed acts.
@@ -67,8 +67,8 @@ The one-line pitch: **"It cites the law, or it says it doesn't know."**
 **Abstention.** A coverage gate on retrieval means weak matches produce a refusal, not a guess.
 
 **Chat workspace.** Streaming markdown answers, inline citation chips, a citation drawer showing
-verbatim text, collapsible/resizable sidebar, pin/rename/delete, incognito mode, PDF/text
-attachments (text extracted server-side and passed to the model), and select-to-cross-question.
+verbatim text, collapsible/resizable sidebar, optimistic pin/rename/delete, incognito mode, and
+select-to-cross-question. The active model is shown beside the composer.
 
 **Corpus.** Ten sources parsed at the section/article level from the official PDFs (not blind
 chunking). Per-act counts are printed by the build script and shown on the landing page.
@@ -176,7 +176,7 @@ zero-tolerance, weeks before the presentation, in a live case with real financia
 
 The brief's recommendation was to build a **hallucination benchmark** rather than another feature:
 _"You already wrote the verifier - you've just never pointed it at an unverified baseline and
-published the comparison."_ That is now implemented as the audit harness and `/audit` page:
+published the comparison."_ That is now implemented as the audit harness and the landing-page audit section:
 ground-truth questions, an ungrounded baseline arm, deterministic scoring, and an honest
 methodology. Instead of saying _"we verify citations,"_ the demo says _"we measured that our model
 fabricates citations on N% of questions when ungrounded, and our verifier catches them - here is
@@ -283,7 +283,7 @@ that the others do not target with this rigour.**
 3. **The money shot (0:55).** Ask something outside the corpus - _"What are the current GST rates on
    textiles?"_ - and let it **refuse**. _"It doesn't guess. Retrieval scored below threshold, so it
    abstained."_
-4. **The audit (1:25).** Open `/audit`. Show the fabricated-citation-rate comparison and one
+4. **The audit (1:25).** Click **See Audit** to jump to the audit section. Show the fabricated-citation-rate comparison and one
    side-by-side example. _"Same model. Without retrieval and verification it invents or misattributes
    citations; with them, every shown citation is verified."_
 5. **Scope (2:00).** State exactly what is indexed (10 acts) and what is not (case law, state
@@ -328,14 +328,13 @@ that the others do not target with this rigour.**
 4. **New acts.** Ask _"What does Article 21 of the Constitution protect?"_, _"When may a police
    officer arrest without a warrant under the BNSS?"_, _"What is the procedure under CPC section
    9?"_ → correct sections, verified citations.
-5. **Audit.** Open `/audit` (public, no login) → headline stats, per-metric bars, side-by-side
+5. **Audit.** On the landing page, open the audit section (public, no login) → headline stats, per-metric bars, side-by-side
    examples, full table, methodology.
 6. **Chat management.** Sidebar: create several chats, **pin**, **rename**, **delete** (no
    confirmation dialog now).
 7. **Incognito.** Toggle incognito → ask a question → it answers but **nothing is saved** to the
    sidebar.
-8. **Attachments.** Click the paperclip, attach a PDF or text file → text is extracted and used as
-   context; the model still cites only indexed sections.
+8. **Model label.** The model id is shown beside the composer and under the chat title.
 9. **Cross-question.** Select a phrase in an answer → a **Cross-question** button appears → click →
    the selected passage is carried into the composer as context.
 10. **Mobile.** Open on a phone: the sidebar becomes a hamburger drawer; the layout reflows; the

@@ -1,5 +1,5 @@
 import { buildPrompt, type ChatMode, type PromptExtras } from './prompt'
-import { streamGroq, generateTitle, heuristicTitle } from './groq'
+import { streamGroq, generateTitle, heuristicTitle, activeModel } from './groq'
 import { offlineAnswer } from './offline'
 import type { Section } from '../corpus/types'
 
@@ -9,6 +9,11 @@ export type LlmProvider = 'groq' | 'offline'
 
 export function llmProvider(): LlmProvider {
   return process.env.GROQ_API_KEY ? 'groq' : 'offline'
+}
+
+/** Model id shown in the UI (or "offline" when no key is configured). */
+export function currentModel(): string {
+  return llmProvider() === 'offline' ? 'offline' : activeModel()
 }
 
 /** Streams an answer. Uses Groq when configured, otherwise a deterministic offline fallback. */

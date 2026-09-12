@@ -23,6 +23,11 @@ describe('parseCitations', () => {
     expect(citations[0]?.number).toBe('318')
   })
 
+  it('captures the sub-section so the UI can highlight it', () => {
+    const { citations } = parseCitations('[[BNS s.318(2) | "Whoever cheats"]]')
+    expect(citations[0]?.subsection).toBe('2')
+  })
+
   it('handles long act names', () => {
     const { citations } = parseCitations(
       '[[Indian Contract Act s.10 | "All agreements are contracts"]]',

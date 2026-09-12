@@ -6,6 +6,7 @@ export const CHAT_ANSWER = {
   meta: {
     type: 'meta',
     provider: 'offline',
+    model: 'test-model',
     caseId: 'case-fixture',
     abstained: false,
     incognito: false,
@@ -43,6 +44,7 @@ export const ABSTAIN_ANSWER = {
   meta: {
     type: 'meta',
     provider: 'offline',
+    model: 'test-model',
     caseId: 'case-abstain',
     abstained: true,
     incognito: false,

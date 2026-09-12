@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Ghost, Menu, Quote } from 'lucide-react'
-import { Composer, type Attachment } from './Composer'
+import { Composer } from './Composer'
 import { MessageBubble } from './MessageBubble'
 import { SectionDrawer } from './SectionDrawer'
 import { CaseSidebar } from './CaseSidebar'
@@ -19,6 +19,17 @@ type RawMessage = {
 
 type Selection = { x: number; y: number; text: string }
 
+const CASES_CACHE_KEY = 'ps.cases.v1'
+
+const EXAMPLE_PROMPTS = [
+  'What is the punishment for murder under the BNS?',
+  'How is a first information report recorded under the CrPC?',
+  'What does Article 21 of the Constitution protect?',
+  'When may a police officer arrest a person without a warrant under the BNSS?',
+  'What is criminal breach of trust under the BNS?',
+  'What is the punishment for defamation under the IPC?',
+]
+
 export function ChatWorkspace({
   initialCaseId,
   email,
@@ -33,9 +44,9 @@ export function ChatWorkspace({
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [streaming, setStreaming] = useState(false)
   const [provider, setProvider] = useState('')
+  const [model, setModel] = useState('')
   const [citation, setCitation] = useState<ChatCitation | null>(null)
   const [incognito, setIncognito] = useState(false)
-  const [attachments, setAttachments] = useState<Attachment[]>([])
   const [pendingQuote, setPendingQuote] = useState<string | null>(null)
   const [focusNonce, setFocusNonce] = useState(0)
   const [selection, setSelection] = useState<Selection | null>(null)
@@ -49,13 +60,28 @@ export function ChatWorkspace({
   const abortRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const messagesRef = useRef<HTMLDivElement>(null)
+  const messagesCache = useRef<Map<string, ChatMessage[]>>(new Map())
 
-  // Restore sidebar preferences.
+  // Restore sidebar preferences and cached chat list for an instant first paint.
   useEffect(() => {
     const w = Number(localStorage.getItem('ps.sidebarWidth'))
     if (w >= 200 && w <= 420) setSidebarWidth(w)
     if (localStorage.getItem('ps.sidebarCollapsed') === '1') setCollapsed(true)
+    try {
+      const cached = localStorage.getItem(CASES_CACHE_KEY)
+      if (cached) setCases(JSON.parse(cached) as CaseSummary[])
+    } catch {
+      /* ignore cache errors */
+    }
   }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CASES_CACHE_KEY, JSON.stringify(cases.slice(0, 60)))
+    } catch {
+      /* ignore quota errors */
+    }
+  }, [cases])
 
   const changeWidth = useCallback((w: number) => {
     setSidebarWidth(w)
@@ -69,7 +95,6 @@ export function ChatWorkspace({
     })
   }, [])
 
-  // Dynamic window title.
   useEffect(() => {
     if (incognito && !title) document.title = 'PatraSaar - Incognito'
     else if (title) document.title = `PatraSaar - ${title}`
@@ -87,43 +112,52 @@ export function ChatWorkspace({
     }
   }, [])
 
-  const loadMessages = useCallback(async (id: string) => {
-    try {
-      const res = await fetch(`/api/cases/${id}`, { credentials: 'include' })
-      if (!res.ok) {
-        setMessages([])
-        return
-      }
-      const data = (await res.json()) as { case: CaseSummary; messages: RawMessage[] }
-      setTitle(data.case?.title ?? null)
-      setMessages(
-        (data.messages ?? []).map((m) => ({
-          id: m.id,
-          role: m.role === 'user' ? 'user' : 'assistant',
-          content: m.content,
-          citations: m.citationsJson ? (JSON.parse(m.citationsJson) as ChatCitation[]) : [],
-          abstained: m.abstained,
-        })),
-      )
-    } catch {
-      setMessages([])
-    }
+  const fetchMessages = useCallback(async (id: string): Promise<ChatMessage[]> => {
+    const res = await fetch(`/api/cases/${id}`, { credentials: 'include' })
+    if (!res.ok) return []
+    const data = (await res.json()) as { case: CaseSummary; messages: RawMessage[] }
+    if (data.case?.title) setTitle(data.case.title)
+    return (data.messages ?? []).map((m) => ({
+      id: m.id,
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content,
+      citations: m.citationsJson ? (JSON.parse(m.citationsJson) as ChatCitation[]) : [],
+      abstained: m.abstained,
+    }))
   }, [])
 
   useEffect(() => {
     void refreshCases()
   }, [refreshCases])
 
+  // Switching chats renders instantly from cache, then revalidates in the background.
   useEffect(() => {
-    if (caseId) void loadMessages(caseId)
-    else {
+    if (!caseId) {
       setMessages([])
       setTitle(null)
+      return
     }
-  }, [caseId, loadMessages])
+    const cached = messagesCache.current.get(caseId)
+    if (cached) setMessages(cached)
+    let cancelled = false
+    void (async () => {
+      const fresh = await fetchMessages(caseId).catch(() => [])
+      if (cancelled) return
+      messagesCache.current.set(caseId, fresh)
+      setMessages(fresh)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [caseId, fetchMessages])
+
+  // Keep the in-memory cache warm as messages change.
+  useEffect(() => {
+    if (caseId && messages.length > 0) messagesCache.current.set(caseId, messages)
+  }, [caseId, messages])
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight })
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
   const updateLast = useCallback((fn: (m: ChatMessage) => ChatMessage) => {
@@ -133,18 +167,27 @@ export function ChatWorkspace({
   const handleEvent = useCallback(
     (evt: StreamEvent) => {
       switch (evt.type) {
-        case 'meta':
+        case 'meta': {
           setProvider(evt.provider)
+          setModel(evt.model)
           if (evt.incognito) {
             caseIdRef.current = null
           }
           if (!evt.incognito && evt.caseId) {
-            caseIdRef.current = evt.caseId
-            setCaseId((prev) => prev ?? evt.caseId)
-            window.history.replaceState(null, '', `/chat/${evt.caseId}`)
+            const id = evt.caseId
+            caseIdRef.current = id
+            setCaseId((prev) => prev ?? id)
+            window.history.replaceState(null, '', `/chat/${id}`)
+            // Show the new chat in the sidebar immediately, before any title arrives.
+            setCases((prev) =>
+              prev.some((c) => c.id === id)
+                ? prev
+                : [{ id, title: 'New Chat', pinned: false, createdAt: Date.now() }, ...prev],
+            )
           }
           updateLast((m) => ({ ...m, abstained: evt.abstained }))
           break
+        }
         case 'token':
           updateLast((m) => ({ ...m, content: m.content + evt.value }))
           break
@@ -158,7 +201,11 @@ export function ChatWorkspace({
           break
         case 'title':
           setTitle(evt.title)
-          if (!incognito) void refreshCases()
+          if (evt.caseId) {
+            setCases((prev) =>
+              prev.map((c) => (c.id === evt.caseId ? { ...c, title: evt.title } : c)),
+            )
+          }
           break
         case 'done':
           if (!incognito) void refreshCases()
@@ -170,7 +217,6 @@ export function ChatWorkspace({
 
   const send = useCallback(
     async (question: string) => {
-      const attachmentText = attachments.map((a) => a.text).join('\n\n')
       const selectionContext = pendingQuote ?? undefined
 
       setMessages((prev) => [
@@ -178,7 +224,6 @@ export function ChatWorkspace({
         { role: 'user', content: question },
         { role: 'assistant', content: '' },
       ])
-      setAttachments([])
       setPendingQuote(null)
       setStreaming(true)
       setNotice(null)
@@ -196,7 +241,6 @@ export function ChatWorkspace({
             question,
             caseId: incognito ? undefined : (caseIdRef.current ?? undefined),
             incognito,
-            attachmentText: attachmentText || undefined,
             selectionContext,
           }),
         })
@@ -236,7 +280,7 @@ export function ChatWorkspace({
         abortRef.current = null
       }
     },
-    [attachments, handleEvent, incognito, pendingQuote, updateLast],
+    [handleEvent, incognito, pendingQuote, updateLast],
   )
 
   const stop = useCallback(() => {
@@ -249,88 +293,68 @@ export function ChatWorkspace({
     setCaseId(null)
     setTitle(null)
     setMessages([])
-    setAttachments([])
     setPendingQuote(null)
     window.history.replaceState(null, '', '/chat')
   }, [])
 
   const selectCase = useCallback((id: string) => {
     caseIdRef.current = id
-    setCaseId(id)
     setIncognito(false)
-    setMessages([])
+    setCaseId(id)
+    setMessages(messagesCache.current.get(id) ?? [])
     window.history.replaceState(null, '', `/chat/${id}`)
   }, [])
 
+  // Optimistic: remove from the UI immediately, delete in the background.
   const deleteCase = useCallback(
     async (id: string) => {
-      await fetch(`/api/cases/${id}`, { method: 'DELETE', credentials: 'include' })
+      setCases((prev) => prev.filter((c) => c.id !== id))
+      messagesCache.current.delete(id)
       if (caseIdRef.current === id) newChat()
-      void refreshCases()
+      try {
+        await fetch(`/api/cases/${id}`, { method: 'DELETE', credentials: 'include' })
+      } catch {
+        void refreshCases()
+      }
     },
     [newChat, refreshCases],
   )
 
+  // Optimistic: update locally, persist in the background.
   const renameCase = useCallback(
     async (id: string, nextTitle: string) => {
-      await fetch(`/api/cases/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ title: nextTitle }),
-      })
+      setCases((prev) => prev.map((c) => (c.id === id ? { ...c, title: nextTitle } : c)))
       if (caseIdRef.current === id) setTitle(nextTitle)
-      void refreshCases()
+      try {
+        await fetch(`/api/cases/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ title: nextTitle }),
+        })
+      } catch {
+        void refreshCases()
+      }
     },
     [refreshCases],
   )
 
   const pinCase = useCallback(
     async (id: string, pinned: boolean) => {
-      await fetch(`/api/cases/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ pinned }),
-      })
-      void refreshCases()
+      setCases((prev) => prev.map((c) => (c.id === id ? { ...c, pinned } : c)))
+      try {
+        await fetch(`/api/cases/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ pinned }),
+        })
+      } catch {
+        void refreshCases()
+      }
     },
     [refreshCases],
   )
-
-  const addFiles = useCallback(async (files: File[]) => {
-    for (const file of files) {
-      const form = new FormData()
-      form.append('file', file)
-      try {
-        const res = await fetch('/api/extract', {
-          method: 'POST',
-          body: form,
-          credentials: 'include',
-        })
-        const data = (await res.json().catch(() => ({}))) as {
-          name?: string
-          chars?: number
-          text?: string
-          message?: string
-        }
-        if (!res.ok || !data.text) {
-          setNotice(data.message ?? `Could not read ${file.name}`)
-          continue
-        }
-        setAttachments((prev) => [
-          ...prev,
-          {
-            name: data.name ?? file.name,
-            chars: data.chars ?? data.text!.length,
-            text: data.text!,
-          },
-        ])
-      } catch {
-        setNotice(`Could not read ${file.name}`)
-      }
-    }
-  }, [])
 
   const toggleIncognito = useCallback(() => {
     setIncognito((v) => {
@@ -407,7 +431,7 @@ export function ChatWorkspace({
             >
               <Menu size={18} />
             </button>
-            <h1 className="truncate font-serif text-base sm:text-lg">{title ?? 'New inquiry'}</h1>
+            <h1 className="truncate font-serif text-base sm:text-lg">{title ?? 'New Chat'}</h1>
             {incognito && (
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-accent/30 bg-accent-soft px-2 py-0.5 text-[10px] text-accent">
                 <Ghost size={10} /> <span className="hidden sm:inline">Incognito - not saved</span>
@@ -415,8 +439,8 @@ export function ChatWorkspace({
               </span>
             )}
           </div>
-          <span className="hidden shrink-0 text-[11px] text-faint sm:block">
-            {provider === 'offline' ? 'Offline demo mode' : provider ? `Model: ${provider}` : ''}
+          <span className="hidden shrink-0 font-mono text-[10px] text-faint sm:block" title={model}>
+            {model}
           </span>
         </header>
 
@@ -427,7 +451,7 @@ export function ChatWorkspace({
             className="mx-auto flex max-w-3xl flex-col gap-6 sm:gap-7"
           >
             {messages.length === 0 && (
-              <div className="mx-auto mt-20 max-w-lg text-center">
+              <div className="mx-auto mt-16 max-w-lg text-center sm:mt-20">
                 <h2 className="font-serif text-3xl">How can I help with Indian law?</h2>
                 <p className="mt-3 text-sm text-muted">
                   Ask about any section of the ten indexed acts and the Constitution. Every citation
@@ -435,16 +459,12 @@ export function ChatWorkspace({
                   so instead of guessing.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
-                  {[
-                    'What is the punishment for murder under the BNS?',
-                    'Explain criminal breach of trust',
-                    'Section 420 IPC',
-                  ].map((q) => (
+                  {EXAMPLE_PROMPTS.map((q) => (
                     <button
                       key={q}
                       type="button"
                       onClick={() => void send(q)}
-                      className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs text-muted hover:border-border-strong hover:text-foreground"
+                      className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs text-muted transition-all hover:-translate-y-0.5 hover:border-border-strong hover:text-foreground"
                     >
                       {q}
                     </button>
@@ -468,15 +488,11 @@ export function ChatWorkspace({
 
         <Composer
           streaming={streaming}
-          attachments={attachments}
+          model={model || (provider === 'offline' ? 'offline demo mode' : 'connecting...')}
           pendingQuote={pendingQuote}
           focusNonce={focusNonce}
           onSend={send}
           onStop={stop}
-          onAddFiles={addFiles}
-          onRemoveAttachment={(name) =>
-            setAttachments((prev) => prev.filter((a) => a.name !== name))
-          }
           onClearQuote={() => setPendingQuote(null)}
         />
       </main>
@@ -488,7 +504,7 @@ export function ChatWorkspace({
           type="button"
           onClick={crossQuestion}
           style={{ left: selection.x, top: selection.y }}
-          className="fixed z-40 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs shadow-lg hover:border-border-strong"
+          className="fixed z-40 -translate-x-1/2 -translate-y-full animate-scale-in whitespace-nowrap rounded-control border border-border bg-surface px-2.5 py-1.5 text-xs shadow-lift hover:border-border-strong"
         >
           <Quote size={11} className="mr-1 inline text-accent" />
           Cross-question

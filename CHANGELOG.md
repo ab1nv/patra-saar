@@ -3,6 +3,37 @@
 All notable changes to this project are documented here. Format follows
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [3.2.0] - 2026-09-16
+
+### Added
+
+- **Exact-phrase boost in retrieval.** BM25 boosts a section 1.5x when its title contains a
+  contiguous phrase from the question, and 1.3x for a single-word title the question names
+  verbatim. Fixes the BNS-theft ranking miss.
+- **Sub-section highlighting.** A citation such as `BNS s.318(2)` keeps its sub-section
+  through parsing and verification, and the drawer highlights that paragraph in the full
+  section text.
+- **Audit hero metrics** on the landing page: the 5.1% vs 97.6% verbatim comparison.
+- **Model labelling** in the chat header, beside the composer, in the landing hero, in the
+  audit section and in the comparison table.
+
+### Changed
+
+- The hallucination audit moved from its own `/audit` page into a section on the landing
+  page, reachable from a **See Audit** button in the hero.
+- Chat list and history are optimistic and cached: deleting, renaming, pinning and creating
+  chats update the UI instantly and persist in the background. The chat list is cached in
+  localStorage and per-chat messages are cached in memory for instant switching.
+- "New inquiry" renamed to "New Chat".
+- The composer is realigned, with the model id on the left and the Send button on the right.
+- Example prompts now mirror the benchmark question set.
+- A transient Neon cold-start failure is retried once before surfacing.
+
+### Removed
+
+- Document attachments: the paperclip, the attachment state and the `/api/extract` route are
+  gone. PatraSaar answers from its indexed corpus only.
+
 ## [3.1.0] - 2026-09-16
 
 ### Added

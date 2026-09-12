@@ -13,11 +13,11 @@ measured **hallucination audit** comparing the same model with and without verif
 
 - **Verified citations** - every `[[ACT s.N | "quote"]]` is checked for existence, retrieval, and a
   verbatim quote. Passes render as ✓; failures are struck through with the exact reason.
-- **Hallucination audit** (`/audit`) - the same model, same 30 questions, with and without
+- **Hallucination audit** (on the landing page) - the same model, same 30 questions, with and without
   retrieval-plus-verification, scored deterministically against the corpus.
 - **Abstains when unsure** - a retrieval threshold gate means no answer rather than a guess.
 - **Section-level corpus** - 10 acts, 3,200+ sections, parsed from the source PDFs, not blind chunks.
-- **Chat workspace** - streaming, attachments, incognito mode, pin/rename/delete, cross-questioning,
+- **Chat workspace** - streaming, incognito mode, pin/rename/delete, cross-questioning,
   fully responsive with a mobile drawer.
 - **Offline demo mode** - runs without an LLM key using deterministic extractive answers.
 
@@ -29,7 +29,7 @@ Indian Contract Act 1872 · IT Act 2000 · Companies Act 2013
 ## Tech stack
 
 Next.js 16 (App Router) · TypeScript (strict) · Tailwind CSS v4 · Groq · Neon Postgres + Drizzle ·
-BM25 (in-process) · `unpdf` · jose + scrypt · Vitest · Playwright
+BM25 (in-process) · `unpdf` · jose + scrypt · Vitest · Playwright. Benchmarked on `qwen/qwen3.8-27b` (Groq).
 
 ## Quick start
 

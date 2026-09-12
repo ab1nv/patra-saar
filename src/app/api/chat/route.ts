@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { getSession } from '@/lib/auth/session'
 import { retrieve } from '@/lib/corpus/retrieve'
-import { streamAnswer, llmProvider, titleFor, type ChatMode } from '@/lib/llm'
+import { streamAnswer, llmProvider, currentModel, titleFor, type ChatMode } from '@/lib/llm'
 import { ABSTAIN_MESSAGE } from '@/lib/llm/prompt'
 import { verifyCitations } from '@/lib/citations/verify'
 import { addMessage, createCase, getCase, newId, updateCase } from '@/lib/db/store'
@@ -15,7 +15,6 @@ const schema = z.object({
   caseId: z.string().min(1).optional(),
   mode: z.enum(['lawyer', 'client']).default('lawyer'),
   incognito: z.boolean().default(false),
-  attachmentText: z.string().max(50_000).optional(),
   selectionContext: z.string().max(4000).optional(),
 })
 
@@ -24,6 +23,7 @@ type ClientCitation = {
   actName: string
   actFull?: string
   number: string
+  subsection?: string
   quote: string
   sectionId?: string
   title?: string
@@ -39,6 +39,7 @@ function stripSectionText(
     actName: c.actName,
     actFull: c.actFull,
     number: c.number,
+    subsection: c.subsection,
     quote: c.quote,
     sectionId: c.sectionId,
     title: c.title,
@@ -56,14 +57,7 @@ export async function POST(req: Request) {
     const parsed = schema.safeParse(body)
     if (!parsed.success) throw new BadRequest('A question is required')
 
-    const {
-      question,
-      caseId: requestedCaseId,
-      mode,
-      incognito,
-      attachmentText,
-      selectionContext,
-    } = parsed.data
+    const { question, caseId: requestedCaseId, mode, incognito, selectionContext } = parsed.data
 
     const retrievalQuery = [selectionContext, question].filter(Boolean).join(' ')
     const retrieval = retrieve(retrievalQuery)
@@ -88,6 +82,7 @@ export async function POST(req: Request) {
         send({
           type: 'meta',
           provider: llmProvider(),
+          model: currentModel(),
           caseId,
           abstained: retrieval.abstain,
           incognito,
@@ -106,7 +101,7 @@ export async function POST(req: Request) {
             question,
             retrieval.sections,
             mode as ChatMode,
-            { attachmentText, selectionContext },
+            { selectionContext },
             maxTokens,
           )) {
             full += delta

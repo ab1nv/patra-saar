@@ -21,6 +21,6 @@ test.describe('Login', () => {
     await page.fill('#password', 'abhinav')
     await page.click('button[type="submit"]')
     await expect(page).toHaveURL(/\/chat/, { timeout: 30_000 })
-    await expect(page.getByRole('button', { name: /New inquiry/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /New Chat/i })).toBeVisible()
   })
 })

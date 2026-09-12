@@ -69,20 +69,30 @@ async function ensureSchema(): Promise<void> {
 
 async function withStore<T>(real: () => Promise<T>, fallback: () => T | Promise<T>): Promise<T> {
   if (dbState === 'broken') return fallback()
-  try {
-    if (dbState === 'unknown') {
-      await ensureSchema()
-      dbState = 'ready'
+
+  let lastError: unknown
+  // Neon can fail the first request while a suspended compute wakes up, so a
+  // single quick retry keeps a cold start from surfacing as a failed login.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      if (dbState !== 'ready') {
+        await ensureSchema()
+        dbState = 'ready'
+      }
+      return await real()
+    } catch (err) {
+      lastError = err
+      if (dbState !== 'ready') break
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 150))
     }
-    return await real()
-  } catch (err) {
-    if (dbState === 'unknown') {
-      console.warn('[db] unavailable, using in-memory store:', (err as Error).message)
-      dbState = 'broken'
-      return fallback()
-    }
-    throw err
   }
+
+  if (dbState !== 'ready') {
+    console.warn('[db] unavailable, using in-memory store:', (lastError as Error).message)
+    dbState = 'broken'
+    return fallback()
+  }
+  throw lastError
 }
 
 export async function findUserByEmail(email: string): Promise<UserRow | undefined> {

@@ -10,6 +10,8 @@ export type VerifiedCitation = {
   actName: string
   actFull?: string
   number: string
+  /** sub-section the model cited, if any (e.g. "2" from "BNS s.318(2)") */
+  subsection?: string
   quote: string
   sectionId?: string
   title?: string
@@ -57,6 +59,7 @@ export function verifyCitations(answer: string, retrieved: Section[]): Verificat
       index: i + 1,
       actName: c.actName,
       number: c.number,
+      subsection: c.subsection,
       quote: c.quote,
       sectionId: section?.id,
       actFull: section?.actFull,

@@ -9,6 +9,11 @@ function groqModel(): string {
   return process.env.GROQ_MODEL ?? DEFAULT_MODEL
 }
 
+/** Public model id for display in the UI. */
+export function activeModel(): string {
+  return groqModel()
+}
+
 function groqMaxTokens(): number {
   const configured = Number(process.env.GROQ_MAX_TOKENS)
   return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_MAX_TOKENS

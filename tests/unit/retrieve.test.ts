@@ -54,4 +54,16 @@ describe('retrieve', () => {
     expect(result.sections[0]?.id).toBe('constitution:21')
     expect(result.sections[0]?.matchType).toBe('exact')
   })
+
+  it('ranks a short section whose title the question names verbatim', () => {
+    const result = retrieve('How is theft defined and punished under the BNS?')
+    const ids = result.sections.map((s) => s.id)
+    expect(ids, `got: ${ids.join(', ')}`).toContain('bns:303')
+  })
+
+  it('boosts a section whose title contains a contiguous phrase from the question', () => {
+    const result = retrieve('What is the punishment for criminal breach of trust?')
+    const ids = result.sections.map((s) => s.id)
+    expect(ids, `got: ${ids.join(', ')}`).toContain('bns:316')
+  })
 })
