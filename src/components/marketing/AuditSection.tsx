@@ -1,6 +1,7 @@
 import audit from '../../../data/audit-results.json'
 import { Badge } from '@/components/ui/badge'
 import { Reveal } from '@/components/layout/Reveal'
+import { AnimatedBars } from './AnimatedBars'
 
 type Citation = {
   actName: string
@@ -159,6 +160,53 @@ export function AuditSection() {
           </div>
         </Reveal>
 
+        {/* How it is calculated */}
+        <Reveal delay={120}>
+          <div className="mt-12 rounded-card border border-border bg-surface p-6 shadow-soft sm:p-8">
+            <h3 className="font-serif text-2xl">How we calculate this</h3>
+            <p className="mt-1 text-sm text-muted">
+              Both arms are scored by the same deterministic code that runs in production. No
+              language model is used to judge either arm.
+            </p>
+            <ol className="mt-6 grid gap-5 md:grid-cols-4">
+              {[
+                {
+                  n: '01',
+                  title: 'Ask',
+                  body: '30 ground-truth questions: 24 in-corpus with a verified answer key, 3 naming a section that does not exist, 3 outside the corpus.',
+                },
+                {
+                  n: '02',
+                  title: 'Answer twice',
+                  body: 'The same model answers each question once from memory and once with retrieved sections. Only the context differs.',
+                },
+                {
+                  n: '03',
+                  title: 'Retrieve',
+                  body: 'In-process BM25 over 3,268 parsed sections, plus exact-section pins, a named-act boost, a title phrase boost and a coverage gate.',
+                },
+                {
+                  n: '04',
+                  title: 'Verify and score',
+                  body: 'Three deterministic checks per citation: does the section exist, was it retrieved, and is the quote verbatim. Those become the rates below.',
+                },
+              ].map((step) => (
+                <li key={step.n} className="border-t-2 border-accent/40 pt-4">
+                  <span className="font-mono text-xs text-accent">{step.n}</span>
+                  <h4 className="mt-2 font-serif text-base">{step.title}</h4>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted">{step.body}</p>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-6 text-xs leading-relaxed text-faint">
+              Technology: Next.js route handlers, an in-process BM25 index over the parsed corpus, a
+              deterministic normalized string-matching verifier, and {data.model} on Groq for
+              generation. The same verifier functions gate the live chat, so this benchmark measures
+              the shipped system rather than a separate harness.
+            </p>
+          </div>
+        </Reveal>
+
         {/* Bars */}
         <Reveal delay={140}>
           <div className="mt-12 rounded-card border border-border bg-surface p-6 shadow-soft sm:p-8">
@@ -168,37 +216,45 @@ export function AuditSection() {
               the indexed text - it is not a second language model.
             </p>
             <div className="mt-7 grid gap-8 md:grid-cols-2">
-              <ArmBars
-                title="Baseline - model from memory"
-                rows={[
-                  { label: 'Resolves to a real section', value: s.baseline.existsRate },
-                  { label: 'Quote is verbatim', value: s.baseline.verbatimRate, danger: true },
-                  { label: 'Matches the right section', value: s.baseline.correctRate },
-                  {
-                    label: 'Fabricated (section does not exist)',
-                    value: s.baseline.fabricatedRate,
-                    danger: true,
-                  },
-                ]}
-              />
-              <ArmBars
-                title="PatraSaar - retrieve + verify"
-                rows={[
-                  { label: 'Resolves to a real section', value: s.grounded.existsRate },
-                  { label: 'Quote is verbatim', value: s.grounded.verbatimRate, verified: true },
-                  { label: 'Matches the right section', value: s.grounded.correctRate },
-                  {
-                    label: 'Verified (exists + retrieved + verbatim)',
-                    value: s.grounded.verifiedRate,
-                    verified: true,
-                  },
-                  {
-                    label: 'Fabricated (section does not exist)',
-                    value: s.grounded.fabricatedRate,
-                    danger: true,
-                  },
-                ]}
-              />
+              <div>
+                <p className="mb-4 text-xs font-medium uppercase tracking-wider text-faint">
+                  Baseline - model from memory
+                </p>
+                <AnimatedBars
+                  rows={[
+                    { label: 'Resolves to a real section', value: s.baseline.existsRate },
+                    { label: 'Quote is verbatim', value: s.baseline.verbatimRate, danger: true },
+                    { label: 'Matches the right section', value: s.baseline.correctRate },
+                    {
+                      label: 'Fabricated (section does not exist)',
+                      value: s.baseline.fabricatedRate,
+                      danger: true,
+                    },
+                  ]}
+                />
+              </div>
+              <div>
+                <p className="mb-4 text-xs font-medium uppercase tracking-wider text-faint">
+                  PatraSaar - retrieve + verify
+                </p>
+                <AnimatedBars
+                  rows={[
+                    { label: 'Resolves to a real section', value: s.grounded.existsRate },
+                    { label: 'Quote is verbatim', value: s.grounded.verbatimRate, verified: true },
+                    { label: 'Matches the right section', value: s.grounded.correctRate },
+                    {
+                      label: 'Verified (exists + retrieved + verbatim)',
+                      value: s.grounded.verifiedRate,
+                      verified: true,
+                    },
+                    {
+                      label: 'Fabricated (section does not exist)',
+                      value: s.grounded.fabricatedRate,
+                      danger: true,
+                    },
+                  ]}
+                />
+              </div>
             </div>
           </div>
         </Reveal>
@@ -230,8 +286,27 @@ export function AuditSection() {
         {/* Full table */}
         <Reveal delay={200}>
           <div className="mt-12">
-            <h3 className="font-serif text-2xl">All questions</h3>
-            <div className="mt-4 overflow-x-auto rounded-card border border-border">
+            <h3 className="font-serif text-2xl">Questions asked</h3>
+            <p className="mt-1 text-sm text-muted">
+              Every question, colour-coded: green is the correct outcome, red is wrong or
+              fabricated, amber is a partial or unverifiable answer. For the six unanswerable
+              questions, refusing is the correct outcome.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-4 text-xs">
+              <span className="flex items-center gap-1.5 text-muted">
+                <span className="h-2.5 w-2.5 rounded-full bg-verified" /> correct / verified
+              </span>
+              <span className="flex items-center gap-1.5 text-muted">
+                <span className="h-2.5 w-2.5 rounded-full bg-warning" /> partial / unverifiable
+              </span>
+              <span className="flex items-center gap-1.5 text-muted">
+                <span className="h-2.5 w-2.5 rounded-full bg-danger" /> wrong / fabricated
+              </span>
+              <span className="flex items-center gap-1.5 text-muted">
+                <span className="h-2.5 w-2.5 rounded-full bg-border-strong" /> refused
+              </span>
+            </div>
+            <div className="mt-6 overflow-x-auto rounded-card border border-border">
               <table className="w-full min-w-[760px] text-sm">
                 <thead className="bg-surface text-left text-xs uppercase tracking-wider text-faint">
                   <tr>
@@ -247,10 +322,10 @@ export function AuditSection() {
                       <td className="max-w-sm px-4 py-3">{r.question}</td>
                       <td className="px-4 py-3 text-xs text-faint">{r.kind}</td>
                       <td className="px-4 py-3 text-xs">
-                        <ArmCell arm={r.baseline} />
+                        <ArmCell arm={r.baseline} kind={r.kind} expected={r.expectedSection} />
                       </td>
                       <td className="px-4 py-3 text-xs">
-                        <ArmCell arm={r.grounded} expected={r.expectedSection} />
+                        <ArmCell arm={r.grounded} kind={r.kind} expected={r.expectedSection} />
                       </td>
                     </tr>
                   ))}
@@ -328,39 +403,6 @@ function MiniStat({
   )
 }
 
-function ArmBars({
-  title,
-  rows,
-}: {
-  title: string
-  rows: { label: string; value: number; danger?: boolean; verified?: boolean }[]
-}) {
-  return (
-    <div>
-      <p className="mb-4 text-xs font-medium uppercase tracking-wider text-faint">{title}</p>
-      <div className="space-y-3.5">
-        {rows.map((r) => {
-          const color = r.danger ? 'bg-danger' : r.verified ? 'bg-verified' : 'bg-accent'
-          return (
-            <div key={r.label}>
-              <div className="mb-1 flex items-center justify-between text-xs">
-                <span className="text-muted">{r.label}</span>
-                <span className="tabular-nums text-foreground">{pct(r.value)}</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-surface-2">
-                <div
-                  className={`h-full rounded-full ${color} transition-[width] duration-700 ease-out`}
-                  style={{ width: `${Math.max(1.5, r.value * 100)}%` }}
-                />
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 function ArmExample({
   label,
   arm,
@@ -403,16 +445,38 @@ function ArmExample({
   )
 }
 
-function ArmCell({ arm, expected }: { arm: Arm; expected?: string }) {
-  if (arm.abstained) return <span className="text-faint">refused</span>
+function ArmCell({
+  arm,
+  kind,
+  expected,
+}: {
+  arm: Arm
+  kind: 'in-corpus' | 'nonexistent' | 'out-of-corpus'
+  expected?: string
+}) {
+  const unanswerable = kind !== 'in-corpus'
+
+  if (arm.abstained) {
+    return unanswerable ? (
+      <Badge tone="verified">abstained (correct)</Badge>
+    ) : (
+      <Badge tone="danger">refused (should answer)</Badge>
+    )
+  }
+
   const fabricated = arm.citations.filter((c) => !c.exists).length
-  const correct = expected ? arm.citations.some((c) => c.correct) : null
-  return (
-    <span className="flex flex-wrap gap-1.5">
-      {fabricated > 0 && <Badge tone="danger">{fabricated} fabricated</Badge>}
-      {correct === true && <Badge tone="verified">correct</Badge>}
-      {correct === false && <Badge tone="warning">wrong section</Badge>}
-      {fabricated === 0 && correct === null && <Badge tone="neutral">no fabrication</Badge>}
-    </span>
-  )
+  if (fabricated > 0) return <Badge tone="danger">{fabricated} fabricated</Badge>
+
+  if (unanswerable) return <Badge tone="danger">answered anyway</Badge>
+
+  const correct = expected ? arm.citations.some((c) => c.correct) : false
+  if (correct) {
+    const allVerbatim = arm.citations.every((c) => !c.exists || c.verbatim)
+    return allVerbatim ? (
+      <Badge tone="verified">correct</Badge>
+    ) : (
+      <Badge tone="warning">right section, quote not verbatim</Badge>
+    )
+  }
+  return <Badge tone="danger">wrong section</Badge>
 }

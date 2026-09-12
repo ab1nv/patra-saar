@@ -1,12 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Ghost, Menu, Quote } from 'lucide-react'
+import { Ghost, Menu, PanelRight, Quote } from 'lucide-react'
 import { Composer } from './Composer'
 import { MessageBubble } from './MessageBubble'
 import { SectionDrawer } from './SectionDrawer'
 import { CaseSidebar } from './CaseSidebar'
+import { SourcesPanel } from './SourcesPanel'
 import type { CaseSummary, ChatCitation, ChatMessage, StreamEvent } from '@/lib/chat-types'
 
 type RawMessage = {
@@ -20,15 +21,32 @@ type RawMessage = {
 type Selection = { x: number; y: number; text: string }
 
 const CASES_CACHE_KEY = 'ps.cases.v1'
+const EXAMPLE_COUNT = 3
 
-const EXAMPLE_PROMPTS = [
+// Pool of prompts the benchmark covers well, so demo answers land with verified citations.
+const EXAMPLE_POOL = [
   'What is the punishment for murder under the BNS?',
   'How is a first information report recorded under the CrPC?',
   'What does Article 21 of the Constitution protect?',
   'When may a police officer arrest a person without a warrant under the BNSS?',
   'What is criminal breach of trust under the BNS?',
   'What is the punishment for defamation under the IPC?',
+  'What is the punishment for cheating under the BNS?',
+  'What does Article 14 of the Constitution guarantee?',
+  'How is a suit stayed under CPC section 10?',
+  'What is the offence of tampering with computer source documents under the IT Act?',
+  'What agreements are contracts under section 10 of the Indian Contract Act?',
+  'How is information about a cognizable offence recorded under BNSS section 173?',
 ]
+
+function pickExamples(): string[] {
+  const pool = [...EXAMPLE_POOL]
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[pool[i], pool[j]] = [pool[j]!, pool[i]!]
+  }
+  return pool.slice(0, EXAMPLE_COUNT)
+}
 
 export function ChatWorkspace({
   initialCaseId,
@@ -55,23 +73,47 @@ export function ChatWorkspace({
   const [sidebarWidth, setSidebarWidth] = useState(264)
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [sourcesOpen, setSourcesOpen] = useState(false)
+  const [examples, setExamples] = useState<string[]>(() => EXAMPLE_POOL.slice(0, EXAMPLE_COUNT))
 
   const caseIdRef = useRef<string | null>(initialCaseId)
   const abortRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const messagesRef = useRef<HTMLDivElement>(null)
   const messagesCache = useRef<Map<string, ChatMessage[]>>(new Map())
+  const freshCaseRef = useRef<string | null>(null)
 
   // Restore sidebar preferences and cached chat list for an instant first paint.
   useEffect(() => {
     const w = Number(localStorage.getItem('ps.sidebarWidth'))
     if (w >= 200 && w <= 420) setSidebarWidth(w)
     if (localStorage.getItem('ps.sidebarCollapsed') === '1') setCollapsed(true)
+    setExamples(pickExamples())
     try {
       const cached = localStorage.getItem(CASES_CACHE_KEY)
       if (cached) setCases(JSON.parse(cached) as CaseSummary[])
     } catch {
       /* ignore cache errors */
+    }
+  }, [])
+
+  // Show the active model immediately, before the first answer arrives.
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch('/api/health')
+        if (!res.ok) return
+        const data = (await res.json()) as { provider?: string; model?: string }
+        if (cancelled) return
+        if (data.provider) setProvider(data.provider)
+        if (data.model) setModel(data.model)
+      } catch {
+        /* keep the fallback label */
+      }
+    })()
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -137,12 +179,18 @@ export function ChatWorkspace({
       setTitle(null)
       return
     }
+    // A case created by the message we are currently streaming has nothing
+    // persisted yet; loading it would wipe the in-flight answer.
+    if (freshCaseRef.current === caseId) {
+      freshCaseRef.current = null
+      return
+    }
     const cached = messagesCache.current.get(caseId)
     if (cached) setMessages(cached)
     let cancelled = false
     void (async () => {
       const fresh = await fetchMessages(caseId).catch(() => [])
-      if (cancelled) return
+      if (cancelled || freshCaseRef.current === caseId) return
       messagesCache.current.set(caseId, fresh)
       setMessages(fresh)
     })()
@@ -155,6 +203,22 @@ export function ChatWorkspace({
   useEffect(() => {
     if (caseId && messages.length > 0) messagesCache.current.set(caseId, messages)
   }, [caseId, messages])
+
+  // Unique sources cited across the conversation, newest first.
+  const sources = useMemo(() => {
+    const seen = new Set<string>()
+    const out: ChatCitation[] = []
+    for (const m of messages) {
+      if (m.role !== 'assistant') continue
+      for (const c of m.citations ?? []) {
+        const key = c.sectionId ?? `${c.actName}:${c.number}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        out.push(c)
+      }
+    }
+    return out
+  }, [messages])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -176,6 +240,9 @@ export function ChatWorkspace({
           if (!evt.incognito && evt.caseId) {
             const id = evt.caseId
             caseIdRef.current = id
+            // Mark this case as freshly created so the loader does not clobber
+            // the answer currently streaming into it.
+            freshCaseRef.current = id
             setCaseId((prev) => prev ?? id)
             window.history.replaceState(null, '', `/chat/${id}`)
             // Show the new chat in the sidebar immediately, before any title arrives.
@@ -439,9 +506,23 @@ export function ChatWorkspace({
               </span>
             )}
           </div>
-          <span className="hidden shrink-0 font-mono text-[10px] text-faint sm:block" title={model}>
-            {model}
-          </span>
+          <div className="flex shrink-0 items-center gap-2">
+            {sources.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSourcesOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-control border border-border px-2.5 py-1.5 text-[11px] text-muted transition-colors hover:text-foreground xl:hidden"
+              >
+                <PanelRight size={13} /> Sources
+                <span className="rounded-full bg-surface-2 px-1.5 text-[10px] text-faint">
+                  {sources.length}
+                </span>
+              </button>
+            )}
+            <span className="hidden font-mono text-[10px] text-faint sm:block" title={model}>
+              {model}
+            </span>
+          </div>
         </header>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
@@ -459,7 +540,7 @@ export function ChatWorkspace({
                   so instead of guessing.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
-                  {EXAMPLE_PROMPTS.map((q) => (
+                  {examples.map((q) => (
                     <button
                       key={q}
                       type="button"
@@ -496,6 +577,37 @@ export function ChatWorkspace({
           onClearQuote={() => setPendingQuote(null)}
         />
       </main>
+
+      {sources.length > 0 && (
+        <aside className="hidden w-80 shrink-0 border-l border-border bg-surface xl:flex">
+          <SourcesPanel
+            citations={sources}
+            onOpenCitation={setCitation}
+            className="w-full animate-slide-in-right"
+          />
+        </aside>
+      )}
+
+      {/* Sources overlay for smaller screens */}
+      {sourcesOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end xl:hidden">
+          <button
+            type="button"
+            aria-label="Close sources"
+            onClick={() => setSourcesOpen(false)}
+            className="absolute inset-0 animate-fade-in bg-black/50 backdrop-blur-sm"
+          />
+          <div className="relative h-full w-full max-w-sm animate-slide-in-right border-l border-border bg-surface">
+            <SourcesPanel
+              citations={sources}
+              onOpenCitation={(c) => {
+                setCitation(c)
+                setSourcesOpen(false)
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <SectionDrawer citation={citation} onClose={() => setCitation(null)} />
 

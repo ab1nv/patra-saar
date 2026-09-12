@@ -3,6 +3,23 @@
 All notable changes to this project are documented here. Format follows
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [3.2.1] - 2026-09-16
+
+### Fixed
+
+- A new chat no longer flashes the streamed answer and then reverts to the empty state; the
+  freshly created case is no longer re-fetched while its answer is still streaming.
+- The model id is fetched on load, so the composer no longer shows "connecting..." in a new chat.
+
+### Changed
+
+- Example prompts now show three at a time, randomly drawn from a pool of twelve questions the
+  benchmark covers well.
+- Cited sections moved from a list under each answer into a right-hand **Sources & acts** panel
+  that appears once the first answer streams (with a slide-over on smaller screens).
+- Landing page: hero button is now **See Benchmarks**; the header has a single **Try the demo**
+  button; new "What's ahead" section; footer shows the copyright line.
+
 ## [3.2.0] - 2026-09-16
 
 ### Added

@@ -361,6 +361,10 @@ CHAT WORKSPACE
     localStorage and per-chat messages in memory, so switching is instant.
   - The active model id is shown beside the composer and under the chat title.
   - No document attachments: answers come only from the indexed corpus.
+  - Cited sections appear in a right-hand "Sources & acts" panel once the first
+    answer streams (a slide-over on smaller screens), not appended per answer.
+  - Example prompts show three at a time, drawn at random from a pool of twelve
+    questions the benchmark covers well.
   - Retrieval boost: a section whose title contains a contiguous phrase from
     the question scores 1.5x, and a single-word title named in the question
     1.3x (fixes the BNS-theft ranking miss).

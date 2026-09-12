@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { corpusMeta } from '@/lib/corpus'
-import { llmProvider } from '@/lib/llm'
+import { currentModel, llmProvider } from '@/lib/llm'
 
 export const runtime = 'nodejs'
 
@@ -11,5 +11,6 @@ export async function GET() {
     corpusSections: meta.sectionCount,
     builtAt: meta.builtAt,
     provider: llmProvider(),
+    model: currentModel(),
   })
 }

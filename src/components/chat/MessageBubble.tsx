@@ -114,48 +114,6 @@ export function MessageBubble({
               </ReactMarkdown>
               {streaming && <span className="caret" />}
             </div>
-
-            {citations.length > 0 && (
-              <div className="mt-5 space-y-2 border-t border-border pt-4">
-                {citations.map((c) => (
-                  <button
-                    key={c.index}
-                    type="button"
-                    onClick={() => onOpenCitation(c)}
-                    className={cn(
-                      'block w-full rounded-control border px-3 py-2 text-left text-xs transition-all duration-200 hover:-translate-y-0.5',
-                      c.verified
-                        ? 'border-verified/25 bg-verified-soft/40 hover:border-verified/50'
-                        : 'border-warning/25 bg-warning-soft/40 hover:border-warning/50',
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <span
-                        className={cn(
-                          'text-xs font-medium tracking-tight',
-                          c.verified ? 'text-verified' : 'text-warning',
-                        )}
-                      >
-                        <span className="font-semibold">{c.verified ? '✓' : '⚠'}</span>{' '}
-                        {c.actFull ?? c.actName} · Section {c.number}
-                        {c.title ? ` - ${c.title}` : ''}
-                      </span>
-                      <span className="shrink-0 text-[10px] uppercase tracking-wider text-faint">
-                        {c.verified ? 'verified' : (c.failureReason ?? 'unverified')}
-                      </span>
-                    </div>
-                    <p
-                      className={cn(
-                        'mt-1 line-clamp-2 font-serif text-[13px] leading-relaxed text-muted',
-                        !c.verified && 'line-through decoration-warning/50',
-                      )}
-                    >
-                      “{c.quote}”
-                    </p>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         )}
       </div>

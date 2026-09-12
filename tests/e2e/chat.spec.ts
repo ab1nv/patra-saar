@@ -34,6 +34,7 @@ test.describe('Chat', () => {
 
     await expect(page.getByText('Murder is punishable under the BNS.')).toBeVisible()
     await expect(page.getByText('✓ 1 verified')).toBeVisible()
+    await expect(page.getByText('Sources & acts')).toBeVisible()
     await expect(page.getByRole('button', { name: /Section 103/ })).toBeVisible()
   })
 

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import {
   Ban,
+  Compass,
   FileCheck2,
   FlaskConical,
   Library,
@@ -60,7 +61,7 @@ export default function LandingPage() {
                 href="#audit"
                 className="rounded-control border border-border bg-surface px-6 py-3 font-semibold transition-all hover:border-border-strong active:scale-[.98]"
               >
-                See Audit
+                See Benchmarks
               </Link>
             </div>
             <p className="mt-8 text-sm text-faint">
@@ -382,6 +383,44 @@ export default function LandingPage() {
             </p>
           </div>
         </Reveal>
+      </section>
+
+      {/* What's ahead */}
+      <section className="border-t border-border bg-surface/40">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-20">
+          <Reveal>
+            <div className="flex items-center gap-2">
+              <Compass size={16} className="text-accent" />
+              <h2 className="font-serif text-3xl">What&apos;s ahead</h2>
+            </div>
+            <p className="mt-3 max-w-2xl text-sm text-muted">
+              The roadmap for PatraSaar, in the order it will be built.
+            </p>
+          </Reveal>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                title: 'Hybrid retrieval',
+                body: 'Fuse dense embeddings with BM25 and add a cross-encoder re-ranker, behind a flag, so conceptual questions rank as well as exact ones.',
+              },
+              {
+                title: 'Case law',
+                body: 'Extend the same verify-before-trust pipeline to Supreme Court and High Court judgments, with the citation verifier unchanged.',
+              },
+              {
+                title: 'Larger benchmark',
+                body: 'Grow the audit to a multi-model matrix with an adversarial set and a human applicability rubric, and publish the numbers.',
+              },
+            ].map((item, i) => (
+              <Reveal key={item.title} delay={i * 80}>
+                <div className="h-full rounded-card border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border-strong">
+                  <h3 className="font-serif text-lg">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{item.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
       </section>
 
       <SiteFooter />

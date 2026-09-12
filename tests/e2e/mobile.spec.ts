@@ -7,7 +7,7 @@ test.describe('Mobile experience', () => {
     await gotoHydrated(page, '/')
     await expect(page.getByRole('heading', { name: /It cites the law/i })).toBeVisible()
     await page
-      .getByRole('link', { name: /Open workspace/i })
+      .getByRole('link', { name: /Try the demo/i })
       .first()
       .click()
     await expect(page).toHaveURL(/\/login/)
