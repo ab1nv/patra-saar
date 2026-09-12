@@ -3,6 +3,19 @@
 All notable changes to this project are documented here. Format follows
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [3.3.1] - 2026-09-16
+
+### Added
+
+- `metadataBase`, canonical link and OpenGraph/Twitter metadata, driven by `NEXT_PUBLIC_SITE_URL`
+  (defaults to the production domain).
+
+### Changed
+
+- The app is served at **https://patrasaar.ab1nv.dev**; documentation and links updated. No
+  application code referenced the hostname, and every API call is a relative `/api/...` fetch, so
+  the domain change does not affect behaviour.
+
 ## [3.3.0] - 2026-09-16
 
 ### Added

@@ -28,7 +28,7 @@ and that the quote matches the source text.
 It also publishes a small benchmark on the landing page comparing the same model with and without
 this verification step.
 
-**Live:** https://patra-saar-lyart.vercel.app · **Demo login:** `abhinav@test.com` / `abhinav`
+**Live:** https://patrasaar.ab1nv.dev · **Demo login:** `abhinav@test.com` / `abhinav`
 
 ## What it does
 

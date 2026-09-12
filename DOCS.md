@@ -329,13 +329,18 @@ Not covered: live Groq response quality, live database failure modes, visual reg
 
 ### Changing the domain
 
-1. Buy/point a domain.
-2. Vercel → project → Settings → Domains → Add.
-3. DNS: use Vercel nameservers, or an `A` record to `76.76.21.21` (apex) plus a `CNAME` to
-   `cname.vercel-dns.com` (www).
-4. SSL is automatic; set the new domain as primary.
-5. Optional: add `NEXT_PUBLIC_SITE_URL` + `metadataBase` for canonical URLs. No backend change is
-   needed (same-origin API).
+The app is live at **https://patrasaar.ab1nv.dev**. `ab1nv.dev` is managed in Cloudflare and the
+subdomain points at Vercel:
+
+1. Vercel → project `patra-saar` → Settings → Domains → Add the hostname.
+2. Cloudflare → `ab1nv.dev` → DNS → add a `CNAME` with the target Vercel shows on that page, and set
+   **Proxy status to DNS only** (proxying breaks Vercel's certificate validation; use Full (strict)
+   if you must proxy).
+3. SSL is automatic once the record resolves.
+
+Set `NEXT_PUBLIC_SITE_URL` in the Vercel environment to change the canonical/OpenGraph URL. No
+backend change is needed: every request is a relative `/api/...` fetch, so the app is same-origin and
+the hostname is never hardcoded.
 
 ---
 

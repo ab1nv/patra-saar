@@ -3,7 +3,7 @@
 **Audience:** an AI agent (or a person) preparing a capstone/viva presentation for PatraSaar.
 **Goal:** explain what PatraSaar is, why it is different, and how to defend it - honestly.
 
-**Live app:** https://patra-saar-lyart.vercel.app
+**Live app:** https://patrasaar.ab1nv.dev
 **Repository:** https://github.com/ab1nv/patra-saar (branch `master`)
 **Demo login:** `abhinav@test.com` / `abhinav`
 **Key artefact for the panel:** the audit section on the landing page, reachable from the **See Audit** button - a measured hallucination comparison.
@@ -316,7 +316,7 @@ that the others do not target with this rigour.**
 
 ## 8. How to test the deployed app
 
-**URL:** https://patra-saar-lyart.vercel.app · **Login:** `abhinav@test.com` / `abhinav`
+**URL:** https://patrasaar.ab1nv.dev · **Login:** `abhinav@test.com` / `abhinav`
 
 1. **Auth and redirect.** Open `/chat` while signed out → redirected to `/login`. Sign in → you land
    **on `/chat`** (the login-redirect bug is fixed; no manual refresh needed).
@@ -348,22 +348,26 @@ clears cached assets.
 
 ## 9. Domain and deployment notes
 
-### 9.1 Changing the domain name
+### 9.1 Domain setup
 
-1. **Buy or point a domain** (Cloudflare Registrar, Namecheap, GoDaddy, …). An Indian `.in` domain
-   is available if desired.
-2. **Vercel → project `patra-saar` → Settings → Domains → Add**, and enter the domain.
-3. **DNS**, either method:
-   - Use **Vercel nameservers** (simplest), or
-   - Keep your DNS provider and add: an **A record** for the apex pointing to `76.76.21.21`, and a
-     **CNAME** for `www` pointing to `cname.vercel-dns.com`.
-4. **SSL is automatic** (Vercel issues the certificate). Set the new domain as **primary** so the old
-   `*.vercel.app` URL redirects to it.
-5. **Optional code change:** add `NEXT_PUBLIC_SITE_URL` and a `metadataBase` in
-   `src/app/layout.tsx` so canonical/OpenGraph URLs use the new domain, and update the README badge
-   and links.
-6. **No backend change is required** - the API is same-origin with the app, so there is no CORS
-   configuration to update.
+The app is served at **https://patrasaar.ab1nv.dev**. The apex domain `ab1nv.dev` is managed in
+Cloudflare, and the subdomain points at Vercel:
+
+- **Cloudflare → `ab1nv.dev` → DNS → Records:** `CNAME`, name `patrasaar`, target the
+  project-specific Vercel target shown on the Domains page (for this project,
+  `2bfa4ab5bee6b0bd.vercel-dns-017.com`), **Proxy status: DNS only (grey cloud)**.
+- **Vercel → project `patra-saar` → Settings → Domains:** `patrasaar.ab1nv.dev` added there. Vercel
+  issues the certificate automatically once the CNAME resolves.
+- **Why DNS only:** proxying through Cloudflare (orange cloud) breaks Vercel's automatic certificate
+  validation on the subdomain. If proxying is required, set the Cloudflare SSL mode to
+  **Full (strict)**.
+
+To point a different hostname at the app, repeat the two steps above with the new name. To change
+the canonical URL used in metadata, set `NEXT_PUBLIC_SITE_URL` in the Vercel environment.
+
+**No backend change is needed** - the API is same-origin with the app (every request is a relative
+`/api/...` fetch), so there is no CORS configuration and the domain is not referenced anywhere in
+the application code.
 
 ### 9.2 Operating the project
 

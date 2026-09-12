@@ -2,16 +2,28 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { HydrationMarker } from '@/components/layout/HydrationMarker'
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://patrasaar.ab1nv.dev'
+
+const DESCRIPTION =
+  'PatraSaar answers questions about Indian central acts using only an indexed corpus of statutory text, and verifies every citation verbatim against the source section.'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'PatraSaar',
-  description:
-    'PatraSaar answers questions about Indian central acts using only an indexed corpus of statutory text, and verifies every citation verbatim against the source section.',
+  description: DESCRIPTION,
   manifest: '/site.webmanifest',
+  alternates: { canonical: '/' },
   openGraph: {
     title: 'PatraSaar - It cites the law, or it says it doesn’t know',
-    description:
-      'Verified citations for Indian central acts, grounded in an indexed corpus of statutory text.',
+    description: DESCRIPTION,
+    url: '/',
+    siteName: 'PatraSaar',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'PatraSaar',
+    description: DESCRIPTION,
   },
 }
 
