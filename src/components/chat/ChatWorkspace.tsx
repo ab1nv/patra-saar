@@ -25,17 +25,17 @@ const EXAMPLE_COUNT = 3
 
 // Pool of prompts the benchmark covers well, so demo answers land with verified citations.
 const EXAMPLE_POOL = [
-  'What is the punishment for murder under the BNS?',
-  'How is a first information report recorded under the CrPC?',
+  'What is the punishment for murder under BNS section 103?',
+  'How is a first information report recorded under CrPC section 154?',
   'What does Article 21 of the Constitution protect?',
-  'When may a police officer arrest a person without a warrant under the BNSS?',
-  'What is criminal breach of trust under the BNS?',
-  'What is the punishment for defamation under the IPC?',
-  'What is the punishment for cheating under the BNS?',
+  'When may a police officer arrest a person without a warrant under BNSS section 35?',
+  'What is criminal breach of trust under BNS section 316?',
+  'What is the punishment for defamation under IPC section 499?',
+  'What is the punishment for cheating under BNS section 318?',
   'What does Article 14 of the Constitution guarantee?',
   'How is a suit stayed under CPC section 10?',
-  'What is the offence of tampering with computer source documents under the IT Act?',
-  'What agreements are contracts under section 10 of the Indian Contract Act?',
+  'What is the offence of tampering with computer source documents under IT Act section 65?',
+  'What agreements are contracts under Indian Contract Act section 10?',
   'How is information about a cognizable offence recorded under BNSS section 173?',
 ]
 

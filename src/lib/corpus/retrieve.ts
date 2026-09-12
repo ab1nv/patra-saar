@@ -142,7 +142,7 @@ export function retrieve(question: string, opts: { topK?: number } = {}): Retrie
   const hits = getIndex().search(queryTokens, topK * 3)
   const byId = new Map(sections.map((s) => [s.id, s]))
 
-  const lexical: RetrievedSection[] = hits
+  const lexicalAll: RetrievedSection[] = hits
     .filter((h) => !exactIds.has(h.id))
     .map((h) => {
       const s = byId.get(h.id)!
@@ -152,7 +152,17 @@ export function retrieve(question: string, opts: { topK?: number } = {}): Retrie
       const phraseBoost = titlePhraseBoost(question, s.title)
       return { ...s, score: h.score * actBoost * phraseBoost, matchType: 'lexical' as const }
     })
-    .sort((a, b) => b.score - a.score)
+
+  // When the question names an act ("under the BNS"), scope retrieval to that act.
+  // Without this, a longer title in another act that happens to contain the
+  // question's phrase ("Punishment for cheating by personation") can outrank the
+  // canonical section ("Cheating").
+  const scoped =
+    namedAct && lexicalAll.some((s) => actSlugFromName(s.act) === namedAct)
+      ? lexicalAll.filter((s) => actSlugFromName(s.act) === namedAct)
+      : lexicalAll
+
+  const lexical: RetrievedSection[] = scoped.sort((a, b) => b.score - a.score)
 
   // coverage = share of the question's content terms present in the best hit
   let coverage = 0

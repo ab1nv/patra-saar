@@ -66,4 +66,11 @@ describe('retrieve', () => {
     const ids = result.sections.map((s) => s.id)
     expect(ids, `got: ${ids.join(', ')}`).toContain('bns:316')
   })
+
+  it('scopes retrieval to the named act so cross-act lookalikes do not outrank it', () => {
+    const result = retrieve('What is the punishment for cheating under the BNS?')
+    const ids = result.sections.map((s) => s.id)
+    expect(ids, `got: ${ids.join(', ')}`).toContain('bns:318')
+    expect(ids.some((id) => id.startsWith('ipc:'))).toBe(false)
+  })
 })
