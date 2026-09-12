@@ -3,6 +3,8 @@ import { streamGroq, groqModels, generateTitle, heuristicTitle, activeModel } fr
 import { offlineAnswer } from './offline'
 import type { Section } from '../corpus/types'
 
+export { groqModels } from './groq'
+
 export type { ChatMode, PromptExtras }
 
 export type LlmProvider = 'groq' | 'offline'

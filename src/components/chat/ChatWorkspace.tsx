@@ -63,6 +63,7 @@ export function ChatWorkspace({
   const [streaming, setStreaming] = useState(false)
   const [provider, setProvider] = useState('')
   const [model, setModel] = useState('')
+  const [models, setModels] = useState<string[]>([])
   const [citation, setCitation] = useState<ChatCitation | null>(null)
   const [incognito, setIncognito] = useState(false)
   const [pendingQuote, setPendingQuote] = useState<string | null>(null)
@@ -104,10 +105,11 @@ export function ChatWorkspace({
       try {
         const res = await fetch('/api/health')
         if (!res.ok) return
-        const data = (await res.json()) as { provider?: string; model?: string }
+        const data = (await res.json()) as { provider?: string; model?: string; models?: string[] }
         if (cancelled) return
         if (data.provider) setProvider(data.provider)
         if (data.model) setModel(data.model)
+        if (data.models?.length) setModels(data.models)
       } catch {
         /* keep the fallback label */
       }
@@ -569,7 +571,15 @@ export function ChatWorkspace({
 
         <Composer
           streaming={streaming}
-          model={model || (provider === 'offline' ? 'offline demo mode' : 'connecting...')}
+          model={
+            model
+              ? models.length > 1
+                ? `${models.join(' → ')} (fallback)`
+                : model
+              : provider === 'offline'
+                ? 'offline demo mode'
+                : 'connecting...'
+          }
           pendingQuote={pendingQuote}
           focusNonce={focusNonce}
           onSend={send}
