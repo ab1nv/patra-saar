@@ -58,8 +58,11 @@ export function buildBaselinePrompt(question: string): { system: string; user: s
 // The free Groq tier enforces an input-tokens-per-minute cap, so bound the
 // context we send. Quotes the model produces are substrings of this truncated
 // text and are still verified against the full section text server-side.
-const MAX_SECTION_CHARS = 1300
-const MAX_CONTEXT_CHARS = 4500
+// The per-section cap must be generous enough to reach the operative words:
+// some sections (for example BNS 318) put the punishment after long
+// illustrations, thousands of characters in.
+const MAX_SECTION_CHARS = 4200
+const MAX_CONTEXT_CHARS = 14000
 
 function clip(text: string, max: number): string {
   if (text.length <= max) return text
