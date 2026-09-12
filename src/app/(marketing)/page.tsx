@@ -1,15 +1,25 @@
 import Link from 'next/link'
 import {
   Ban,
-  Compass,
+  Bell,
+  Clock,
+  Cpu,
   FileCheck2,
   FlaskConical,
+  Gavel,
+  Globe2,
+  Landmark,
+  Layers,
   Library,
+  Link2,
   Lock,
+  MapPin,
+  PenLine,
   Scale,
   Search,
   ShieldCheck,
   Sparkles,
+  Users,
   Wand2,
 } from 'lucide-react'
 import { corpusMeta } from '@/lib/corpus'
@@ -21,6 +31,109 @@ import auditData from '../../../data/audit-results.json'
 export const metadata = {
   title: 'PatraSaar',
 }
+
+const PILLARS = [
+  {
+    icon: Landmark,
+    toneText: 'text-accent',
+    toneChip: 'border-accent/30 bg-accent-soft',
+    title: 'The judgment layer',
+    summary:
+      'Statutory text is half the law; judicial interpretation is the other. Case law comes next, with the same verify-before-trust discipline.',
+    points: [
+      {
+        icon: Library,
+        label: 'Precedent graph.',
+        body: 'Index Supreme Court and High Court judgments from open sources such as OpenNyAI and Indian Kanoon.',
+      },
+      {
+        icon: FileCheck2,
+        label: 'Paragraph-level verification.',
+        body: 'Quotes checked verbatim against the published order, so no invented language attributed to a real case.',
+      },
+      {
+        icon: Gavel,
+        label: 'Good-law checks.',
+        body: 'Flag judgments overruled by a larger bench, so dead precedent is never cited.',
+      },
+    ],
+  },
+  {
+    icon: Cpu,
+    toneText: 'text-info',
+    toneChip: 'border-info/30 bg-info-soft',
+    title: 'Multi-model benchmarking',
+    summary:
+      'The audit proved the verifier on one open-weight model. Next, decouple the generator and widen the measurement.',
+    points: [
+      {
+        icon: Sparkles,
+        label: 'Frontier routing.',
+        body: 'Send complex reasoning to frontier models, always through the deterministic verifier.',
+      },
+      {
+        icon: Scale,
+        label: 'Indian legal models.',
+        body: 'Evaluate domain-tuned models such as OpenNyAI Aalap alongside general ones.',
+      },
+      {
+        icon: FlaskConical,
+        label: 'Continuous audit.',
+        body: 'Grow the 30-question audit past 1,000 questions and re-score every new model that ships.',
+      },
+    ],
+  },
+  {
+    icon: Layers,
+    toneText: 'text-verified',
+    toneChip: 'border-verified/30 bg-verified-soft',
+    title: 'The complete corpus',
+    summary:
+      'Indian law is fragmented. Expanding beyond the core codes for corporate and specialised practice.',
+    points: [
+      {
+        icon: MapPin,
+        label: 'Jurisdiction-aware retrieval.',
+        body: 'Apply state amendments correctly, for example BNSS in Maharashtra versus Delhi.',
+      },
+      {
+        icon: Bell,
+        label: 'Delegated legislation.',
+        body: 'SEBI circulars, MCA notifications and GST council updates, indexed as they change.',
+      },
+      {
+        icon: Clock,
+        label: 'Procedural timelines.',
+        body: 'Limitation periods, bail timelines and filing deadlines, extracted and verified.',
+      },
+    ],
+  },
+  {
+    icon: Users,
+    toneText: 'text-warning',
+    toneChip: 'border-warning/30 bg-warning-soft',
+    title: 'Two audiences, one source of truth',
+    summary:
+      'Bridge the gap between legal code and the people it governs, without dumbing it down for professionals.',
+    points: [
+      {
+        icon: Globe2,
+        label: 'Vernacular access.',
+        body: 'Ask in Hindi or Marathi; retrieve and verify in English, answer in the user’s language.',
+      },
+      {
+        icon: PenLine,
+        label: 'Plain-language mode.',
+        body: 'Turn clauses into actionable steps, with the verified citation drawer kept intact.',
+      },
+      {
+        icon: Link2,
+        label: 'Advocate tools.',
+        body: 'Verified drafting and precedent chaining across decades of interpretation.',
+      },
+    ],
+  },
+]
 
 export default function LandingPage() {
   const meta = corpusMeta()
@@ -386,39 +499,62 @@ export default function LandingPage() {
       </section>
 
       {/* What's ahead */}
-      <section className="border-t border-border bg-surface/40">
+      <section id="roadmap" className="scroll-mt-20 border-t border-border bg-surface/40">
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-20">
           <Reveal>
-            <div className="flex items-center gap-2">
-              <Compass size={16} className="text-accent" />
-              <h2 className="font-serif text-3xl">What&apos;s ahead</h2>
-            </div>
-            <p className="mt-3 max-w-2xl text-sm text-muted">
-              The roadmap for PatraSaar, in the order it will be built.
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-accent">
+              What&apos;s ahead
+            </p>
+            <h2 className="mt-4 max-w-3xl font-serif text-3xl sm:text-4xl">
+              The roadmap to verified legal intelligence
+            </h2>
+            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted sm:text-base">
+              PatraSaar today eliminates parametric hallucination across a bounded set of Indian
+              central acts. The next step is a full legal reasoning engine, built for an era where
+              verifiability precedes generation. Four pillars, serving the citizen and the advocate.
             </p>
           </Reveal>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {[
-              {
-                title: 'Hybrid retrieval',
-                body: 'Fuse dense embeddings with BM25 and add a cross-encoder re-ranker, behind a flag, so conceptual questions rank as well as exact ones.',
-              },
-              {
-                title: 'Case law',
-                body: 'Extend the same verify-before-trust pipeline to Supreme Court and High Court judgments, with the citation verifier unchanged.',
-              },
-              {
-                title: 'Larger benchmark',
-                body: 'Grow the audit to a multi-model matrix with an adversarial set and a human applicability rubric, and publish the numbers.',
-              },
-            ].map((item, i) => (
-              <Reveal key={item.title} delay={i * 80}>
-                <div className="h-full rounded-card border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border-strong">
-                  <h3 className="font-serif text-lg">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted">{item.body}</p>
-                </div>
-              </Reveal>
-            ))}
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
+            {PILLARS.map((pillar, i) => {
+              const Icon = pillar.icon
+              return (
+                <Reveal key={pillar.title} delay={i * 70}>
+                  <article className="group h-full rounded-card border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border-strong">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-control border ${pillar.toneChip}`}
+                      >
+                        <Icon size={18} className={pillar.toneText} />
+                      </span>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.16em] text-faint">
+                          Pillar {i + 1}
+                        </p>
+                        <h3 className="font-serif text-lg">{pillar.title}</h3>
+                      </div>
+                    </div>
+
+                    <p className="mt-3 text-sm leading-relaxed text-muted">{pillar.summary}</p>
+
+                    <ul className="mt-4 space-y-2.5">
+                      {pillar.points.map((point) => {
+                        const PointIcon = point.icon
+                        return (
+                          <li key={point.label} className="flex gap-2.5 text-xs leading-relaxed">
+                            <PointIcon size={13} className={`mt-0.5 shrink-0 ${pillar.toneText}`} />
+                            <span className="text-muted">
+                              <span className="font-medium text-foreground">{point.label}</span>{' '}
+                              {point.body}
+                            </span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </article>
+                </Reveal>
+              )
+            })}
           </div>
         </div>
       </section>
