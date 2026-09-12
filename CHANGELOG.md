@@ -3,6 +3,36 @@
 All notable changes to this project are documented here. Format follows
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [3.3.0] - 2026-09-16
+
+### Added
+
+- MIT license (`LICENSE`), and a README with the project logo, a plain-English description, the CI
+  and license badges, and a license section.
+- The PatraSaar logo now appears in the site footer, alongside a copyright line and a GitHub link.
+
+### Changed
+
+- Removed the "Asking an AI about the law fails in three predictable ways" and "How it works"
+  sections from the landing page; the page now goes straight from the hero to the benchmark.
+- The audit heading is simply "Methodology".
+- The hero **See Benchmarks** button now scrolls every time it is pressed, even when the page has
+  already been scrolled back to the top and the `#audit` hash is still in the URL.
+
+## [3.2.2] - 2026-09-16
+
+### Fixed
+
+- Use the standard Postgres driver (`pg` + `drizzle-orm/node-postgres`) instead of the Neon-only
+  serverless driver, so CI's Postgres service and Neon share one code path. CI was falling back to
+  the in-memory store and failing every login test.
+- Scope retrieval to the named act before ranking. The title phrase boost could otherwise let a
+  longer title from another act that happens to contain the question's phrase outrank the canonical
+  section (`Punishment for cheating by personation` ahead of BNS `Cheating`).
+- Raise the per-section context budget to 4,200 characters (14,000 total). Some sections, such as
+  BNS 318, put the operative words thousands of characters in, so the old 1,300-character clip hid
+  them and the model correctly refused a question it could answer.
+
 ## [3.2.1] - 2026-09-16
 
 ### Fixed

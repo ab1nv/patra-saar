@@ -1,6 +1,6 @@
 ================================================================================
 PATRASAAR - EXECUTIVE AND FEATURE SUMMARY
-Version 3.2.0  ·  Generated 2026-09-16
+Version 3.3.0  ·  Generated 2026-09-16
 Live: https://patra-saar-lyart.vercel.app
 Repository: https://github.com/ab1nv/patra-saar  (branch: master)
 ================================================================================
@@ -61,6 +61,11 @@ HALLUCINATION AUDIT (public landing-page section)
   BENCHMARK DETAIL
   Model: qwen/qwen3.8-27b (Groq).  Sample: 30 questions (24 in-corpus).
   Run: 2026-09-15.  Raw data: data/audit-results.json.  Reproduce: pnpm audit:run.
+  Note: this run predates the later retrieval tuning (act scoping, title phrase
+  boost) and the larger per-section context budget. Those changes were made to
+  fix the q10 ranking miss and to reach the operative words of long sections;
+  re-running the audit with the current build is a one-command job and the
+  numbers below are reported exactly as measured on the run date.
 
   --------------------------------------------------------------------------
   A. WHAT IS COMPARED (MODELS AND ARMS)
@@ -100,7 +105,11 @@ HALLUCINATION AUDIT (public landing-page section)
           ~3x over body text.
         * Hybrid exact lookup: a section/article named in the question is
           pinned first with matchType "exact".
-        * Named-act boost x1.8 when the question names an act.
+        * Named-act boost x1.8 when the question names an act, and when an act
+          is named, lexical results are scoped to that act before ranking (so a
+          longer cross-act title cannot outrank the canonical section).
+        * Title phrase boost: 1.5x when a section title contains a contiguous
+          phrase from the question, 1.3x for a single-word title named verbatim.
         * Top-K = 8 candidates (exact pins merged with BM25 hits).
         * Abstention gate: no exact pin AND (best lexical score = 0 OR
           coverage < 0.34), where coverage is the share of the question's
@@ -113,9 +122,11 @@ HALLUCINATION AUDIT (public landing-page section)
         * Grounded system prompt contains ONLY the retrieved sections plus a
           fixed rule set: no outside knowledge, every assertion emitted as
           [[ACT_CODE s.NUMBER | "verbatim quote"]].
-        * Context budget per request: <= 1,300 chars per section and
-          <= 4,500 chars total (free-tier token safeguard). Quotes are still
-          verified against the FULL section text server-side.
+        * Context budget per request: <= 4,200 chars per section and
+          <= 14,000 chars total (free-tier token safeguard). The per-section cap
+          is generous enough to reach the operative words of long sections
+          (BNS 318 puts its punishment after long illustrations). Quotes are
+          still verified against the FULL section text server-side.
         * Baseline prompt uses the same citation grammar but instructs the
           model to answer from its own knowledge.
 
@@ -360,9 +371,11 @@ CHAT WORKSPACE
     immediately and persist in the background. The chat list is cached in
     localStorage and per-chat messages in memory, so switching is instant.
   - The active model id is shown beside the composer and under the chat title.
+  - Cited sections are listed in a right-hand "Sources & acts" panel that appears
+    once the first answer streams (a slide-over below the xl breakpoint).
+  - Chat list and history are cached: create, rename, pin and delete update the
+    screen immediately and persist in the background.
   - No document attachments: answers come only from the indexed corpus.
-  - Cited sections appear in a right-hand "Sources & acts" panel once the first
-    answer streams (a slide-over on smaller screens), not appended per answer.
   - Example prompts show three at a time, drawn at random from a pool of twelve
     questions the benchmark covers well.
   - Retrieval boost: a section whose title contains a contiguous phrase from
@@ -449,7 +462,7 @@ Login abhinav@test.com / abhinav
   4. Ask "What does Article 21 of the Constitution protect?" or "When may a police
      officer arrest without a warrant under the BNSS?" -> new acts answer with
      verified citations.
-  5. On the landing page press See Audit -> headline statistics, comparison bars, side-by-side
+  5. On the landing page press See Benchmarks -> headline statistics, comparison bars, side-by-side
      examples, full table, methodology.
   6. Sidebar: create, pin, rename and delete chats (no confirmation dialog).
   7. Incognito toggle -> the chat answers but is never saved.
@@ -474,7 +487,21 @@ Login abhinav@test.com / abhinav
 
 
 --------------------------------------------------------------------------------
-6. DISCLAIMER
+6. LICENCE AND REPOSITORY
+--------------------------------------------------------------------------------
+
+  - The project is released under the MIT License (see LICENSE), copyright
+    Abhinav Singh 2026. The footer of the site links to both.
+  - README.md carries the logo, a plain-English description, CI and licence
+    badges and a licence section.
+  - Repository: https://github.com/ab1nv/patra-saar  (default branch: master)
+  - CI runs on every push to master: typecheck, lint, knip, unit tests, a
+    PostgreSQL service container, seed, build and end-to-end tests. It uses no
+    repository secrets.
+
+
+--------------------------------------------------------------------------------
+7. DISCLAIMER
 --------------------------------------------------------------------------------
 
 PatraSaar provides information about statutory text. It is not legal advice and

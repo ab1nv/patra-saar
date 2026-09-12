@@ -1,35 +1,52 @@
-# PatraSaar
+<p align="center">
+  <img src="./public/logo.png" alt="PatraSaar" width="120" />
+</p>
 
-**It cites the law, or it says it doesn't know.**
+<h1 align="center">PatraSaar</h1>
 
-PatraSaar answers questions about Indian central acts and the Constitution using only an indexed
-corpus of statutory text, and verifies every citation verbatim against the source section before
-showing it. If nothing relevant is found, it refuses instead of guessing. It also publishes a
-measured **hallucination audit** comparing the same model with and without verification.
+<p align="center">
+  Ask a question about Indian law, and get an answer built only from the text of the acts it has
+  indexed. Every citation is checked against the source section before you see it. If it cannot
+  find the provision, it says so instead of guessing.
+</p>
 
-[![CI](https://github.com/ab1nv/patra-saar/actions/workflows/ci.yml/badge.svg)](https://github.com/ab1nv/patra-saar/actions/workflows/ci.yml)
+<p align="center">
+  <a href="https://github.com/ab1nv/patra-saar/actions/workflows/ci.yml"><img src="https://github.com/ab1nv/patra-saar/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
+</p>
 
-## Features
+---
 
-- **Verified citations** - every `[[ACT s.N | "quote"]]` is checked for existence, retrieval, and a
-  verbatim quote. Passes render as ✓; failures are struck through with the exact reason.
-- **Hallucination audit** (on the landing page) - the same model, same 30 questions, with and without
-  retrieval-plus-verification, scored deterministically against the corpus.
-- **Abstains when unsure** - a retrieval threshold gate means no answer rather than a guess.
-- **Section-level corpus** - 10 acts, 3,200+ sections, parsed from the source PDFs, not blind chunks.
-- **Chat workspace** - streaming, incognito mode, pin/rename/delete, cross-questioning,
-  fully responsive with a mobile drawer.
-- **Offline demo mode** - runs without an LLM key using deterministic extractive answers.
+PatraSaar is a retrieval-augmented search tool for Indian statutory law. It indexes ten sources
+(Indian Penal Code, Bharatiya Nyaya Sanhita, Bharatiya Sakshya Adhiniyam, Bharatiya Nagarik Suraksha
+Sanhita, Code of Criminal Procedure, Code of Civil Procedure, the Constitution of India, the Indian
+Contract Act, the IT Act, and the Companies Act) as about 3,200 individual sections. A language model
+is only allowed to answer from the sections it retrieves, and it must quote them word for word. A
+separate deterministic check then confirms that each cited section exists, was actually retrieved,
+and that the quote matches the source text.
 
-## Indexed acts
+It also publishes a small benchmark on the landing page comparing the same model with and without
+this verification step.
 
-IPC 1860 · BNS 2023 · BSA 2023 · BNSS 2023 · CrPC 1973 · CPC 1908 · Constitution of India ·
-Indian Contract Act 1872 · IT Act 2000 · Companies Act 2013
+**Live:** https://patra-saar-lyart.vercel.app · **Demo login:** `abhinav@test.com` / `abhinav`
 
-## Tech stack
+## What it does
 
-Next.js 16 (App Router) · TypeScript (strict) · Tailwind CSS v4 · Groq · Neon Postgres + Drizzle ·
-BM25 (in-process) · `unpdf` · jose + scrypt · Vitest · Playwright. Benchmarked on `qwen/qwen3.8-27b` (Groq).
+- Answers questions using only the indexed sections, with a verified quote behind every citation.
+- Refuses to answer when retrieval finds nothing relevant.
+- Shows the exact statutory text for any citation.
+- Reports the active model next to the chat input.
+
+## What it does not do
+
+- It does not cover case law, state amendments, rules, notifications, or anything outside the ten
+  indexed sources.
+- It is not legal advice. Verification proves the quote is real, not that it applies to a situation.
+
+## Stack
+
+Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Groq · Postgres (Neon) + Drizzle ·
+in-process BM25 · Vitest · Playwright
 
 ## Quick start
 
@@ -37,54 +54,38 @@ BM25 (in-process) · `unpdf` · jose + scrypt · Vitest · Playwright. Benchmark
 pnpm install
 cp .env.example .env          # set GROQ_API_KEY and DATABASE_URL
 pnpm corpus:build             # regenerate data/corpus.json (already committed)
-pnpm seed                     # create tables + demo user
+pnpm seed                     # create tables and the demo user
 pnpm dev                      # http://localhost:3000
 ```
 
-**Demo credentials:** `abhinav@test.com` / `abhinav`
+Without a `GROQ_API_KEY` the app runs in a deterministic offline mode. Without `DATABASE_URL` it
+falls back to an in-memory store.
 
 ## Scripts
 
-| Script                                       | Purpose                                           |
-| -------------------------------------------- | ------------------------------------------------- |
-| `pnpm dev` / `pnpm build` / `pnpm start`     | Run / build / serve                               |
-| `pnpm typecheck` · `pnpm lint` · `pnpm knip` | TypeScript · ESLint · dead-code check             |
-| `pnpm test:unit` · `pnpm test:e2e`           | Vitest · Playwright                               |
-| `pnpm corpus:build`                          | Rebuild the section corpus from `data/acts/*.pdf` |
-| `pnpm seed`                                  | Create schema + demo user                         |
-| `pnpm db:reset`                              | Clear all conversations (keeps the demo user)     |
-| `pnpm audit:run`                             | Re-run the hallucination audit                    |
+| Script                                       | Purpose                                                  |
+| -------------------------------------------- | -------------------------------------------------------- |
+| `pnpm dev` / `pnpm build` / `pnpm start`     | Run, build, serve                                        |
+| `pnpm typecheck` · `pnpm lint` · `pnpm knip` | Types, lint, dead-code check                             |
+| `pnpm test:unit` · `pnpm test:e2e`           | Unit tests (Vitest), end-to-end tests (Playwright)       |
+| `pnpm corpus:build`                          | Rebuild the section corpus from `data/acts/*.pdf`        |
+| `pnpm seed` · `pnpm db:reset`                | Create the schema and demo user, or clear conversations  |
+| `pnpm audit:run`                             | Re-run the benchmark and write `data/audit-results.json` |
 
-## Project structure
+## Project layout
 
 ```
-data/
-  acts/                 # source bare-act PDFs
-  corpus.json           # generated section corpus (committed)
-  audit-questions.json  # ground-truth question set
-  audit-results.json    # generated audit results (committed)
-scripts/
-  build-corpus.ts       # PDF -> sections -> corpus.json
-  run-audit.ts          # hallucination audit harness
-  seed.ts / reset-db.ts
-src/
-  app/                  # landing, login, chat, audit, API routes
-  components/           # chat, layout, ui
-  lib/
-    corpus/             # loading, BM25, retrieval
-    citations/          # citation grammar + verifier
-    audit/              # audit scoring + aggregation
-    llm/                # Groq streaming, prompt, offline fallback
-    db/ auth/           # Drizzle + Neon, scrypt + JWT
-  middleware.ts         # route protection (JWT verified)
-tests/                  # unit (Vitest) + e2e (Playwright, desktop + mobile)
+data/          source PDFs, the generated corpus, benchmark questions and results
+scripts/       corpus builder, benchmark runner, seed and reset
+src/app/       landing page, login, chat, API routes
+src/components/ chat, marketing and UI components
+src/lib/       corpus and retrieval, citation verifier, audit scoring, LLM, database, auth
+tests/         unit and end-to-end tests
 ```
 
-See [DOCS.md](./DOCS.md) for architecture, API reference and design tradeoffs, and
-[HANDOFF.md](./HANDOFF.md) for the presentation package.
+See [DOCS.md](./DOCS.md) for architecture and the API reference, and [HANDOFF.md](./HANDOFF.md) for
+the presentation notes.
 
-## Disclaimer
+## License
 
-PatraSaar provides information about statutory text. It is not legal advice and does not create a
-lawyer–client relationship. Verify all provisions against the official bare act before relying on
-them.
+[MIT](./LICENSE) © 2026 Abhinav Singh

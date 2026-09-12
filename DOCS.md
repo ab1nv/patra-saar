@@ -68,8 +68,10 @@ answer about the text of a central act - and who need to know when the tool does
 - **Login (`/login`)** - single seeded user, scrypt-hashed password, JWT session cookie. Signing in
   performs a full navigation and lands directly on the workspace.
 - **Workspace (`/chat`)** - streaming markdown answers, inline verification badges, expandable
-  citation chips, collapsible/resizable sidebar (a drawer on mobile), pinned and renameable chats,
-  incognito mode, and select-to-cross-question.
+  citation chips, a right-hand **Sources & acts** panel listing every cited section (a slide-over
+  below the xl breakpoint), collapsible/resizable sidebar (a drawer on mobile), instant optimistic
+  pin, rename, delete and create, incognito mode, three randomly chosen example prompts, the active
+  model shown beside the composer, and select-to-cross-question.
 - **Hallucination audit (public landing-page section)** - headline statistics, per-metric comparison bars,
   side-by-side failure examples, the full results table, and an explicit methodology.
 - **Abstention** - ask an out-of-corpus question and the system refuses, with no citations rendered.
@@ -126,8 +128,15 @@ answer about the text of a central act - and who need to know when the tool does
 - **One Next.js app instead of a separate backend.** One language, one deploy target, one set of
   types.
 - **A bounded context budget.** The free Groq tier caps input tokens per minute, so prompts are
-  capped (`MAX_SECTION_CHARS` / `MAX_CONTEXT_CHARS`). Quotes are still verified against the full
-  section text server-side.
+  capped (`MAX_SECTION_CHARS` = 4,200 and `MAX_CONTEXT_CHARS` = 14,000 characters). The per-section
+  cap is generous enough to reach the operative words of long sections (BNS 318 puts its punishment
+  after long illustrations). Quotes are still verified against the full section text server-side.
+- **Explicit act scoping.** When a question names an act ("under the BNS"), lexical results are
+  restricted to that act before ranking, so a longer title in another act that happens to contain
+  the question's phrase cannot outrank the canonical section.
+- **Title phrase boost.** BM25 splits a query into terms, so a section whose title contains a
+  contiguous phrase from the question scores 1.5x, and a single-word title named verbatim scores
+  1.3x.
 - **Offline fallback.** With no `GROQ_API_KEY`, a deterministic generator produces answers with real
   verbatim citations, so the app and its tests run without an external dependency.
 
@@ -218,19 +227,19 @@ in `data/acts/`, add an entry to `ACTS` in the script and re-run `pnpm corpus:bu
 All responses use one error shape: `{ "error": string, "message": string }`. Auth is a `ps_session`
 httpOnly cookie.
 
-| Method & path                 | Auth | Body / params                                                 | Response                                        |
-| ----------------------------- | ---- | ------------------------------------------------------------- | ----------------------------------------------- |
-| `GET /api/health`             | no   | -                                                             | `{ status, corpusSections, builtAt, provider }` |
-| `POST /api/auth/login`        | no   | `{ email, password }`                                         | `{ user }` + sets cookie                        |
-| `POST /api/auth/logout`       | no   | -                                                             | `{ ok: true }` + clears cookie                  |
-| `GET /api/auth/me`            | yes  | -                                                             | `{ user }` or 401                               |
-| `POST /api/chat`              | yes  | `{ question, caseId?, mode?, incognito?, selectionContext? }` | SSE stream                                      |
-| `GET /api/cases`              | yes  | -                                                             | `{ cases }`                                     |
-| `POST /api/cases`             | yes  | `{ title }`                                                   | `{ case }` (201)                                |
-| `GET /api/cases/:id`          | yes  | -                                                             | `{ case, messages }`                            |
-| `PATCH /api/cases/:id`        | yes  | `{ title?, pinned? }`                                         | `{ case }`                                      |
-| `DELETE /api/cases/:id`       | yes  | -                                                             | `{ ok: true }`                                  |
-| `GET /api/sections/:act/:num` | yes  | -                                                             | `{ section }`                                   |
+| Method & path                 | Auth | Body / params                                                 | Response                                               |
+| ----------------------------- | ---- | ------------------------------------------------------------- | ------------------------------------------------------ |
+| `GET /api/health`             | no   | -                                                             | `{ status, corpusSections, builtAt, provider, model }` |
+| `POST /api/auth/login`        | no   | `{ email, password }`                                         | `{ user }` + sets cookie                               |
+| `POST /api/auth/logout`       | no   | -                                                             | `{ ok: true }` + clears cookie                         |
+| `GET /api/auth/me`            | yes  | -                                                             | `{ user }` or 401                                      |
+| `POST /api/chat`              | yes  | `{ question, caseId?, mode?, incognito?, selectionContext? }` | SSE stream                                             |
+| `GET /api/cases`              | yes  | -                                                             | `{ cases }`                                            |
+| `POST /api/cases`             | yes  | `{ title }`                                                   | `{ case }` (201)                                       |
+| `GET /api/cases/:id`          | yes  | -                                                             | `{ case, messages }`                                   |
+| `PATCH /api/cases/:id`        | yes  | `{ title?, pinned? }`                                         | `{ case }`                                             |
+| `DELETE /api/cases/:id`       | yes  | -                                                             | `{ ok: true }`                                         |
+| `GET /api/sections/:act/:num` | yes  | -                                                             | `{ section }`                                          |
 
 **Chat SSE events** (`text/event-stream`, one JSON object per `data:` frame):
 
@@ -293,8 +302,9 @@ no `DATABASE_URL` the app falls back to an in-memory store. Useful scripts: `pnp
 
 ## 13. Testing strategy
 
-- **Unit (Vitest, `tests/unit`)** - 33 tests. BM25 ranking and determinism; retrieval (exact pinning,
-  lexical hits, abstention, act boosting, filler words, Constitution articles); citation parsing
+- **Unit (Vitest, `tests/unit`)** - 37 tests. BM25 ranking and determinism; retrieval (exact pinning,
+  lexical hits, abstention, act boosting, act scoping, title phrase boost, filler words,
+  Constitution articles); citation parsing
   (suffixed numbers, sub-sections, long act names, malformed); act-name resolution; the **verifier**
   (valid, section-not-found, not-retrieved, paraphrased quote, malformed); audit scoring and
   aggregation.
