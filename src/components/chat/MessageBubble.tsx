@@ -138,7 +138,7 @@ export function MessageBubble({
                       >
                         <span className="font-semibold">{c.verified ? '✓' : '⚠'}</span>{' '}
                         {c.actFull ?? c.actName} · Section {c.number}
-                        {c.title ? ` — ${c.title}` : ''}
+                        {c.title ? ` - ${c.title}` : ''}
                       </span>
                       <span className="shrink-0 text-[10px] uppercase tracking-wider text-faint">
                         {c.verified ? 'verified' : (c.failureReason ?? 'unverified')}

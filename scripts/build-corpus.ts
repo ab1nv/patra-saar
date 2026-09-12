@@ -1,7 +1,7 @@
 /**
  * Builds data/corpus.json from the source bare-act PDFs in data/acts/.
  *
- * Strategy: Indian bare acts are structured as `NUMBER. Title.—Body`.
+ * Strategy: Indian bare acts are structured as `NUMBER. Title.-Body`.
  * We split on that heading pattern, requiring the em/en dash separator so
  * the front-matter "ARRANGEMENT OF SECTIONS" table of contents (which has no
  * dash) is skipped. Footnotes are rejected structurally (they contain an
@@ -21,7 +21,7 @@ type ActConfig = {
   actFull: string
   file: string
   expected: number
-  /** Accept "(N) Title.—" headings too, with a monotonic guard (some editions mix styles). */
+  /** Accept "(N) Title.-" headings too, with a monotonic guard (some editions mix styles). */
   allowParen?: boolean
 }
 
@@ -99,9 +99,10 @@ const ACTS: ActConfig[] = [
   },
 ]
 
-const SECTION_RE = /^[ \t]*(\d{1,3}[A-Z]{0,2})\.\s+([\s\S]{3,140}?)\s*[—–]{1,2}\s*/gm
-// Some editions render the section number in parentheses, e.g. "(3) Construction of references.—"
-const PAREN_SECTION_RE = /^[ \t]*\((\d{1,3}[A-Z]{0,2})\)[ \t]*([\s\S]{3,140}?)\s*[—–]{1,2}\s*/gm
+const SECTION_RE = /^[ \t]*(\d{1,3}[A-Z]{0,2})\.\s+([\s\S]{3,140}?)\s*[\u2014\u2013]{1,2}\s*/gm
+// Some editions render the section number in parentheses, e.g. "(3) Construction of references.-"
+const PAREN_SECTION_RE =
+  /^[ \t]*\((\d{1,3}[A-Z]{0,2})\)[ \t]*([\s\S]{3,140}?)\s*[\u2014\u2013]{1,2}\s*/gm
 
 function numVal(n: string): [number, string] {
   const m = n.match(/^(\d+)([A-Z]*)$/)
@@ -150,6 +151,7 @@ function tokenize(s: string): string[] {
 function normalizeBody(body: string): string {
   return body
     .replace(/\d+\[([^\]]*)\]/g, '$1')
+    .replace(/\u2014/g, '-')
     .replace(/[ \t]+/g, ' ')
     .replace(/\n{2,}/g, '\n')
     .trim()

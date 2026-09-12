@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     'PatraSaar answers questions about Indian central acts using only an indexed corpus of statutory text, and verifies every citation verbatim against the source section.',
   manifest: '/site.webmanifest',
   openGraph: {
-    title: 'PatraSaar — It cites the law, or it says it doesn’t know',
+    title: 'PatraSaar - It cites the law, or it says it doesn’t know',
     description:
       'Verified citations for Indian central acts, grounded in an indexed corpus of statutory text.',
     type: 'website',

@@ -1,4 +1,4 @@
-# PatraSaar — Documentation
+# PatraSaar - Documentation
 
 > PatraSaar answers questions about Indian central acts and the Constitution using only an indexed
 > corpus of statutory text, and verifies every citation verbatim against the source section before
@@ -35,10 +35,10 @@ numbers, they cite repealed provisions, and they rarely show the underlying text
 replacement of the IPC with the Bharatiya Nyaya Sanhita compounds this: a large amount of pre-2024
 legal knowledge is now numbered differently. In 2026 the Supreme Court of India (_Pooja Ramesh Singh
 v. Jammu & Kashmir Bank Ltd._, 2026 INSC 668) set aside tribunal orders that relied on
-AI-hallucinated precedents — the exact failure mode this project targets.
+AI-hallucinated precedents - the exact failure mode this project targets.
 
 Users: law students, junior advocates, paralegals and informed citizens who need a fast, checkable
-answer about the text of a central act — and who need to know when the tool does not know.
+answer about the text of a central act - and who need to know when the tool does not know.
 
 ---
 
@@ -65,15 +65,15 @@ answer about the text of a central act — and who need to know when the tool do
 
 ## 4. Product walkthrough
 
-- **Landing page (`/`)** — the position, the tradeoff, and the indexed corpus.
-- **Login (`/login`)** — single seeded user, scrypt-hashed password, JWT session cookie. Signing in
+- **Landing page (`/`)** - the position, the tradeoff, and the indexed corpus.
+- **Login (`/login`)** - single seeded user, scrypt-hashed password, JWT session cookie. Signing in
   performs a full navigation and lands directly on the workspace.
-- **Workspace (`/chat`)** — streaming markdown answers, inline verification badges, expandable
+- **Workspace (`/chat`)** - streaming markdown answers, inline verification badges, expandable
   citation chips, collapsible/resizable sidebar (a drawer on mobile), pinned and renameable chats,
   incognito mode, PDF/text attachments, and select-to-cross-question.
-- **Hallucination audit (`/audit`, public)** — headline statistics, per-metric comparison bars,
+- **Hallucination audit (`/audit`, public)** - headline statistics, per-metric comparison bars,
   side-by-side failure examples, the full results table, and an explicit methodology.
-- **Abstention** — ask an out-of-corpus question and the system refuses, with no citations rendered.
+- **Abstention** - ask an out-of-corpus question and the system refuses, with no citations rendered.
 
 ---
 
@@ -124,7 +124,7 @@ answer about the text of a central act — and who need to know when the tool do
   body is what makes exact lookup and citation checking possible.
 - **Verify after generation rather than prompt-engineering only.** Instructions reduce but do not
   eliminate invented citations. A deterministic post-check converts "trust the model" into a
-  checkable claim, and — unlike a second LLM check — the verifier cannot itself hallucinate.
+  checkable claim, and - unlike a second LLM check - the verifier cannot itself hallucinate.
 - **One Next.js app instead of a separate backend.** One language, one deploy target, one set of
   types.
 - **A bounded context budget.** The free Groq tier caps input tokens per minute, so prompts are
@@ -148,9 +148,9 @@ answer about the text of a central act — and who need to know when the tool do
 
 **The three checks** (in order, server-side, after generation):
 
-1. `sectionExists` — the cited section resolves in the corpus (act name + number).
-2. `wasRetrieved` — that section id was actually retrieved for this query.
-3. `quoteVerbatim` — the quote appears in the section text after normalization (lowercase, unify
+1. `sectionExists` - the cited section resolves in the corpus (act name + number).
+2. `wasRetrieved` - that section id was actually retrieved for this query.
+3. `quoteVerbatim` - the quote appears in the section text after normalization (lowercase, unify
    quotes and dashes, collapse whitespace, strip punctuation).
 
 A citation that passes all three is verified. Otherwise it carries a `failureReason` of
@@ -169,9 +169,9 @@ verified to exist), 3 naming a section that does not exist, and 3 outside the in
 
 `scripts/run-audit.ts` (`pnpm audit:run`) runs each question through two arms:
 
-- **Baseline** — the same model answering from parametric memory, with the same citation grammar but
+- **Baseline** - the same model answering from parametric memory, with the same citation grammar but
   no retrieved context (simulating "just ask a chatbot").
-- **PatraSaar** — retrieve → constrain → verify.
+- **PatraSaar** - retrieve → constrain → verify.
 
 Every answer is scored deterministically by `src/lib/audit/score.ts`: a citation _exists_ if it
 resolves in the corpus, is _verbatim_ if the quote is found in the section, and is _correct_ if it
@@ -187,7 +187,7 @@ mirrors the Stanford RegLab design at much smaller scale).
 citations to real sections but only **5.1%** of its quotes were verbatim; PatraSaar verified
 **97.6%** of its citations (exists + retrieved + verbatim) and fabricated **0%**. Baseline
 question-level accuracy was 87.5% vs PatraSaar 95.8%; both arms abstained on 20% of questions. The
-baseline's failure mode is not invented section numbers — it is quoted wording that is not the
+baseline's failure mode is not invented section numbers - it is quoted wording that is not the
 statute.
 
 ---
@@ -198,9 +198,9 @@ statute.
 
 1. Extract text per PDF with `unpdf`.
 2. Normalize whitespace, drop page numbers, running headers and all-caps chapter headings.
-3. Split on the heading pattern `NUMBER. Title.—Body`, requiring the em/en dash so the
+3. Split on the heading pattern `NUMBER. Title.-Body`, requiring the em/en dash so the
    "ARRANGEMENT OF SECTIONS" table of contents (which has no dash) is skipped. A tolerant
-   `(NUMBER) Title.—Body` mode is enabled for the BNSS edition, with a monotonic guard so
+   `(NUMBER) Title.-Body` mode is enabled for the BNSS edition, with a monotonic guard so
    sub-section markers are not mistaken for section headings.
 4. Reject footnote candidates structurally (an internal ". " that real short titles do not contain)
    and de-duplicate on section number.
@@ -222,17 +222,17 @@ httpOnly cookie.
 
 | Method & path                 | Auth | Body / params                                                                  | Response                                        |
 | ----------------------------- | ---- | ------------------------------------------------------------------------------ | ----------------------------------------------- |
-| `GET /api/health`             | no   | —                                                                              | `{ status, corpusSections, builtAt, provider }` |
+| `GET /api/health`             | no   | -                                                                              | `{ status, corpusSections, builtAt, provider }` |
 | `POST /api/auth/login`        | no   | `{ email, password }`                                                          | `{ user }` + sets cookie                        |
-| `POST /api/auth/logout`       | no   | —                                                                              | `{ ok: true }` + clears cookie                  |
-| `GET /api/auth/me`            | yes  | —                                                                              | `{ user }` or 401                               |
+| `POST /api/auth/logout`       | no   | -                                                                              | `{ ok: true }` + clears cookie                  |
+| `GET /api/auth/me`            | yes  | -                                                                              | `{ user }` or 401                               |
 | `POST /api/chat`              | yes  | `{ question, caseId?, mode?, incognito?, attachmentText?, selectionContext? }` | SSE stream                                      |
-| `GET /api/cases`              | yes  | —                                                                              | `{ cases }`                                     |
+| `GET /api/cases`              | yes  | -                                                                              | `{ cases }`                                     |
 | `POST /api/cases`             | yes  | `{ title }`                                                                    | `{ case }` (201)                                |
-| `GET /api/cases/:id`          | yes  | —                                                                              | `{ case, messages }`                            |
+| `GET /api/cases/:id`          | yes  | -                                                                              | `{ case, messages }`                            |
 | `PATCH /api/cases/:id`        | yes  | `{ title?, pinned? }`                                                          | `{ case }`                                      |
-| `DELETE /api/cases/:id`       | yes  | —                                                                              | `{ ok: true }`                                  |
-| `GET /api/sections/:act/:num` | yes  | —                                                                              | `{ section }`                                   |
+| `DELETE /api/cases/:id`       | yes  | -                                                                              | `{ ok: true }`                                  |
+| `GET /api/sections/:act/:num` | yes  | -                                                                              | `{ section }`                                   |
 | `POST /api/extract`           | yes  | `multipart/form-data` `file`                                                   | `{ name, chars, text }`                         |
 
 **Chat SSE events** (`text/event-stream`, one JSON object per `data:` frame):
@@ -296,12 +296,12 @@ no `DATABASE_URL` the app falls back to an in-memory store. Useful scripts: `pnp
 
 ## 13. Testing strategy
 
-- **Unit (Vitest, `tests/unit`)** — 33 tests. BM25 ranking and determinism; retrieval (exact pinning,
+- **Unit (Vitest, `tests/unit`)** - 33 tests. BM25 ranking and determinism; retrieval (exact pinning,
   lexical hits, abstention, act boosting, filler words, Constitution articles); citation parsing
   (suffixed numbers, sub-sections, long act names, malformed); act-name resolution; the **verifier**
   (valid, section-not-found, not-retrieved, paraphrased quote, malformed); audit scoring and
   aggregation.
-- **E2E (Playwright, `tests/e2e`)** — desktop and **mobile** viewports: login (bad password, guard
+- **E2E (Playwright, `tests/e2e`)** - desktop and **mobile** viewports: login (bad password, guard
   redirect, success landing on `/chat`), chat (streamed answer + verified badge, abstention with no
   citations), audit page, and a mobile drawer/chat smoke test. The LLM stream is stubbed with a
   fixture so E2E never depends on a live API key.

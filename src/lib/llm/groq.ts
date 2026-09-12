@@ -1,9 +1,17 @@
 import Groq from 'groq-sdk'
 
 const DEFAULT_MODEL = 'qwen/qwen3.8-27b'
+// The Groq free tier enforces a hard output-tokens-per-minute cap (1000). Keep the
+// requested max_tokens comfortably under it; override with GROQ_MAX_TOKENS.
+const DEFAULT_MAX_TOKENS = 700
 
 function groqModel(): string {
   return process.env.GROQ_MODEL ?? DEFAULT_MODEL
+}
+
+function groqMaxTokens(): number {
+  const configured = Number(process.env.GROQ_MAX_TOKENS)
+  return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_MAX_TOKENS
 }
 
 /**
@@ -16,6 +24,7 @@ export async function* streamGroq(
     role: 'system' | 'user' | 'assistant'
     content: string
   }[],
+  maxTokens: number = groqMaxTokens(),
 ): AsyncGenerator<string> {
   const apiKey = process.env.GROQ_API_KEY
   if (!apiKey) throw new Error('GROQ_API_KEY is not set')
@@ -26,7 +35,7 @@ export async function* streamGroq(
     messages,
     stream: true,
     temperature: 0.1,
-    max_tokens: 1200,
+    max_tokens: maxTokens,
   })
 
   for await (const chunk of stream) {

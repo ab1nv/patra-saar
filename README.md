@@ -11,15 +11,15 @@ measured **hallucination audit** comparing the same model with and without verif
 
 ## Features
 
-- **Verified citations** — every `[[ACT s.N | "quote"]]` is checked for existence, retrieval, and a
+- **Verified citations** - every `[[ACT s.N | "quote"]]` is checked for existence, retrieval, and a
   verbatim quote. Passes render as ✓; failures are struck through with the exact reason.
-- **Hallucination audit** (`/audit`) — the same model, same 30 questions, with and without
+- **Hallucination audit** (`/audit`) - the same model, same 30 questions, with and without
   retrieval-plus-verification, scored deterministically against the corpus.
-- **Abstains when unsure** — a retrieval threshold gate means no answer rather than a guess.
-- **Section-level corpus** — 10 acts, 3,200+ sections, parsed from the source PDFs, not blind chunks.
-- **Chat workspace** — streaming, attachments, incognito mode, pin/rename/delete, cross-questioning,
+- **Abstains when unsure** - a retrieval threshold gate means no answer rather than a guess.
+- **Section-level corpus** - 10 acts, 3,200+ sections, parsed from the source PDFs, not blind chunks.
+- **Chat workspace** - streaming, attachments, incognito mode, pin/rename/delete, cross-questioning,
   fully responsive with a mobile drawer.
-- **Offline demo mode** — runs without an LLM key using deterministic extractive answers.
+- **Offline demo mode** - runs without an LLM key using deterministic extractive answers.
 
 ## Indexed acts
 

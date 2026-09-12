@@ -44,7 +44,7 @@ export default function LandingPage() {
             <p className="mt-6 max-w-xl text-base text-muted sm:text-lg">
               PatraSaar answers questions about Indian central acts using only an indexed corpus of
               statutory text. Every citation is verified verbatim against the source section before
-              you see it — and if nothing relevant is found, it refuses instead of guessing.
+              you see it - and if nothing relevant is found, it refuses instead of guessing.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
@@ -151,7 +151,7 @@ export default function LandingPage() {
         <Reveal>
           <h2 className="max-w-2xl font-serif text-3xl sm:text-4xl">How it works</h2>
           <p className="mt-3 max-w-2xl text-sm text-muted">
-            The point is not to stop the model from hallucinating — it is to catch it when it does.
+            The point is not to stop the model from hallucinating - it is to catch it when it does.
           </p>
         </Reveal>
         <div className="mt-10 grid gap-3 md:grid-cols-4">
@@ -215,20 +215,20 @@ export default function LandingPage() {
               </p>
               <div className="mt-4 space-y-2">
                 <div className="rounded-lg border border-verified/25 bg-verified-soft/40 px-3 py-2 text-xs">
-                  <span className="text-verified">✓ BNS · Section 103 — Punishment for murder</span>
+                  <span className="text-verified">✓ BNS · Section 103 - Punishment for murder</span>
                   <p className="mt-1 font-serif text-muted">
                     “Whoever commits murder shall be punished with death or imprisonment for life…”
                   </p>
                 </div>
                 <div className="rounded-lg border border-warning/25 bg-warning-soft/40 px-3 py-2 text-xs">
-                  <span className="text-warning">⚠ IPC · Section 302 — quote_not_verbatim</span>
+                  <span className="text-warning">⚠ IPC · Section 302 - quote_not_verbatim</span>
                   <p className="mt-1 font-serif text-muted line-through decoration-warning/50">
                     “Murder carries the death penalty in all cases.”
                   </p>
                 </div>
               </div>
               <p className="mt-4 text-xs text-faint">
-                The second citation is real law, but the quote was paraphrased — so it is struck
+                The second citation is real law, but the quote was paraphrased - so it is struck
                 through and flagged rather than presented as verified.
               </p>
             </div>
@@ -317,7 +317,7 @@ export default function LandingPage() {
                 {
                   icon: ShieldCheck,
                   title: 'Deterministic verifier',
-                  body: 'Normalized string-matching against indexed text — not a second model that could itself hallucinate.',
+                  body: 'Normalized string-matching against indexed text - not a second model that could itself hallucinate.',
                 },
                 {
                   icon: Ban,
@@ -360,7 +360,7 @@ export default function LandingPage() {
               <li>We run no analytics or third-party trackers.</li>
             </ul>
             <p className="mt-5 text-xs text-faint">
-              We do not claim your data never leaves your device — it is sent to the model provider
+              We do not claim your data never leaves your device - it is sent to the model provider
               to produce an answer.
             </p>
           </div>

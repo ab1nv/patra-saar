@@ -71,8 +71,8 @@ export function ChatWorkspace({
 
   // Dynamic window title.
   useEffect(() => {
-    if (incognito && !title) document.title = 'PatraSaar — Incognito'
-    else if (title) document.title = `PatraSaar — ${title}`
+    if (incognito && !title) document.title = 'PatraSaar - Incognito'
+    else if (title) document.title = `PatraSaar - ${title}`
     else document.title = 'PatraSaar'
   }, [title, incognito])
 
@@ -410,7 +410,7 @@ export function ChatWorkspace({
             <h1 className="truncate font-serif text-base sm:text-lg">{title ?? 'New inquiry'}</h1>
             {incognito && (
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-accent/30 bg-accent-soft px-2 py-0.5 text-[10px] text-accent">
-                <Ghost size={10} /> <span className="hidden sm:inline">Incognito — not saved</span>
+                <Ghost size={10} /> <span className="hidden sm:inline">Incognito - not saved</span>
                 <span className="sm:hidden">Incognito</span>
               </span>
             )}

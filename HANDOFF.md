@@ -1,16 +1,16 @@
-# PatraSaar — Presentation Handoff
+# PatraSaar - Presentation Handoff
 
 **Audience:** an AI agent (or a person) preparing a capstone/viva presentation for PatraSaar.
-**Goal:** explain what PatraSaar is, why it is different, and how to defend it — honestly.
+**Goal:** explain what PatraSaar is, why it is different, and how to defend it - honestly.
 
 **Live app:** https://patra-saar-lyart.vercel.app
 **Repository:** https://github.com/ab1nv/patra-saar (branch `master`)
 **Demo login:** `abhinav@test.com` / `abhinav`
-**Key artefact for the panel:** the `/audit` page — a measured hallucination comparison.
+**Key artefact for the panel:** the `/audit` page - a measured hallucination comparison.
 
 > **Read this first.** This project's entire credibility rests on not overclaiming. Never say "zero
 > hallucinations", "100% accurate", or "complete Indian legal corpus". The defensible claim is:
-> _"No citation reaches you unless it was verified verbatim against the indexed bare act — and we
+> _"No citation reaches you unless it was verified verbatim against the indexed bare act - and we
 > measured how often the same model fabricates citations without that check."_
 
 ---
@@ -18,9 +18,9 @@
 ## 1. Executive summary
 
 PatraSaar is a retrieval-augmented question-answering tool for Indian statutory law. It answers
-questions about ten indexed sources — the Indian Penal Code, Bharatiya Nyaya Sanhita, Bharatiya
+questions about ten indexed sources - the Indian Penal Code, Bharatiya Nyaya Sanhita, Bharatiya
 Sakshya Adhiniyam, Bharatiya Nagarik Suraksha Sanhita, Code of Criminal Procedure, Code of Civil
-Procedure, the Constitution of India, the Indian Contract Act, the IT Act, and the Companies Act —
+Procedure, the Constitution of India, the Indian Contract Act, the IT Act, and the Companies Act -
 using **only** an indexed corpus of ~3,200 parsed sections. A language model is constrained to
 answer from the retrieved sections and must express every legal assertion as a machine-checkable
 citation containing a verbatim quote. A **deterministic, non-LLM verifier** then checks each
@@ -62,7 +62,7 @@ The one-line pitch: **"It cites the law, or it says it doesn't know."**
 - **Headline result (n=30, `qwen/qwen3.8-27b`):** only **5.1%** of the ungrounded baseline's quotes
   appear verbatim in the actual statute, versus **97.6%** for PatraSaar; PatraSaar verified **97.6%**
   of the citations it showed and fabricated **0%**. Both arms abstained on 20% of questions. The
-  baseline usually names a _real_ section — its weakness is that the quoted wording is not the law.
+  baseline usually names a _real_ section - its weakness is that the quoted wording is not the law.
 
 **Abstention.** A coverage gate on retrieval means weak matches produce a refusal, not a guess.
 
@@ -107,7 +107,7 @@ lexically precise ("punishment for murder", "section 420"), which is exactly whe
 that structure is what makes exact lookup and citation verification possible at all.
 
 **Why a deterministic verifier.** The fact-checking literature shows that using a second LLM to
-check the first one is unreliable — the verifier can itself hallucinate. PatraSaar's verifier is
+check the first one is unreliable - the verifier can itself hallucinate. PatraSaar's verifier is
 normalised string-matching against its own indexed text, so it cannot.
 
 **The verifier's honest limit.** It proves **provenance**, not legal reasoning: a section can be
@@ -118,10 +118,10 @@ stated in the viva.
 verifier including the paraphrased-quote failure, migration, audit scoring) and Playwright E2E on
 desktop **and mobile** viewports (login + redirect, streaming answer with a verified badge,
 abstention, audit page). CI runs typecheck, lint, `knip`, unit tests, a Postgres service container,
-seed, build and E2E — with **no repository secrets required**.
+seed, build and E2E - with **no repository secrets required**.
 
 **Corpus build.** `scripts/build-corpus.ts` extracts text with `unpdf`, strips page furniture,
-splits on the `NUMBER. Title.—Body` heading pattern (with a tolerant `(N) Title.—` mode for mixed
+splits on the `NUMBER. Title.-Body` heading pattern (with a tolerant `(N) Title.-` mode for mixed
 editions), rejects footnote false positives, de-duplicates, and unwraps amendment markers so quotes
 are naturally verbatim. Output: `data/corpus.json`.
 
@@ -136,8 +136,8 @@ are naturally verbatim. Output: `data/corpus.json`.
 ### 4.1 The reframe
 
 **Old pitch (loses the room):** "PatraSaar is an AI legal assistant for Indian law that cites its
-sources." The immediate objection — _any_ chatbot can be told to cite things, and five Indian
-legal-tech products already do — is correct, and the category is saturated.
+sources." The immediate objection - _any_ chatbot can be told to cite things, and five Indian
+legal-tech products already do - is correct, and the category is saturated.
 
 **New pitch:** PatraSaar is not competing to be a better legal chatbot. It is a working
 demonstration, with its own **published, falsifiable measurement**, of a specific and
@@ -148,7 +148,7 @@ verification layer that drives fabricated citations to zero while being explicit
 cannot catch.
 
 This moves the project from "product demo competing with funded startups" to "small, rigorous
-empirical study with a working reference implementation" — a much smaller, winnable fight, and
+empirical study with a working reference implementation" - a much smaller, winnable fight, and
 exactly what an AI/ML capstone panel should reward.
 
 ### 4.2 Why now: a real Indian court just ruled on this
@@ -158,7 +158,7 @@ exactly what an AI/ML capstone panel should reward.
 
 On **2 July 2026**, in **Pooja Ramesh Singh v. Jammu & Kashmir Bank Ltd. & Anr. (2026 INSC 668)**,
 the Supreme Court of India set aside orders of the NCLT and NCLAT in an insolvency matter after
-finding they rested on **AI-hallucinated precedents** — some judgments entirely invented, others
+finding they rested on **AI-hallucinated precedents** - some judgments entirely invented, others
 real cases padded with fabricated content. The Court declared that a decision relying, even partly,
 on fake, non-existent or AI-hallucinated precedents must be set aside, and directed the Bar Council
 of India to examine the use of AI-fabricated material and frame guiding principles.
@@ -168,18 +168,18 @@ Tribunal recalled an order in a ₹669-crore tax dispute after discovering ficti
 and Madras High Court citations; the Kerala High Court (July 2025) and the Gujarat High Court
 (April 2026) issued formal policies on AI use in judicial work.
 
-**That is the "why now":** the exact failure mode PatraSaar's verifier targets — a citation that
-looks real but isn't — is the specific thing the Supreme Court of India just treated as
+**That is the "why now":** the exact failure mode PatraSaar's verifier targets - a citation that
+looks real but isn't - is the specific thing the Supreme Court of India just treated as
 zero-tolerance, weeks before the presentation, in a live case with real financial stakes.
 
 ### 4.3 The one feature worth building (now built)
 
 The brief's recommendation was to build a **hallucination benchmark** rather than another feature:
-_"You already wrote the verifier — you've just never pointed it at an unverified baseline and
+_"You already wrote the verifier - you've just never pointed it at an unverified baseline and
 published the comparison."_ That is now implemented as the audit harness and `/audit` page:
 ground-truth questions, an ungrounded baseline arm, deterministic scoring, and an honest
 methodology. Instead of saying _"we verify citations,"_ the demo says _"we measured that our model
-fabricates citations on N% of questions when ungrounded, and our verifier catches them — here is
+fabricates citations on N% of questions when ungrounded, and our verifier catches them - here is
 the table."_
 
 ### 4.4 What to de-emphasise
@@ -197,17 +197,17 @@ Use these to answer "what research exists?" without hesitation.
 
 - **Dahl, Magesh, Suzgun & Ho (2024), "Large Legal Fictions: Profiling Legal Hallucinations in Large
   Language Models," _Journal of Legal Analysis_ 16(1).** LLMs hallucinate on 58% (GPT-4) to 88%
-  (Llama 2) of specific, verifiable questions about real federal court cases — **even at temperature
+  (Llama 2) of specific, verifiable questions about real federal court cases - **even at temperature
   0**. Models also fail to correct a user's false legal premise and are poor at predicting their own
   hallucination (you cannot just ask "are you sure?").
 - **Magesh, Surani, Dahl, Suzgun, Manning & Ho (2025), "Hallucination-Free? Assessing the Reliability
   of Leading AI Legal Research Tools," _Journal of Empirical Legal Studies_.** First independent,
   preregistered audit of commercial legal-AI products: **Lexis+ AI ~17%**, **Westlaw AI-Assisted
-  Research ~33%**, plain **GPT-4 ~43%** hallucination — despite LexisNexis's "100% hallucination-free"
+  Research ~33%**, plain **GPT-4 ~43%** hallucination - despite LexisNexis's "100% hallucination-free"
   marketing claim, which the study called overstated and which was subsequently softened. _This is
   the single most useful citation in the deck._
 - **Manakul, Liusie & Gales (2023), "SelfCheckGPT: Zero-Resource Black-Box Hallucination
-  Detection."** Detects hallucination by sampling consistency rather than an external database — a
+  Detection."** Detects hallucination by sampling consistency rather than an external database - a
   useful contrast: probabilistic signal, not a guarantee.
 - **"Verifying the Verifiers" (2025, arXiv 2506.13342).** Finds that fact-verifiers themselves are
   frequently unreliable, because most verification pipelines are themselves LLM calls that can
@@ -217,9 +217,9 @@ Use these to answer "what research exists?" without hesitation.
   Consistency."** Shows self-consistency alone is insufficient (models can be consistently wrong).
 - **Hou, Weller, Qin et al. (2025), "CLERC: A Dataset for Legal Case Retrieval and Retrieval-Augmented
   Analysis Generation," NAACL 2025.** Large legal-RAG benchmark; retrieval models struggle and LLMs
-  still hallucinate **even with retrieved context** — evidence that retrieval alone is insufficient.
+  still hallucinate **even with retrieved context** - evidence that retrieval alone is insufficient.
 - **LegalGraphRAG (2026, arXiv 2605.28120).** Multi-agent "Researcher / Auditor / Adjudicator"
-  pipeline for verified legal reasoning — a heavier academic instance of the same verify-before-trust
+  pipeline for verified legal reasoning - a heavier academic instance of the same verify-before-trust
   philosophy.
 
 **One paragraph you can say almost verbatim:**
@@ -229,7 +229,7 @@ Use these to answer "what research exists?" without hesitation.
 > hallucination rates in commercial, RAG-based tools _marketed as solved_. Separately, the
 > fact-checking literature has found that using a second LLM to verify the first doesn't reliably
 > fix this, because the verifier can hallucinate too. PatraSaar's verifier is deliberately **not** an
-> LLM — it is a deterministic three-check comparison against indexed source text — specifically to
+> LLM - it is a deterministic three-check comparison against indexed source text - specifically to
 > avoid that failure mode, and we measure the resulting rate ourselves rather than asserting it."
 
 ---
@@ -280,8 +280,8 @@ that the others do not target with this rigour.**
    sentence on what it does.
 2. **Log in (0:20).** Ask: _"What is the punishment for murder under the BNS?"_ Show the streaming
    answer, then the **✓ verified** badge, then click a citation chip to reveal the verbatim section.
-3. **The money shot (0:55).** Ask something outside the corpus — _"What are the current GST rates on
-   textiles?"_ — and let it **refuse**. _"It doesn't guess. Retrieval scored below threshold, so it
+3. **The money shot (0:55).** Ask something outside the corpus - _"What are the current GST rates on
+   textiles?"_ - and let it **refuse**. _"It doesn't guess. Retrieval scored below threshold, so it
    abstained."_
 4. **The audit (1:25).** Open `/audit`. Show the fabricated-citation-rate comparison and one
    side-by-side example. _"Same model. Without retrieval and verification it invents or misattributes
@@ -363,7 +363,7 @@ clears cached assets.
 5. **Optional code change:** add `NEXT_PUBLIC_SITE_URL` and a `metadataBase` in
    `src/app/layout.tsx` so canonical/OpenGraph URLs use the new domain, and update the README badge
    and links.
-6. **No backend change is required** — the API is same-origin with the app, so there is no CORS
+6. **No backend change is required** - the API is same-origin with the app, so there is no CORS
    configuration to update.
 
 ### 9.2 Operating the project
@@ -372,7 +372,7 @@ clears cached assets.
 - **Clear all conversations:** `pnpm db:reset` (keeps the demo user).
 - **Rebuild the corpus:** drop PDFs into `data/acts/`, add an entry in `scripts/build-corpus.ts`,
   run `pnpm corpus:build`.
-- **CI:** `.github/workflows/ci.yml` runs on `master` with a Postgres service container — no
+- **CI:** `.github/workflows/ci.yml` runs on `master` with a Postgres service container - no
   repository secrets required. Dependabot opens grouped dependency updates.
 
 ---
@@ -380,8 +380,8 @@ clears cached assets.
 ## 10. Sources for the claims in this document
 
 - Supreme Court of India, _Pooja Ramesh Singh v. Jammu & Kashmir Bank Ltd. & Anr._, 2026 INSC 668
-  (2 July 2026) — reported by Supreme Court Observer, Vision IAS / The Hindu, IndiaLaw, and others.
-- ITAT Bengaluru ₹669-crore order recalled over fictitious citations — reported by Law Times Journal
+  (2 July 2026) - reported by Supreme Court Observer, Vision IAS / The Hindu, IndiaLaw, and others.
+- ITAT Bengaluru ₹669-crore order recalled over fictitious citations - reported by Law Times Journal
   and others.
 - Dahl, Magesh, Suzgun & Ho (2024), _Journal of Legal Analysis_ 16(1).
 - Magesh, Surani, Dahl, Suzgun, Manning & Ho (2025), _Journal of Empirical Legal Studies_.
@@ -392,5 +392,5 @@ clears cached assets.
 - LegalGraphRAG (2026), arXiv:2605.28120.
 
 > **Caveat for the presenter:** confirm each citation independently before presenting (dates,
-> reporter and holding). This project's whole argument is that citations must be checked — apply the
+> reporter and holding). This project's whole argument is that citations must be checked - apply the
 > same standard to the presentation itself.

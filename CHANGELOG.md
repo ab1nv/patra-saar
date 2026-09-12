@@ -3,7 +3,7 @@
 All notable changes to this project are documented here. Format follows
 [Conventional Commits](https://www.conventionalcommits.org/).
 
-## [3.1.0] — 2026-09-16
+## [3.1.0] - 2026-09-16
 
 ### Added
 
@@ -40,7 +40,7 @@ All notable changes to this project are documented here. Format follows
 - Sub-section citation syntax (e.g. `BNS s.318(2)`) is normalised to the base section.
 - Removed stale `.next` type artifacts that broke `tsc` after route deletions.
 
-## [3.0.0] — 2026-09-15
+## [3.0.0] - 2026-09-15
 
 ### Rewritten
 

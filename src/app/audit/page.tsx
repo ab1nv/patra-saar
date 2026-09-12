@@ -5,7 +5,7 @@ import { Reveal } from '@/components/layout/Reveal'
 import { Badge } from '@/components/ui/badge'
 
 export const metadata: Metadata = {
-  title: 'PatraSaar — Hallucination audit',
+  title: 'PatraSaar - Hallucination audit',
   description:
     'A self-run comparison of the same model answering Indian statute questions with and without retrieval-plus-verification.',
 }
@@ -95,13 +95,13 @@ export default function AuditPage() {
             </h1>
             <p className="mt-5 max-w-3xl text-base text-muted sm:text-lg">
               Every Indian legal-AI product claims to cite the law. Rather than assert it, we
-              measured it: {data.sampleSize} questions, two arms — a language model answering from
+              measured it: {data.sampleSize} questions, two arms - a language model answering from
               memory (the “just ask a chatbot” baseline) and PatraSaar&apos;s retrieve → constrain →
-              verify pipeline — scored deterministically against the indexed bare acts.
+              verify pipeline - scored deterministically against the indexed bare acts.
             </p>
             <p className="mt-4 max-w-3xl rounded-card border border-accent/25 bg-accent-soft p-4 text-sm text-muted">
               <strong className="text-foreground">Headline.</strong> The ungrounded model usually
-              names a <em>real</em> section — but its quoted wording is almost always not the actual
+              names a <em>real</em> section - but its quoted wording is almost always not the actual
               statute: only <strong className="text-danger">{pct(s.baseline.verbatimRate)}</strong>{' '}
               of its quotes appear verbatim in the source text, versus{' '}
               <strong className="text-verified">{pct(s.grounded.verbatimRate)}</strong> for
@@ -147,11 +147,11 @@ export default function AuditPage() {
             <h2 className="font-serif text-2xl">Citation quality by arm</h2>
             <p className="mt-1 text-sm text-muted">
               Share of citations in each arm. The verifier is deterministic string-matching against
-              the indexed text — it is not a second language model.
+              the indexed text - it is not a second language model.
             </p>
             <div className="mt-7 grid gap-8 md:grid-cols-2">
               <ArmBars
-                title="Baseline — model from memory"
+                title="Baseline - model from memory"
                 rows={[
                   { label: 'Resolves to a real section', value: s.baseline.existsRate },
                   { label: 'Quote is verbatim', value: s.baseline.verbatimRate },
@@ -164,7 +164,7 @@ export default function AuditPage() {
                 ]}
               />
               <ArmBars
-                title="PatraSaar — retrieve + verify"
+                title="PatraSaar - retrieve + verify"
                 rows={[
                   { label: 'Resolves to a real section', value: s.grounded.existsRate },
                   { label: 'Quote is verbatim', value: s.grounded.verbatimRate },
@@ -269,7 +269,7 @@ export default function AuditPage() {
               </p>
               <p>
                 <strong className="text-foreground">Limitations.</strong> This is a small, self-run,
-                single-model, non-adversarial benchmark — not a peer-reviewed study. It measures
+                single-model, non-adversarial benchmark - not a peer-reviewed study. It measures
                 citation provenance, not legal reasoning: a correctly quoted section can still be
                 applied to the wrong situation. It mirrors, at a much smaller scale, the design of
                 the Stanford RegLab audits of commercial legal-AI tools.
@@ -363,7 +363,7 @@ function ArmExample({
     >
       <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-faint">{label}</p>
       {arm.abstained ? (
-        <p className="text-xs text-muted">Refused — no citation produced.</p>
+        <p className="text-xs text-muted">Refused - no citation produced.</p>
       ) : (
         <ul className="space-y-1.5">
           {arm.citations.slice(0, 2).map((c, i) => (

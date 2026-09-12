@@ -37,7 +37,7 @@ export type ArmScoreInput = {
 /**
  * Scores a single answer against the corpus. Pure and deterministic so the audit
  * aggregation is unit-testable. Note this deliberately does NOT apply the
- * "wasRetrieved" check unless retrievedIds is supplied — the baseline arm has no
+ * "wasRetrieved" check unless retrievedIds is supplied - the baseline arm has no
  * retrieval, and we want to know whether its citations are real at all.
  */
 export function scoreAnswer({

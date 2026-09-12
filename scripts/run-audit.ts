@@ -39,6 +39,11 @@ const selected = questions.slice(0, Number.isFinite(limit) && limit > 0 ? limit 
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
+/** Strips em dashes from stored answer text (display only; scoring uses the raw answer). */
+function clean(text: string): string {
+  return text.replace(/\u2014/g, '-')
+}
+
 async function withRetry<T>(label: string, fn: () => Promise<T>, tries = 8): Promise<T> {
   let lastErr: unknown
   for (let i = 0; i < tries; i++) {
@@ -103,7 +108,7 @@ async function runGrounded(
 
 async function main() {
   if (!process.env.GROQ_API_KEY) {
-    console.error('GROQ_API_KEY is not set — cannot run the audit.')
+    console.error('GROQ_API_KEY is not set - cannot run the audit.')
     process.exit(1)
   }
 
@@ -144,7 +149,7 @@ async function main() {
       expectedSection: q.expectedSection,
       baseline: {
         ...scoreAnswer({ answer: baselineAnswer, expectedSectionId: q.expectedSection }),
-        answer: baselineAnswer,
+        answer: clean(baselineAnswer),
       },
       grounded: {
         ...scoreAnswer({
@@ -152,7 +157,7 @@ async function main() {
           expectedSectionId: q.expectedSection,
           retrievedIds: grounded.retrievedIds,
         }),
-        answer: grounded.answer,
+        answer: clean(grounded.answer),
         providerAbstained: grounded.providerAbstained,
       },
     }

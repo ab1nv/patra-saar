@@ -43,9 +43,9 @@ export function checkQuoteVerbatim(section: Section, quote: string): boolean {
 /**
  * Server-side citation verifier. Runs on the assembled answer, after generation.
  * Three checks, in order:
- *   1. sectionExists  — the cited section resolves in the corpus
- *   2. wasRetrieved   — that section was actually retrieved for this query
- *   3. quoteVerbatim  — the quoted string appears verbatim in the section text
+ *   1. sectionExists  - the cited section resolves in the corpus
+ *   2. wasRetrieved   - that section was actually retrieved for this query
+ *   3. quoteVerbatim  - the quoted string appears verbatim in the section text
  */
 export function verifyCitations(answer: string, retrieved: Section[]): VerificationResult {
   const { citations, answerWithMarkers } = parseCitations(answer)

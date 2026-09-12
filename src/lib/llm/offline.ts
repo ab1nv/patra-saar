@@ -22,7 +22,7 @@ export function offlineAnswer(question: string, sections: Section[], mode: ChatM
   for (const s of sections.slice(0, 3)) {
     const quote = firstSentence(s.text)
     parts.push(
-      `\n**${s.actFull}, Section ${s.number} — ${s.title}**\n\n` +
+      `\n**${s.actFull}, Section ${s.number} - ${s.title}**\n\n` +
         `The provision reads: "${quote}" ` +
         `[[${s.act} s.${s.number} | "${quote}"]]`,
     )

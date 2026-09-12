@@ -16,7 +16,7 @@ RULES:
    ACT_CODE is the short code shown at the start of each section header below
    (IPC, BNS, BSA, BNSS, CrPC, CPC, Constitution, Contract Act, IT Act or
    Companies Act). Do NOT use the full act name or the year in the citation.
-   Cite the SECTION number only — never a sub-section, so write "BNS s.318",
+   Cite the SECTION number only - never a sub-section, so write "BNS s.318",
    not "BNS s.318(2)". All the codes listed above are usable, including the
    Constitution (cite as "Constitution s.21" for Article 21).
    The quote MUST be copied character-for-character from the section text below.
@@ -36,7 +36,7 @@ const MODE_TONE: Record<ChatMode, string> = {
 }
 
 export const ABSTAIN_MESSAGE =
-  "I don't have the relevant provision in my indexed corpus. I can only answer from the central acts I have indexed — the Indian Penal Code, Bharatiya Nyaya Sanhita, the Bharatiya Sakshya Adhiniyam, the Bharatiya Nagarik Suraksha Sanhita, the Code of Criminal Procedure, the Code of Civil Procedure, the Constitution of India, the Indian Contract Act, the IT Act, and the Companies Act. Try rephrasing using terms that appear in those acts, or name the section directly."
+  "I don't have the relevant provision in my indexed corpus. I can only answer from the central acts I have indexed - the Indian Penal Code, Bharatiya Nyaya Sanhita, the Bharatiya Sakshya Adhiniyam, the Bharatiya Nagarik Suraksha Sanhita, the Code of Criminal Procedure, the Code of Civil Procedure, the Constitution of India, the Indian Contract Act, the IT Act, and the Companies Act. Try rephrasing using terms that appear in those acts, or name the section directly."
 
 const BASELINE_RULES = `You are a helpful assistant answering questions about Indian law from your own knowledge, without any reference material.
 
@@ -76,7 +76,7 @@ export function buildPrompt(
   const blocks: string[] = []
   let used = 0
   for (const s of sections) {
-    const block = `[LEGAL SECTION — ACT_CODE: ${s.act} | ${s.actFull}, Section ${s.number}: ${s.title}]\n${clip(s.text, MAX_SECTION_CHARS)}`
+    const block = `[LEGAL SECTION - ACT_CODE: ${s.act} | ${s.actFull}, Section ${s.number}: ${s.title}]\n${clip(s.text, MAX_SECTION_CHARS)}`
     if (used + block.length > MAX_CONTEXT_CHARS && blocks.length > 0) break
     blocks.push(block)
     used += block.length
@@ -91,7 +91,7 @@ export function buildPrompt(
     )
   }
   if (extras.attachmentText) {
-    parts.push(`[USER ATTACHMENT — not a legal source]\n${extras.attachmentText.slice(0, 20_000)}`)
+    parts.push(`[USER ATTACHMENT - not a legal source]\n${extras.attachmentText.slice(0, 20_000)}`)
   }
   parts.push(`Question: ${question}`)
 
