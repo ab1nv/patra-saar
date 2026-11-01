@@ -37,6 +37,11 @@ const EXAMPLE_POOL = [
   'What is the offence of tampering with computer source documents under IT Act section 65?',
   'What agreements are contracts under Indian Contract Act section 10?',
   'How is information about a cognizable offence recorded under BNSS section 173?',
+  'What constitutes dishonour of cheque under section 138 of the NI Act?',
+  'What are the grounds for extension of period under Limitation Act section 5?',
+  'When can a court refer parties to arbitration under section 8 of the Arbitration Act?',
+  'What contracts are specifically enforceable under Specific Relief Act section 10?',
+  'What are the grounds for processing personal data under section 4 of the DPDP Act?',
 ]
 
 function pickExamples(): string[] {
@@ -537,7 +542,7 @@ export function ChatWorkspace({
               <div className="mx-auto mt-16 max-w-lg text-center sm:mt-20">
                 <h2 className="font-serif text-3xl">How can I help with Indian law?</h2>
                 <p className="mt-3 text-sm text-muted">
-                  Ask about any section of the ten indexed acts and the Constitution. Every citation
+                  Ask about any section of the 15 indexed acts and the Constitution. Every citation
                   is checked against the bare act, and if nothing relevant is found, I&apos;ll say
                   so instead of guessing.
                 </p>

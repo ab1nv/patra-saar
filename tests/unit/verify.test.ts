@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { retrieve } from '@/lib/corpus/retrieve'
+import { retrieveSync } from '@/lib/corpus/retrieve'
 import { verifyCitations } from '@/lib/citations/verify'
 
 /** The verification layer is the project's claim, so this is its thesis test. */
 describe('verifyCitations', () => {
-  const retrieved = retrieve('section 302 IPC').sections
+  const retrieved = retrieveSync('section 302 IPC').sections
   const ipc302 = retrieved.find((s) => s.id === 'ipc:302')!
 
   it('verifies a citation whose quote is verbatim from the retrieved section', () => {
@@ -46,7 +46,7 @@ describe('verifyCitations', () => {
   })
 
   it('resolves a citation that uses the full act name with a year', () => {
-    const bnsRetrieved = retrieve('section 103 BNS').sections
+    const bnsRetrieved = retrieveSync('section 103 BNS').sections
     const bns103 = bnsRetrieved.find((s) => s.id === 'bns:103')!
     const answer = `[[Bharatiya Nyaya Sanhita, 2023 s.103 | "${bns103.text.slice(0, 50)}"]]`
     const result = verifyCitations(answer, bnsRetrieved)
@@ -57,5 +57,16 @@ describe('verifyCitations', () => {
   it('does not throw on malformed citation syntax', () => {
     const result = verifyCitations('[[IPC s.302 | unterminated', retrieved)
     expect(result.citations).toHaveLength(0)
+  })
+
+  it('verifies a citation from newly ingested acts like NI Act 138', () => {
+    const niRetrieved = retrieveSync('section 138 NI Act').sections
+    const ni138 = niRetrieved.find((s) => s.id === 'ni:138')!
+    expect(ni138).toBeDefined()
+    const quote = 'Where any cheque drawn by a person on an account maintained by him'
+    const answer = `[[NI Act s.138 | "${quote}"]]`
+    const result = verifyCitations(answer, niRetrieved)
+    expect(result.citations[0]?.verified).toBe(true)
+    expect(result.citations[0]?.sectionId).toBe('ni:138')
   })
 })

@@ -6,3 +6,7 @@
 Makefile linguist-detectable=false
 makefile linguist-detectable=false
 *.rsc linguist-detectable=false
+*.bin binary
+*.pdf binary
+*.bin binary
+*.pdf binary

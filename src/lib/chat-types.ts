@@ -36,6 +36,13 @@ export type StreamEvent =
       caseId: string | null
       abstained: boolean
       incognito: boolean
+      retrieved?: {
+        id: string
+        act: string
+        number: string
+        title: string
+        matchType: string
+      }[]
     }
   | { type: 'token'; value: string }
   | {
