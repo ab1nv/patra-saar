@@ -44,10 +44,6 @@ export type DenseHit = {
   score: number // cosine similarity in [-1, 1]
 }
 
-export function isDenseAvailable(): boolean {
-  return loadVectors() !== null
-}
-
 /**
  * Searches the precomputed corpus embeddings using dot-product cosine similarity.
  * Runs in < 2ms on CPU over 3,630 sections.
