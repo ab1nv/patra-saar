@@ -1,4 +1,5 @@
 # Single-package repo, but pnpm 10 reads build-script and workspace settings here.
 onlyBuiltDependencies:
   - esbuild
+  - sharp
   - unrs-resolver

@@ -77,10 +77,5 @@
     "extends": [
       "@commitlint/config-conventional"
     ]
-  },
-  "pnpm": {
-    "overrides": {
-      "sharp": "link:./stub-sharp"
-    }
   }
 }
