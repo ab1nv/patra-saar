@@ -39,7 +39,19 @@ export function SiteHeader() {
     <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-6">
         <Logo />
-        <nav className="flex items-center gap-1 text-sm">
+        <nav className="flex items-center gap-2 sm:gap-4 text-sm">
+          <Link
+            href="/compare"
+            className="text-muted hover:text-foreground font-medium transition-colors px-2 py-1 text-xs sm:text-sm"
+          >
+            Why PatraSaar
+          </Link>
+          <Link
+            href="/methodology"
+            className="text-muted hover:text-foreground font-medium transition-colors px-2 py-1 text-xs sm:text-sm"
+          >
+            Methodology
+          </Link>
           <Link
             href="/chat"
             className="rounded-control bg-accent px-4 py-2 font-semibold text-background transition-all hover:bg-accent-strong active:scale-[.98]"
@@ -57,10 +69,23 @@ export function SiteFooter() {
     <footer className="relative z-10 border-t border-border">
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-6">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="PatraSaar" width={26} height={26} />
-            <span className="font-serif text-lg font-semibold">PatraSaar</span>
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2.5">
+              <Image src="/logo.png" alt="PatraSaar" width={26} height={26} />
+              <span className="font-serif text-lg font-semibold">PatraSaar</span>
+            </Link>
+            <div className="flex items-center gap-4 text-xs text-muted">
+              <Link href="/compare" className="hover:text-foreground transition-colors">
+                Why PatraSaar
+              </Link>
+              <Link href="/methodology" className="hover:text-foreground transition-colors">
+                Methodology
+              </Link>
+              <Link href="/chat" className="hover:text-foreground transition-colors">
+                Workspace
+              </Link>
+            </div>
+          </div>
 
           <div className="flex flex-col gap-2 text-xs text-faint sm:items-end">
             <p>

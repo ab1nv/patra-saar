@@ -23,6 +23,57 @@ type ActConfig = {
   expected: number
   /** Accept "(N) Title.-" headings too, with a monotonic guard (some editions mix styles). */
   allowParen?: boolean
+  /** Custom heading regex if different from standard SECTION_RE */
+  customRegex?: RegExp
+  /** Custom title map if titles are in marginal notes (e.g. DPDP Act) */
+  titleMap?: Record<string, string>
+}
+
+const DPDP_TITLES: Record<string, string> = {
+  '1': 'Short title and commencement',
+  '2': 'Definitions',
+  '3': 'Application of Act',
+  '4': 'Grounds for processing personal data',
+  '5': 'Notice',
+  '6': 'Consent',
+  '7': 'Certain legitimate uses',
+  '8': 'General obligations of Data Fiduciary',
+  '9': 'Processing of personal data of children',
+  '10': 'Additional obligations of Significant Data Fiduciary',
+  '11': 'Right to access information about personal data',
+  '12': 'Right to correction and erasure of personal data',
+  '13': 'Right of grievance redressal',
+  '14': 'Right to nominate',
+  '15': 'Duties of Data Principal',
+  '16': 'Transfer of personal data outside India',
+  '17': 'Exemptions',
+  '18': 'Establishment of Board',
+  '19': 'Composition and qualifications for appointment of Chairperson and Members',
+  '20': 'Salary, allowances and other terms and conditions of service of Chairperson and Members',
+  '21': 'Disqualifications for appointment and continuation as Chairperson and Members of Board',
+  '22': 'Resignation by Members and filling of vacancy',
+  '23': 'Removal of Chairperson and Members of Board',
+  '24': 'Meetings of Board',
+  '25': 'Vacancies, etc., not to invalidate proceedings of Board',
+  '26': 'Officers and employees of Board',
+  '27': 'Powers to make inquiries and issue directions',
+  '28': 'Powers of Board in respect of inquiries',
+  '29': 'Proceedings of Board',
+  '30': 'Financial and administrative powers of Board',
+  '31': 'Appeals',
+  '32': 'Orders of Appellate Tribunal',
+  '33': 'Procedure and powers of Appellate Tribunal',
+  '34': 'Right to legal representation',
+  '35': 'Appeal to Supreme Court',
+  '36': 'Power of Central Government to call for information',
+  '37': 'Power of Central Government to issue directions',
+  '38': 'Consistency with other laws',
+  '39': 'Protection of action taken in good faith',
+  '40': 'Power of Central Government to make rules',
+  '41': 'Power of Board to make regulations',
+  '42': 'Laying of rules and regulations',
+  '43': 'Power to remove difficulties',
+  '44': 'Amendments to certain Acts',
 }
 
 const ACTS: ActConfig[] = [
@@ -97,6 +148,44 @@ const ACTS: ActConfig[] = [
     file: 'The Constitution of India.pdf',
     expected: 395,
   },
+  {
+    act: 'NI Act',
+    slug: 'ni',
+    actFull: 'Negotiable Instruments Act, 1881',
+    file: 'THE NEGOTIABLE INSTRUMENTS ACT, 1881.PDF',
+    expected: 147,
+  },
+  {
+    act: 'Limitation Act',
+    slug: 'limitation',
+    actFull: 'Limitation Act, 1963',
+    file: 'THE LIMITATION ACT, 1963.pdf',
+    expected: 32,
+  },
+  {
+    act: 'Arbitration Act',
+    slug: 'arbitration',
+    actFull: 'Arbitration and Conciliation Act, 1996',
+    file: 'THE ARBITRATION AND CONCILIATION ACT, 1996.PDF',
+    expected: 86,
+    customRegex: /^[ \t]*(\d{1,3}[A-Z]{0,2})\.\s+([A-Z][^\n]{3,120}?)\.?\s*$/gm,
+  },
+  {
+    act: 'Specific Relief Act',
+    slug: 'specific-relief',
+    actFull: 'Specific Relief Act, 1963',
+    file: 'THE SPECIFIC RELIEF ACT, 1963.PDF',
+    expected: 44,
+  },
+  {
+    act: 'DPDP Act',
+    slug: 'dpdp',
+    actFull: 'Digital Personal Data Protection Act, 2023',
+    file: 'THE DIGITAL PERSONAL DATA PROTECTION ACT, 2023.pdf',
+    expected: 44,
+    customRegex: /^[ \t]*(\d{1,2})\.\s+/gm,
+    titleMap: DPDP_TITLES,
+  },
 ]
 
 const SECTION_RE = /^[ \t]*(\d{1,3}[A-Z]{0,2})\.\s+([\s\S]{3,140}?)\s*[\u2014\u2013]{1,2}\s*/gm
@@ -168,22 +257,45 @@ async function parseAct(cfg: ActConfig): Promise<Section[]> {
   const text = await extractTextFor(cfg.file)
 
   const raw: { num: string; titleRaw: string; start: number; end: number }[] = []
-  for (const m of text.matchAll(SECTION_RE)) {
-    raw.push({
-      num: m[1]!,
-      titleRaw: m[2]!.replace(/\s+/g, ' ').trim(),
-      start: m.index!,
-      end: m.index! + m[0].length,
-    })
-  }
-  if (cfg.allowParen) {
-    for (const m of text.matchAll(PAREN_SECTION_RE)) {
+
+  if (cfg.titleMap && cfg.customRegex) {
+    for (const m of text.matchAll(cfg.customRegex)) {
+      const num = m[1]!
+      const title = cfg.titleMap[num] ?? `Section ${num}`
+      raw.push({
+        num,
+        titleRaw: title,
+        start: m.index!,
+        end: m.index! + m[0].length,
+      })
+    }
+  } else if (cfg.customRegex) {
+    for (const m of text.matchAll(cfg.customRegex)) {
       raw.push({
         num: m[1]!,
         titleRaw: m[2]!.replace(/\s+/g, ' ').trim(),
         start: m.index!,
         end: m.index! + m[0].length,
       })
+    }
+  } else {
+    for (const m of text.matchAll(SECTION_RE)) {
+      raw.push({
+        num: m[1]!,
+        titleRaw: m[2]!.replace(/\s+/g, ' ').trim(),
+        start: m.index!,
+        end: m.index! + m[0].length,
+      })
+    }
+    if (cfg.allowParen) {
+      for (const m of text.matchAll(PAREN_SECTION_RE)) {
+        raw.push({
+          num: m[1]!,
+          titleRaw: m[2]!.replace(/\s+/g, ' ').trim(),
+          start: m.index!,
+          end: m.index! + m[0].length,
+        })
+      }
     }
   }
   raw.sort((a, b) => a.start - b.start)
@@ -194,9 +306,13 @@ async function parseAct(cfg: ActConfig): Promise<Section[]> {
   let lastVal = 0
   let lastSuffix = ''
   for (const c of raw) {
-    const title = c.titleRaw.replace(/[.\s]+$/, '').trim()
+    let title = c.titleRaw.replace(/[.\s]+$/, '').trim()
+    if (cfg.slug === 'ni' && c.num === '1') {
+      title = title.replace(/^.*?\b1\.\s+Short title/i, 'Short title')
+    }
     if (title.length < 3) continue
     if (isFootnoteTitle(c.titleRaw)) continue
+    if (/^(PART|CHAPTER|SCHEDULE|THE)\b/i.test(title)) continue
     if (seen.has(c.num)) continue
     if (cfg.allowParen) {
       // Guard against sub-section markers like "(1) Unless ...": must advance the sequence.
@@ -250,7 +366,7 @@ async function main() {
     })
     const pct = Math.round((sections.length / cfg.expected) * 100)
     console.log(
-      `  ${cfg.act.padEnd(15)} ${String(sections.length).padStart(4)} sections-with-text  (~${pct}% of ${cfg.expected} nominal)`,
+      `  ${cfg.act.padEnd(22)} ${String(sections.length).padStart(4)} sections-with-text  (~${pct}% of ${cfg.expected} nominal)`,
     )
   }
 
@@ -275,11 +391,16 @@ async function main() {
     'cpc:9',
     'constitution:21',
     'constitution:14',
+    'ni:138',
+    'limitation:5',
+    'arbitration:8',
+    'specific-relief:10',
+    'dpdp:4',
   ]
   console.log('\nSpot checks:')
   for (const id of spots) {
     const s = all.find((x) => x.id === id)
-    console.log(`  ${id.padEnd(14)} ${s ? `"${s.title}" (${s.text.length} chars)` : 'MISSING'}`)
+    console.log(`  ${id.padEnd(20)} ${s ? `"${s.title}" (${s.text.length} chars)` : 'MISSING'}`)
   }
 }
 

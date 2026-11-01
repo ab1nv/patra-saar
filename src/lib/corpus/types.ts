@@ -25,7 +25,7 @@ export type Corpus = {
   sections: Section[]
 }
 
-export type MatchType = 'exact' | 'lexical'
+export type MatchType = 'exact' | 'lexical' | 'dense' | 'hybrid'
 
 export type RetrievedSection = Section & {
   score: number

@@ -1,6 +1,7 @@
 import { eq, asc, desc, and, sql } from 'drizzle-orm'
 import { getDb } from './client'
 import { users, cases, messages } from './schema'
+import { hashPassword } from '../auth/password'
 
 export type UserRow = {
   id: string
@@ -50,9 +51,17 @@ type Memory = {
 const globalForMemory = globalThis as unknown as { __psMemory?: Memory }
 function mem(): Memory {
   if (!globalForMemory.__psMemory) {
+    const defaultEmail = (process.env.DEMO_USER_EMAIL ?? 'abhinav@test.com').toLowerCase()
+    const defaultPass = process.env.DEMO_USER_PASSWORD ?? 'abhinav'
+    const demoUser: UserRow = {
+      id: 'demo-user-id',
+      email: defaultEmail,
+      passwordHash: hashPassword(defaultPass),
+      createdAt: Date.now(),
+    }
     globalForMemory.__psMemory = {
-      usersByEmail: new Map(),
-      usersById: new Map(),
+      usersByEmail: new Map([[defaultEmail, demoUser]]),
+      usersById: new Map([[demoUser.id, demoUser]]),
       cases: new Map(),
       messages: new Map(),
     }

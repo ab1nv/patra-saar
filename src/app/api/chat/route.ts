@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     const { question, caseId: requestedCaseId, mode, incognito, selectionContext } = parsed.data
 
     const retrievalQuery = [selectionContext, question].filter(Boolean).join(' ')
-    const retrieval = retrieve(retrievalQuery)
+    const retrieval = await retrieve(retrievalQuery)
     const encoder = new TextEncoder()
 
     const stream = new ReadableStream<Uint8Array>({

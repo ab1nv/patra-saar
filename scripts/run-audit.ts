@@ -88,7 +88,7 @@ async function runBaseline(question: string): Promise<string> {
 async function runGrounded(
   question: string,
 ): Promise<{ answer: string; providerAbstained: boolean; retrievedIds: Set<string> }> {
-  const retrieval = retrieve(question)
+  const retrieval = await retrieve(question)
   const retrievedIds = new Set(retrieval.sections.map((s) => s.id))
   if (retrieval.abstain) {
     return { answer: ABSTAIN_MESSAGE, providerAbstained: true, retrievedIds }
